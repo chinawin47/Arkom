@@ -1,50 +1,50 @@
-using UnityEngine;
+๏ปฟusing UnityEngine;
 
 namespace ARKOM.Anomalies.Data
 {
     [CreateAssetMenu(fileName = "New Anomaly", menuName = "ARKOM/Anomaly Data")]
     public class AnomalyData : ScriptableObject
     {
-        [Header("ข้อมูลพื้นฐาน")]
-        [Tooltip("รหัสไม่ซ้ำสำหรับใช้ตรวจสอบ/อ้างอิง (ต้องไม่ซ้ำ)")]
+        [Header("เธเนเธญเธกเธนเธฅเธเธทเนเธเธเธฒเธ")]
+        [Tooltip("เธฃเธซเธฑเธชเนเธกเนเธเนเธณเธชเธณเธซเธฃเธฑเธเนเธเนเธ•เธฃเธงเธเธชเธญเธ/เธญเนเธฒเธเธญเธดเธ (เธ•เนเธญเธเนเธกเนเธเนเธณ)")]
         public string anomalyId;
-        [Tooltip("ชื่อที่จะแสดงบน UI หรือ Log")]
+        [Tooltip("เธเธทเนเธญเธ—เธตเนเธเธฐเนเธชเธ”เธเธเธ UI เธซเธฃเธทเธญ Log")]
         public string displayName;
 
-        [Header("ประเภทความผิดปกติ")]
-        [Tooltip("รูปแบบการเปลี่ยนแปลงที่จะใช้")]
+        [Header("เธเธฃเธฐเน€เธ เธ—เธเธงเธฒเธกเธเธดเธ”เธเธเธ•เธด")]
+        [Tooltip("เธฃเธนเธเนเธเธเธเธฒเธฃเน€เธเธฅเธตเนเธขเธเนเธเธฅเธเธ—เธตเนเธเธฐเนเธเน")]
         public AnomalyType type;
 
-        [Header("Transform Offsets (ใช้กับ Position / Rotation / Scale)")]
-        [Tooltip("ระยะที่จะเลื่อน (ทบกับตำแหน่งเดิม)")]
+        [Header("Transform Offsets (เนเธเนเธเธฑเธ Position / Rotation / Scale)")]
+        [Tooltip("เธฃเธฐเธขเธฐเธ—เธตเนเธเธฐเน€เธฅเธทเนเธญเธ (เธ—เธเธเธฑเธเธ•เธณเนเธซเธเนเธเน€เธ”เธดเธก)")]
         public Vector3 positionOffset;
-        [Tooltip("องศาที่จะหมุน (ทบกับหมุนเดิม)")]
+        [Tooltip("เธญเธเธจเธฒเธ—เธตเนเธเธฐเธซเธกเธธเธ (เธ—เธเธเธฑเธเธซเธกเธธเธเน€เธ”เธดเธก)")]
         public Vector3 rotationOffset;
-        [Tooltip("ตัวคูณขนาด (1 = เท่าเดิม)")]
+        [Tooltip("เธ•เธฑเธงเธเธนเธ“เธเธเธฒเธ” (1 = เน€เธ—เนเธฒเน€เธ”เธดเธก)")]
         public float scaleMultiplier = 1f;
 
-        [Header("Color Change (ใช้กับ Color)")]
-        [Tooltip("สีที่จะแทนที่วัสดุ (Material._Color)")]
+        [Header("Color Change (เนเธเนเธเธฑเธ Color)")]
+        [Tooltip("เธชเธตเธ—เธตเนเธเธฐเนเธ—เธเธ—เธตเนเธงเธฑเธชเธ”เธธ (Material._Color)")]
         public Color colorChange = Color.red;
 
-        [Header("Prefab / เอฟเฟกต์เสริม")]
-        [Tooltip("Prefab ที่จะ Spawn เมื่อใช้ประเภท ShadowMovement หรือ SpawnPrefab")]
+        [Header("Prefab / เน€เธญเธเน€เธเธเธ•เนเน€เธชเธฃเธดเธก")]
+        [Tooltip("Prefab เธ—เธตเนเธเธฐ Spawn เน€เธกเธทเนเธญเนเธเนเธเธฃเธฐเน€เธ เธ— ShadowMovement เธซเธฃเธทเธญ SpawnPrefab")]
         public GameObject effectPrefab;
-        [Tooltip("ติ๊กเพื่อให้ใช้ effectPrefab")]
+        [Tooltip("เธ•เธดเนเธเน€เธเธทเนเธญเนเธซเนเนเธเน effectPrefab")]
         public bool useEffectPrefab;
-        [Tooltip("เสียงที่จะเล่นตอน Anomaly ถูกเปิดใช้งาน")]
+        [Tooltip("เน€เธชเธตเธขเธเธ—เธตเนเธเธฐเน€เธฅเนเธเธ•เธญเธ Anomaly เธ–เธนเธเน€เธเธดเธ”เนเธเนเธเธฒเธ")]
         public AudioClip soundEffect;
 
         public enum AnomalyType
         {
-            Position,       // เลื่อนตำแหน่ง
-            Rotation,       // หมุน
-            Scale,          // เปลี่ยนขนาด
-            Color,          // เปลี่ยนสี
-            Disappear,      // ซ่อนวัตถุ (Renderer ปิด แต่ Collider ยังอยู่ให้กดได้)
-            PictureFlip,    // พลิกรูป/กลับด้าน (หมุน 180 องศา)
-            ShadowMovement, // สร้างเงาเคลื่อนไหว (Prefab)
-            SpawnPrefab     // สร้าง Prefab ปกติ (สิ่งของเพิ่มขึ้น)
+            Position,       // เน€เธฅเธทเนเธญเธเธ•เธณเนเธซเธเนเธ
+            Rotation,       // เธซเธกเธธเธ
+            Scale,          // เน€เธเธฅเธตเนเธขเธเธเธเธฒเธ”
+            Color,          // เน€เธเธฅเธตเนเธขเธเธชเธต
+            Disappear,      // เธเนเธญเธเธงเธฑเธ•เธ–เธธ (Renderer เธเธดเธ” เนเธ•เน Collider เธขเธฑเธเธญเธขเธนเนเนเธซเนเธเธ”เนเธ”เน)
+            PictureFlip,    // เธเธฅเธดเธเธฃเธนเธ/เธเธฅเธฑเธเธ”เนเธฒเธ (เธซเธกเธธเธ 180 เธญเธเธจเธฒ)
+            ShadowMovement, // เธชเธฃเนเธฒเธเน€เธเธฒเน€เธเธฅเธทเนเธญเธเนเธซเธง (Prefab)
+            SpawnPrefab     // เธชเธฃเนเธฒเธ Prefab เธเธเธ•เธด (เธชเธดเนเธเธเธญเธเน€เธเธดเนเธกเธเธถเนเธ)
         }
     }
 }
