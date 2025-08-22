@@ -2423,9 +2423,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89a906efbfcf9dd48b5a8c24d47406d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 4
-  sensitivity: 100
+  walkSpeed: 4
+  sprintSpeed: 6.5
+  crouchSpeed: 2.2
+  crouchHeight: 1.1
+  standingHeight: 1.8
+  gravity: -9.81
+  mouseSensitivityX: 0.3
+  mouseSensitivityY: 0.3
+  invertY: 0
   playerCamera: {fileID: 1584278174}
+  interactDistance: 3
+  interactLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!143 &1165187044
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2444,8 +2455,8 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
-  m_Radius: 0.5
+  m_Height: 1.82
+  m_Radius: 0.29
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -3348,7 +3359,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
