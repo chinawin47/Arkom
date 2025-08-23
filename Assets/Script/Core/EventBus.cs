@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ARKOM.Anomalies.Runtime; // เพื่อใช้ type Anomaly ใน Event
 
 namespace ARKOM.Core
 {
@@ -40,10 +41,32 @@ namespace ARKOM.Core
         }
     }
 
-    // Event types
-    public readonly struct AnomalyResolvedEvent { public readonly string Id; public AnomalyResolvedEvent(string id)=>Id=id; }
+    // เปลี่ยน: เพิ่ม Source (อ้างอิงอินสแตนซ์) เพื่อเช็คไม่ให้นับซ้ำ
+    public readonly struct AnomalyResolvedEvent
+    {
+        public readonly string Id;
+        public readonly Anomaly Source;
+        public AnomalyResolvedEvent(string id, Anomaly source)
+        {
+            Id = id;
+            Source = source;
+        }
+    }
+
     public readonly struct NightCompletedEvent { }
-    public readonly struct LoudNoiseDetectedEvent { public readonly float Level; public LoudNoiseDetectedEvent(float level)=>Level=level; }
-    public readonly struct GameStateChangedEvent { public readonly GameState State; public GameStateChangedEvent(GameState s)=>State=s; }
-    public readonly struct QTEResultEvent { public readonly bool Success; public QTEResultEvent(bool success)=>Success=success; }
+    public readonly struct LoudNoiseDetectedEvent { public readonly float Level; public LoudNoiseDetectedEvent(float level) => Level = level; }
+    public readonly struct GameStateChangedEvent { public readonly GameState State; public GameStateChangedEvent(GameState s) => State = s; }
+    public readonly struct QTEResultEvent { public readonly bool Success; public QTEResultEvent(bool success) => Success = success; }
+
+    // ใหม่: Event ความคืบหน้า (Resolved / Total)
+    public readonly struct AnomalyProgressEvent
+    {
+        public readonly int Resolved;
+        public readonly int Total;
+        public AnomalyProgressEvent(int resolved, int total)
+        {
+            Resolved = resolved;
+            Total = total;
+        }
+    }
 }

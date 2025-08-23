@@ -4,7 +4,6 @@ using ARKOM.Core;
 
 namespace ARKOM.Anomalies.Runtime
 {
-    // คอมโพเนนต์บนวัตถุในฉากที่สามารถกลายเป็น Anomaly
     public class Anomaly : Interactable
     {
         [Tooltip("ข้อมูลตั้งค่าจาก ScriptableObject")]
@@ -12,7 +11,7 @@ namespace ARKOM.Anomalies.Runtime
 
         private bool active;
 
-        // ตัวแปรเก็บสภาพเดิม (เพื่อ revert)
+        // เก็บสภาพเดิม (ย่อสำหรับตัวอย่าง)
         private bool cachedOriginal;
         private Vector3 originalPos;
         private Quaternion originalRot;
@@ -41,8 +40,9 @@ namespace ARKOM.Anomalies.Runtime
 
         protected override void OnInteract(object interactor)
         {
-            // ผู้เล่นตรวจพบ → แจ้ง Event ให้ Manager รู้
-            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId));
+            if (data == null) return;
+            // เปลี่ยน: ส่ง both id + this
+            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId, this));
             Deactivate();
         }
 
@@ -92,7 +92,7 @@ namespace ARKOM.Anomalies.Runtime
                     case AnomalyData.AnomalyType.ShadowMovement:
                     case AnomalyData.AnomalyType.SpawnPrefab:
                         if (data.useEffectPrefab && data.effectPrefab && spawnedPrefab == null)
-                            spawnedPrefab = Instantiate(data.effectPrefab, transform.position, transform.rotation, transform);
+                            spawnedPrefab = Object.Instantiate(data.effectPrefab, transform.position, transform.rotation, transform);
                         break;
                 }
 
@@ -101,7 +101,6 @@ namespace ARKOM.Anomalies.Runtime
             }
             else
             {
-                // คืนค่าเดิม
                 switch (data.type)
                 {
                     case AnomalyData.AnomalyType.Position:
@@ -120,18 +119,9 @@ namespace ARKOM.Anomalies.Runtime
                         break;
                     case AnomalyData.AnomalyType.ShadowMovement:
                     case AnomalyData.AnomalyType.SpawnPrefab:
-                        if (spawnedPrefab) Destroy(spawnedPrefab);
+                        if (spawnedPrefab) Object.Destroy(spawnedPrefab);
                         break;
                 }
-            }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (data != null && data.type == AnomalyData.AnomalyType.Position)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(transform.position, transform.position + transform.TransformVector(data.positionOffset));
             }
         }
     }

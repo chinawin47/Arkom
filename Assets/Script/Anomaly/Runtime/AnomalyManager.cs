@@ -1,52 +1,53 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ARKOM.Core;
-using ARKOM.Anomalies.Data;
 using ARKOM.Game;
 
 namespace ARKOM.Anomalies.Runtime
 {
-    // ผู้จัดการสุ่มและติดตาม Anomaly กลางคืน (Random + Track) 
     public class AnomalyManager : MonoBehaviour
     {
         [Tooltip("รายการ Anomaly (คอมโพเนนต์) ที่เตรียมไว้ในซีนทั้งหมด / All anomaly components placed in scene")]
         public List<Anomaly> anomalyPool = new();
 
         [Header("Difficulty / ความยาก")]
-        [Tooltip("จำนวนพื้นฐานต่อคืน / Base anomalies per night")]
         public int baseAnomaliesPerNight = 3;
-        [Tooltip("เพิ่ม +1 ทุก ๆ X วัน / Add +1 every X days")]
         public int dayIntervalIncrease = 2;
 
-        private readonly HashSet<string> activeIds = new(); // id ที่กำลัง Active
-        private int resolvedCount;                          // จำนวนที่ผู้เล่นตรวจพบแล้ว
+        [Header("Debug")]
+        [Tooltip("พิมพ์รายละเอียดทุกครั้งที่แก้ไข / Verbose logs")]
+        public bool debugVerbose = false;
 
-        // Public read-only info / ข้อมูลอ่านอย่างเดียวให้ UI ใช้
-        public int ActiveAnomalyCount => activeIds.Count;          // จำนวนที่สุ่มเปิดทั้งหมด
-        public int ResolvedCount => resolvedCount;                 // ที่พบแล้ว
-        public int RemainingCount => ActiveAnomalyCount - ResolvedCount; // ที่ยังเหลือ
+        private readonly List<Anomaly> activeAnomalies = new();
+        private readonly HashSet<int> resolvedInstanceIds = new();
+        private int totalActive;
+
+        public int ActiveAnomalyCount => totalActive;
+        public int ResolvedCount => resolvedInstanceIds.Count;
+        public int RemainingCount => ActiveAnomalyCount - ResolvedCount;
 
         private void OnEnable()  => EventBus.Subscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
         private void OnDisable() => EventBus.Unsubscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
 
-        // เริ่มคืนใหม่ / Start a night
         public void StartNight()
         {
-            resolvedCount = 0;
             ResetAll();
             ActivateRandomSet();
-            Debug.Log($"[AnomalyManager] Night started. Active = {ActiveAnomalyCount}"); // บอกจำนวนที่เปิด
+            EventBus.Publish(new AnomalyProgressEvent(ResolvedCount, ActiveAnomalyCount));
+            if (debugVerbose)
+                Debug.Log($"[AnomalyManager] StartNight totalActive={ActiveAnomalyCount}");
         }
 
-        // ปิดทั้งหมดก่อนสุ่ม / Deactivate all
         private void ResetAll()
         {
-            activeIds.Clear();
-            foreach (var a in anomalyPool)
-                a.Deactivate();
+            foreach (var a in activeAnomalies)
+                if (a) a.Deactivate();
+
+            activeAnomalies.Clear();
+            resolvedInstanceIds.Clear();
+            totalActive = 0;
         }
 
-        // สุ่มเลือกกี่ตัวจะ Active / Random pick which anomalies to activate
         private void ActivateRandomSet()
         {
             if (anomalyPool.Count == 0) return;
@@ -55,30 +56,42 @@ namespace ARKOM.Anomalies.Runtime
             int bonus = Mathf.FloorToInt((currentDay - 1) / Mathf.Max(1, dayIntervalIncrease));
             int target = Mathf.Clamp(baseAnomaliesPerNight + bonus, 1, anomalyPool.Count);
 
-            // Fisher-Yates shuffle / สุ่มลิสต์
-            List<Anomaly> shuffled = new(anomalyPool);
+            var shuffled = new List<Anomaly>(anomalyPool);
             for (int i = 0; i < shuffled.Count; i++)
             {
                 int j = Random.Range(i, shuffled.Count);
                 (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
             }
 
+            totalActive = 0;
             for (int i = 0; i < target; i++)
             {
                 var a = shuffled[i];
+                if (!a || a.data == null) continue;
                 a.Activate();
-                if (a.data != null)
-                    activeIds.Add(a.data.anomalyId);
+                activeAnomalies.Add(a);
+                totalActive++;
             }
         }
 
-        // เมื่อผู้เล่นตรวจพบ / Player confirmed anomaly
         private void OnAnomalyResolved(AnomalyResolvedEvent evt)
         {
-            if (!activeIds.Contains(evt.Id)) return;
-            resolvedCount++;
-            Debug.Log($"[AnomalyManager] Resolved {evt.Id} ({resolvedCount}/{ActiveAnomalyCount})");
-            if (resolvedCount >= activeIds.Count)
+            if (evt.Source == null) return;
+            int instId = evt.Source.GetInstanceID();
+
+            if (!resolvedInstanceIds.Add(instId))
+            {
+                if (debugVerbose)
+                    Debug.Log($"[AnomalyManager] DUPLICATE resolve ignored id={evt.Id} instId={instId}");
+                return;
+            }
+
+            if (debugVerbose)
+                Debug.Log($"[AnomalyManager] Resolve id={evt.Id} instId={instId} progress {ResolvedCount}/{ActiveAnomalyCount}");
+
+            EventBus.Publish(new AnomalyProgressEvent(ResolvedCount, ActiveAnomalyCount));
+
+            if (ResolvedCount >= ActiveAnomalyCount)
                 EventBus.Publish(new NightCompletedEvent());
         }
     }

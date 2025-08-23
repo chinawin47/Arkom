@@ -2,61 +2,55 @@ using UnityEngine;
 using UnityEngine.UI;
 using ARKOM.Core;
 using ARKOM.Anomalies.Runtime;
+using ARKOM.Game;
 
 public class AnomalyHUD : MonoBehaviour
 {
-    [Tooltip("Drag AnomalyManager หรือปล่อยว่างให้หาเอง / Assign or auto-find")]
     public AnomalyManager anomalyManager;
-    [Tooltip("UI Text สำหรับแสดงผล / Text component to display progress")]
     public Text statusText;
+    public GameManager gameManager;
 
-    private void Awake()
+    private GameState lastState = GameState.DayExploration;
+    private int lastResolved = -1;
+    private int lastTotal = -1;
+
+    void Awake()
     {
-        if (!anomalyManager)
-            anomalyManager = FindObjectOfType<AnomalyManager>();
-
-        statusText.text = "";
-        EventBus.Subscribe<GameStateChangedEvent>(OnState);
-        EventBus.Subscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
-        EventBus.Subscribe<NightCompletedEvent>(OnNightCompleted);
+        if (!anomalyManager) anomalyManager = FindObjectOfType<AnomalyManager>();
+        if (!gameManager) gameManager = FindObjectOfType<GameManager>();
+        if (statusText) statusText.text = "";
+        EventBus.Subscribe<GameStateChangedEvent>(OnStateChanged);
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
-        EventBus.Unsubscribe<GameStateChangedEvent>(OnState);
-        EventBus.Unsubscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
-        EventBus.Unsubscribe<NightCompletedEvent>(OnNightCompleted);
+        EventBus.Unsubscribe<GameStateChangedEvent>(OnStateChanged);
     }
 
-    private void OnAnomalyResolved(AnomalyResolvedEvent _)
+    private void OnStateChanged(GameStateChangedEvent e)
     {
-        Refresh();
-    }
-
-    private void OnNightCompleted(NightCompletedEvent _)
-    {
-        Refresh();
-    }
-
-    private void OnState(GameStateChangedEvent e)
-    {
-        if (e.State == GameState.NightAnomaly)
-        {
-            Invoke(nameof(Refresh), 0.05f);
-        }
-        else if (e.State == GameState.DayExploration || e.State == GameState.GameOver)
-        {
+        lastState = e.State;
+        if (e.State != GameState.NightAnomaly && statusText)
             statusText.text = "";
-        }
     }
 
-    private void Refresh()
+    void Update()
     {
-        if (!anomalyManager || anomalyManager.ActiveAnomalyCount == 0)
+        if (!anomalyManager || !statusText) return;
+        if (gameManager && gameManager.State != GameState.NightAnomaly) return;
+
+        int total = anomalyManager.ActiveAnomalyCount;
+        int resolved = anomalyManager.ResolvedCount;
+
+        // อัปเดตเฉพาะเมื่อมีการเปลี่ยน ลด GC / Update only when changed
+        if (resolved != lastResolved || total != lastTotal)
         {
-            statusText.text = "";
-            return;
+            if (total > 0)
+                statusText.text = $"Anomaly: {resolved}/{total}";
+            else
+                statusText.text = "";
+            lastResolved = resolved;
+            lastTotal = total;
         }
-        statusText.text = $"Anomaly: {anomalyManager.ResolvedCount}/{anomalyManager.ActiveAnomalyCount}";
     }
 }
