@@ -12,22 +12,31 @@ namespace ARKOM.Game
 
         private void OnEnable()
         {
-            EventBus.Subscribe<NightCompletedEvent>(_ => OnNightComplete());
-            EventBus.Subscribe<LoudNoiseDetectedEvent>(_ => TriggerGameOver());
+            EventBus.Subscribe<NightCompletedEvent>(HandleNightCompleted);
+            EventBus.Subscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<NightCompletedEvent>(_ => OnNightComplete());
-            EventBus.Unsubscribe<LoudNoiseDetectedEvent>(_ => TriggerGameOver());
+            EventBus.Unsubscribe<NightCompletedEvent>(HandleNightCompleted);
+            EventBus.Unsubscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
+        }
+
+        private void HandleNightCompleted(NightCompletedEvent _)
+        {
+            OnNightComplete();
+        }
+
+        private void HandleLoudNoiseDetected(LoudNoiseDetectedEvent _)
+        {
+            TriggerGameOver();
         }
 
         public void BeginDay()
         {
             SetState(GameState.DayExploration);
-            // Narrative triggers happen via separate systems.
         }
 
         public void BeginNight()
@@ -44,9 +53,8 @@ namespace ARKOM.Game
         private void OnNightComplete()
         {
             currentDay++;
-            // Transition back to day
             SetState(GameState.Transition);
-            Invoke(nameof(BeginDay), 2f); // simple delay
+            Invoke(nameof(BeginDay), 2f);
         }
 
         private void OnQTEResult(QTEResultEvent evt)
@@ -58,7 +66,6 @@ namespace ARKOM.Game
             }
             else
             {
-                // Return where we came from (simplified: to NightAnomaly)
                 SetState(GameState.NightAnomaly);
             }
         }
@@ -66,7 +73,6 @@ namespace ARKOM.Game
         private void TriggerGameOver()
         {
             SetState(GameState.GameOver);
-            // Reset after short delay (prototype)
             Invoke(nameof(ResetGame), 3f);
         }
 

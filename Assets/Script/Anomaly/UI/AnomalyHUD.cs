@@ -17,22 +17,31 @@ public class AnomalyHUD : MonoBehaviour
 
         statusText.text = "";
         EventBus.Subscribe<GameStateChangedEvent>(OnState);
-        EventBus.Subscribe<AnomalyResolvedEvent>(_ => Refresh());
-        EventBus.Subscribe<NightCompletedEvent>(_ => Refresh());
+        EventBus.Subscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
+        EventBus.Subscribe<NightCompletedEvent>(OnNightCompleted);
     }
 
     private void OnDestroy()
     {
         EventBus.Unsubscribe<GameStateChangedEvent>(OnState);
-        EventBus.Unsubscribe<AnomalyResolvedEvent>(_ => Refresh()); // NOTE: for production keep delegate ref
-        EventBus.Unsubscribe<NightCompletedEvent>(_ => Refresh());
+        EventBus.Unsubscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
+        EventBus.Unsubscribe<NightCompletedEvent>(OnNightCompleted);
+    }
+
+    private void OnAnomalyResolved(AnomalyResolvedEvent _)
+    {
+        Refresh();
+    }
+
+    private void OnNightCompleted(NightCompletedEvent _)
+    {
+        Refresh();
     }
 
     private void OnState(GameStateChangedEvent e)
     {
         if (e.State == GameState.NightAnomaly)
         {
-            // Delay a frame so manager finishes activation / หน่วง 1 เฟรมกันยังไม่ Activate
             Invoke(nameof(Refresh), 0.05f);
         }
         else if (e.State == GameState.DayExploration || e.State == GameState.GameOver)
@@ -49,7 +58,5 @@ public class AnomalyHUD : MonoBehaviour
             return;
         }
         statusText.text = $"Anomaly: {anomalyManager.ResolvedCount}/{anomalyManager.ActiveAnomalyCount}";
-        // ภาษาไทยเพิ่ม:
-        // statusText.text = $"ความผิดปกติ: {anomalyManager.ResolvedCount}/{anomalyManager.ActiveAnomalyCount}";
     }
 }

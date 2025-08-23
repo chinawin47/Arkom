@@ -17,6 +17,13 @@ namespace ARKOM.QTE
         private float timer;
         private bool active;
 
+        // === Added public read-only accessors for UI ===
+        public bool IsActive => active;
+        public Key CurrentExpectedKey => active && index < currentSequence.Count ? currentSequence[index] : Key.None;
+        public float RemainingTime => timer;
+        public int CurrentIndex => index;
+        public int TotalLength => currentSequence.Count;
+
         public void StartQTE()
         {
             GenerateSequence();
@@ -24,7 +31,6 @@ namespace ARKOM.QTE
             timer = timePerKey;
             active = true;
             EventBus.Publish(new GameStateChangedEvent(GameState.QTE));
-            // UI system should read currentSequence[index]
         }
 
         void Update()
