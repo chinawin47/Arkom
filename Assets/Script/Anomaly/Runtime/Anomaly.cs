@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using ARKOM.Anomalies.Data;
 using ARKOM.Core;
+using ARKOM.QTE; // เพิ่มสำหรับเรียก QTE
 
 namespace ARKOM.Anomalies.Runtime
 {
+    // คอมโพเนนต์บนวัตถุในฉากที่สามารถกลายเป็น Anomaly
     public class Anomaly : Interactable
     {
         [Tooltip("ข้อมูลตั้งค่าจาก ScriptableObject")]
@@ -11,7 +13,7 @@ namespace ARKOM.Anomalies.Runtime
 
         private bool active;
 
-        // เก็บสภาพเดิม (ย่อสำหรับตัวอย่าง)
+        // ตัวแปรเก็บสภาพเดิม (เพื่อ revert)
         private bool cachedOriginal;
         private Vector3 originalPos;
         private Quaternion originalRot;
@@ -20,6 +22,11 @@ namespace ARKOM.Anomalies.Runtime
         private Renderer cachedRenderer;
         private bool rendererInitiallyEnabled;
         private GameObject spawnedPrefab;
+
+        // ===== QTE Integration =====
+        private static Anomaly pendingQTE;         // เก็บ anomaly ที่รอผล QTE (มีได้ครั้งละ 1)
+        private bool waitingQTE;                   // ตัวนี้อยู่ระหว่างรอ QTE ผลหรือไม่
+        private bool qteSubscribed;                // ป้องกัน unsubscribe ซ้ำ
 
         public void Activate()
         {
@@ -34,16 +41,92 @@ namespace ARKOM.Anomalies.Runtime
             if (!active) return;
             Apply(false);
             active = false;
+            waitingQTE = false;
+            if (pendingQTE == this) pendingQTE = null;
+            UnsubscribeQTE();
         }
 
-        public override bool CanInteract(object interactor) => active && base.CanInteract(interactor);
+        public override bool CanInteract(object interactor)
+        {
+            if (!active) return false;
+            if (data != null && data.requiresQTE && waitingQTE) return false; // ระหว่างทำ QTE ห้ามกดซ้ำ
+            return base.CanInteract(interactor);
+        }
 
         protected override void OnInteract(object interactor)
         {
-            if (data == null) return;
-            // เปลี่ยน: ส่ง both id + this
-            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId, this));
+            if (data == null)
+                return;
+
+            if (data.requiresQTE)
+            {
+                // ป้องกันซ้อน ถ้ามี QTE อื่นค้างอยู่
+                if (pendingQTE != null && pendingQTE != this)
+                {
+                    // อาจใส่เสียงปฏิเสธเบา ๆ ภายหลัง
+                    return;
+                }
+
+                // เริ่ม QTE
+                var qte = FindObjectOfType<QTEManager>();
+                if (qte == null)
+                {
+                    Debug.LogWarning("[Anomaly] QTEManager not found; fallback resolve directly.");
+                    ResolveDirect();
+                    return;
+                }
+
+                pendingQTE = this;
+                waitingQTE = true;
+                SubscribeQTE();
+                qte.StartQTE(); // QTEManager จะ Publish GameStateChangedEvent(QTE)
+                return;
+            }
+
+            // ผู้เล่นตรวจพบ (ไม่ต้อง QTE) → แจ้ง Event ให้ Manager รู้
+            ResolveDirect();
+        }
+
+        private void ResolveDirect()
+        {
+            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId));
             Deactivate();
+        }
+
+        private void SubscribeQTE()
+        {
+            if (qteSubscribed) return;
+            EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
+            qteSubscribed = true;
+        }
+
+        private void UnsubscribeQTE()
+        {
+            if (!qteSubscribed) return;
+            EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
+            qteSubscribed = false;
+        }
+
+        private void OnQTEResult(QTEResultEvent evt)
+        {
+            if (pendingQTE != this) return; // ไม่ใช่ของเรา ข้าม
+            waitingQTE = false;
+            pendingQTE = null;
+            UnsubscribeQTE();
+
+            if (evt.Success)
+            {
+                ResolveDirect();
+            }
+            else
+            {
+                // ถ้าตั้งว่า Fail แล้ว Game Over ปล่อย GameManager จัดการ (อยู่แล้ว)
+                if (!data.qteFailGameOver)
+                {
+                    // ถ้าไม่ให้ Game Over ก็แค่ยังไม่ resolve (ยัง active) ผู้เล่นลองใหม่ได้
+                    // อาจตั้ง cooldown ภายหลัง
+                }
+            }
         }
 
         private void CacheOriginal()
@@ -92,7 +175,7 @@ namespace ARKOM.Anomalies.Runtime
                     case AnomalyData.AnomalyType.ShadowMovement:
                     case AnomalyData.AnomalyType.SpawnPrefab:
                         if (data.useEffectPrefab && data.effectPrefab && spawnedPrefab == null)
-                            spawnedPrefab = Object.Instantiate(data.effectPrefab, transform.position, transform.rotation, transform);
+                            spawnedPrefab = Instantiate(data.effectPrefab, transform.position, transform.rotation, transform);
                         break;
                 }
 
@@ -101,6 +184,7 @@ namespace ARKOM.Anomalies.Runtime
             }
             else
             {
+                // คืนค่าเดิม
                 switch (data.type)
                 {
                     case AnomalyData.AnomalyType.Position:
@@ -119,10 +203,26 @@ namespace ARKOM.Anomalies.Runtime
                         break;
                     case AnomalyData.AnomalyType.ShadowMovement:
                     case AnomalyData.AnomalyType.SpawnPrefab:
-                        if (spawnedPrefab) Object.Destroy(spawnedPrefab);
+                        if (spawnedPrefab) Destroy(spawnedPrefab);
                         break;
                 }
             }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (data != null && data.type == AnomalyData.AnomalyType.Position)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawLine(transform.position, transform.position + transform.TransformVector(data.positionOffset));
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (waitingQTE && pendingQTE == this)
+                pendingQTE = null;
+            UnsubscribeQTE();
         }
     }
 }

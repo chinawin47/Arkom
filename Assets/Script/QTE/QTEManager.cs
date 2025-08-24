@@ -7,17 +7,19 @@ namespace ARKOM.QTE
 {
     public class QTEManager : MonoBehaviour
     {
-        [Tooltip("Allowed keys for QTE prompts")]
-        public List<Key> keyPool = new() { Key.W, Key.A, Key.S, Key.D, Key.Space, Key.E };
+        public List<Key> keyPool = new() { Key.W, Key.A, Key.S, Key.D, Key.Space }; // เอา Key.E ออก
         public float timePerKey = 1.2f;
         public int sequenceLength = 3;
+        [Header("Input Grace")]
+        [Tooltip("กันปุ่ม Interact (E) ไปกินคีย์แรก โดยหน่วงก่อนเริ่มตรวจ")]
+        public float inputGraceTime = 0.15f;
 
         private List<Key> currentSequence = new();
         private int index;
         private float timer;
         private bool active;
+        private float graceTimer;
 
-        // === Added public read-only accessors for UI ===
         public bool IsActive => active;
         public Key CurrentExpectedKey => active && index < currentSequence.Count ? currentSequence[index] : Key.None;
         public float RemainingTime => timer;
@@ -29,6 +31,7 @@ namespace ARKOM.QTE
             GenerateSequence();
             index = 0;
             timer = timePerKey;
+            graceTimer = inputGraceTime;
             active = true;
             EventBus.Publish(new GameStateChangedEvent(GameState.QTE));
         }
@@ -36,6 +39,14 @@ namespace ARKOM.QTE
         void Update()
         {
             if (!active) return;
+
+            // หน่วงรับคีย์เพื่อให้ HUD ทันแสดงก่อน และกัน E ที่เพิ่งกด
+            if (graceTimer > 0f)
+            {
+                graceTimer -= Time.deltaTime;
+                return; // ยังไม่เริ่มนับเวลาลดก็ได้ถ้าอยาก (ตอนนี้นับหลัง grace)
+            }
+
             timer -= Time.deltaTime;
             if (timer <= 0f)
             {
@@ -51,13 +62,9 @@ namespace ARKOM.QTE
                     {
                         index++;
                         if (index >= currentSequence.Count)
-                        {
                             Success();
-                        }
                         else
-                        {
                             timer = timePerKey;
-                        }
                     }
                     else
                     {
@@ -72,9 +79,7 @@ namespace ARKOM.QTE
         {
             currentSequence.Clear();
             for (int i = 0; i < sequenceLength; i++)
-            {
                 currentSequence.Add(keyPool[Random.Range(0, keyPool.Count)]);
-            }
         }
 
         private void Success()

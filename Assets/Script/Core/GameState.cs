@@ -6,6 +6,7 @@ namespace ARKOM.Core
         NightAnomaly,
         QTE,
         Transition,
-        GameOver
+        GameOver,
+        Victory // ชั่วคราว: ภาวะชนะ
     }
 }

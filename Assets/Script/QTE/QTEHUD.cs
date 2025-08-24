@@ -1,54 +1,51 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using ARKOM.Core;
 using ARKOM.QTE;
 
 public class QTEHUD : MonoBehaviour
 {
-    [Header("References")]
     public QTEManager qteManager;
     public Text keyText;
-    public Image timerFill; // optional radial/filled image
+    public Image timerFill;
 
-    [Header("Formatting")]
     public string promptPrefix = "PRESS";
     public Color normalColor = Color.white;
     public Color successColor = Color.green;
     public Color failColor = Color.red;
 
+    public bool fallbackIfNoText = true; // ถ้า keyText ไม่มี ให้สร้าง GUI ชั่วคราว
+
     private bool showing;
 
-    private void Awake()
+    void Awake()
     {
-        if (!qteManager)
-            qteManager = FindObjectOfType<QTEManager>();
-
-        SetVisible(false);
+        if (!qteManager) qteManager = FindObjectOfType<QTEManager>();
+        if (keyText) keyText.text = "";
         EventBus.Subscribe<GameStateChangedEvent>(OnStateChanged);
         EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
         EventBus.Unsubscribe<GameStateChangedEvent>(OnStateChanged);
         EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
     }
 
-    private void Update()
+    void Update()
     {
-        if (!qteManager || !qteManager.IsActive)
-            return;
+        if (!qteManager || !qteManager.IsActive) return;
 
         if (!showing)
             SetVisible(true);
 
-        // Update key label
-        var key = qteManager.CurrentExpectedKey;
-        keyText.color = normalColor;
-        keyText.text = $"{promptPrefix} {FormatKey(key)} ({qteManager.CurrentIndex + 1}/{qteManager.TotalLength})";
+        if (keyText)
+        {
+            var key = qteManager.CurrentExpectedKey;
+            keyText.color = normalColor;
+            keyText.text = $"{promptPrefix} {FormatKey(key)} ({qteManager.CurrentIndex + 1}/{qteManager.TotalLength})";
+        }
 
-        // Update timer UI
         if (timerFill)
         {
             float t = Mathf.Clamp01(qteManager.RemainingTime / qteManager.timePerKey);
@@ -59,40 +56,50 @@ public class QTEHUD : MonoBehaviour
     private void OnStateChanged(GameStateChangedEvent e)
     {
         if (e.State == GameState.QTE)
-        {
-            // QTEManager.StartQTE() will handle activation; UI will show next Update
-        }
+            ; // รอ Update โชว์
         else
-        {
             SetVisible(false);
-        }
     }
 
     private void OnQTEResult(QTEResultEvent e)
     {
-        if (!keyText) return;
-        keyText.color = e.Success ? successColor : failColor;
-        keyText.text = e.Success ? "SUCCESS" : "FAILED";
-        Invoke(nameof(HideAfterResult), 1.0f);
+        if (keyText)
+        {
+            keyText.color = e.Success ? successColor : failColor;
+            keyText.text = e.Success ? "SUCCESS" : "FAILED";
+        }
+        Invoke(nameof(HideAfterResult), 1f);
     }
 
-    private void HideAfterResult()
+    private void HideAfterResult() => SetVisible(false);
+
+    private void SetVisible(bool v)
     {
-        SetVisible(false);
+        showing = v;
+        if (keyText) keyText.enabled = v;
+        if (timerFill) timerFill.enabled = v;
     }
 
-    private void SetVisible(bool value)
+    private string FormatKey(UnityEngine.InputSystem.Key key)
     {
-        showing = value;
-        if (keyText) keyText.enabled = value;
-        if (timerFill) timerFill.enabled = value;
-    }
-
-    private string FormatKey(Key key)
-    {
-        if (key == Key.None) return "-";
-        // Space special case
-        if (key == Key.Space) return "SPACE";
+        if (key == UnityEngine.InputSystem.Key.None) return "-";
+        if (key == UnityEngine.InputSystem.Key.Space) return "SPACE";
         return key.ToString().ToUpperInvariant();
+    }
+
+    // Fallback debug GUI ถ้า keyText ไม่ได้ผูก
+    void OnGUI()
+    {
+        if (!fallbackIfNoText) return;
+        if (keyText) return;
+        if (!qteManager || !qteManager.IsActive) return;
+
+        var k = qteManager.CurrentExpectedKey;
+        GUIStyle style = new GUIStyle(GUI.skin.box);
+        style.fontSize = 24;
+        style.alignment = TextAnchor.MiddleCenter;
+        GUILayout.BeginArea(new Rect(Screen.width / 2f - 100, 40, 200, 60));
+        GUILayout.Box($"{promptPrefix} {FormatKey(k)}\n({qteManager.CurrentIndex + 1}/{qteManager.TotalLength})", style);
+        GUILayout.EndArea();
     }
 }

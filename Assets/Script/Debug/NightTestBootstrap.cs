@@ -1,7 +1,7 @@
 using UnityEngine;
 using ARKOM.Game;
 using ARKOM.Core;
-using UnityEngine.InputSystem; // ใช้ระบบ Input System ใหม่
+using UnityEngine.InputSystem;
 
 public class NightTestBootstrap : MonoBehaviour
 {
@@ -12,18 +12,31 @@ public class NightTestBootstrap : MonoBehaviour
         if (!gameManager)
             gameManager = FindObjectOfType<GameManager>();
 
-        Debug.Log("[Test] Press N (หรือปุ่ม N) เพื่อเริ่มกลางคืน. กด E ใส่ anomaly ที่เปลี่ยน.");
+        Debug.Log("[Test] N=Start Night, V=Force Victory (placeholder), R=Restart.");
         EventBus.Subscribe<AnomalyResolvedEvent>(e => Debug.Log($"[Anomaly] Resolved {e.Id}"));
         EventBus.Subscribe<NightCompletedEvent>(_ => Debug.Log("[Night] Completed!"));
+        EventBus.Subscribe<VictoryEvent>(_ => Debug.Log("[Game] VICTORY (placeholder)."));
     }
 
     void Update()
     {
-        // ใช้ระบบใหม่แทน Input.GetKeyDown (ซึ่งใช้ไม่ได้เมื่อเลือก 'Input System Package Only')
-        if (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame)
-        {
+        if (Keyboard.current == null) return;
+
+        if (Keyboard.current.nKey.wasPressedThisFrame)
             gameManager.BeginNight();
-            Debug.Log("[Night] Started");
+
+        if (Keyboard.current.vKey.wasPressedThisFrame) // force win
+        {
+            // จำลองผ่านคืนจนเกิน maxDays
+            gameManager.GetType().GetMethod("TriggerVictory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.Invoke(gameManager, null);
+        }
+
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            // รีเซ็ตเร็ว
+            gameManager.GetType().GetMethod("ResetGame", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.Invoke(gameManager, null);
         }
     }
 }

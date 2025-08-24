@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using ARKOM.Anomalies.Runtime; // เพื่อใช้ type Anomaly ใน Event
+using ARKOM.Anomalies.Runtime;
 
 namespace ARKOM.Core
 {
@@ -41,32 +41,12 @@ namespace ARKOM.Core
         }
     }
 
-    // เปลี่ยน: เพิ่ม Source (อ้างอิงอินสแตนซ์) เพื่อเช็คไม่ให้นับซ้ำ
-    public readonly struct AnomalyResolvedEvent
-    {
-        public readonly string Id;
-        public readonly Anomaly Source;
-        public AnomalyResolvedEvent(string id, Anomaly source)
-        {
-            Id = id;
-            Source = source;
-        }
-    }
-
+    public readonly struct AnomalyResolvedEvent { public readonly string Id; public readonly Anomaly Source; public AnomalyResolvedEvent(string id){ Id=id; Source=null; } public AnomalyResolvedEvent(string id, Anomaly source){ Id=id; Source=source; } }
     public readonly struct NightCompletedEvent { }
-    public readonly struct LoudNoiseDetectedEvent { public readonly float Level; public LoudNoiseDetectedEvent(float level) => Level = level; }
-    public readonly struct GameStateChangedEvent { public readonly GameState State; public GameStateChangedEvent(GameState s) => State = s; }
-    public readonly struct QTEResultEvent { public readonly bool Success; public QTEResultEvent(bool success) => Success = success; }
-
-    // ใหม่: Event ความคืบหน้า (Resolved / Total)
-    public readonly struct AnomalyProgressEvent
-    {
-        public readonly int Resolved;
-        public readonly int Total;
-        public AnomalyProgressEvent(int resolved, int total)
-        {
-            Resolved = resolved;
-            Total = total;
-        }
-    }
+    public readonly struct LoudNoiseDetectedEvent { public readonly float Level; public LoudNoiseDetectedEvent(float level)=>Level=level; }
+    public readonly struct GameStateChangedEvent { public readonly GameState State; public GameStateChangedEvent(GameState s)=>State=s; }
+    public readonly struct QTEResultEvent { public readonly bool Success; public QTEResultEvent(bool success)=>Success=success; }
+    public readonly struct AnomalyProgressEvent { public readonly int Resolved; public readonly int Total; public AnomalyProgressEvent(int r,int t){Resolved=r;Total=t;} }
+    public readonly struct AnomalySpawnBatchEvent { public readonly int Spawned; public readonly int Active; public readonly int Target; public AnomalySpawnBatchEvent(int s,int a,int t){Spawned=s;Active=a;Target=t;} }
+    public readonly struct VictoryEvent { } // เพิ่มเหตุการณ์ชนะชั่วคราว
 }
