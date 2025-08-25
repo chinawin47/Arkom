@@ -460,8 +460,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033df2b8c6de46c48af04d69ac5ae2db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  victoryText: {fileID: 1186979550}
   panel: {fileID: 1558497550}
+  victoryText: {fileID: 1186979550}
+  restartButton: {fileID: 0}
+  quitButton: {fileID: 0}
 --- !u!1 &80286885
 GameObject:
   m_ObjectHideFlags: 0
@@ -956,6 +958,7 @@ MonoBehaviour:
   maxDays: 5
   anomalyManager: {fileID: 1817666963}
   nightDuration: 180
+  requiredStoryFlags: []
 --- !u!4 &149893641
 Transform:
   m_ObjectHideFlags: 0
@@ -6328,7 +6331,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1558497551
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7275,6 +7278,7 @@ MonoBehaviour:
   audioPoint: {fileID: 0}
   logResolveTimes: 1
   logSummaryAtNightEnd: 1
+  validateIdsOnStartNight: 1
 --- !u!4 &1817666964
 Transform:
   m_ObjectHideFlags: 0

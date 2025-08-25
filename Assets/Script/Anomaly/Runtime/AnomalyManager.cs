@@ -31,6 +31,9 @@ namespace ARKOM.Anomalies.Runtime
         [Tooltip("สรุปค่าเฉลี่ยเมื่อจบคืน")]
         public bool logSummaryAtNightEnd = true;
 
+        [Header("Validation / Debug")]
+        public bool validateIdsOnStartNight = true;
+
         private readonly HashSet<string> activeIds = new();
         private int resolvedCount;
 
@@ -67,8 +70,45 @@ namespace ARKOM.Anomalies.Runtime
             }
         }
 
+        // เพิ่มเมธอด
+        private bool ValidateAnomalyIds()
+        {
+            var seen = new HashSet<string>();
+            bool ok = true;
+            foreach (var a in anomalyPool)
+            {
+                if (!a) continue;
+                var d = a.data;
+                if (d == null)
+                {
+                    Debug.LogWarning("[AnomalyManager] Anomaly missing data asset.", a);
+                    ok = false;
+                    continue;
+                }
+                string id = (d.anomalyId ?? "").Trim();
+                if (string.IsNullOrEmpty(id))
+                {
+                    Debug.LogWarning($"[AnomalyManager] Empty anomalyId on '{d.name}'", d);
+                    ok = false;
+                    continue;
+                }
+                if (!seen.Add(id))
+                {
+                    Debug.LogWarning($"[AnomalyManager] Duplicate anomalyId '{id}' ({d.name})", d);
+                    ok = false;
+                }
+                // Optional: normalize
+                d.anomalyId = id;
+            }
+            if (!ok) Debug.LogWarning("[AnomalyManager] Validation finished with issues.");
+            return ok;
+        }
+
         public void StartNight()
         {
+            if (validateIdsOnStartNight)
+                ValidateAnomalyIds();
+
             resolvedCount = 0;
             ResetAll();
             nightRunning = true;

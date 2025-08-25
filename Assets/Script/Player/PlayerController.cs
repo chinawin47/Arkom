@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ARKOM.Core;
 
 namespace ARKOM.Player
 {
@@ -35,13 +36,12 @@ namespace ARKOM.Player
         private bool isCrouching;
         private float currentSpeed;
 
-        // ===== Interaction Focus =====
         private IInteractable focus;
         public IInteractable CurrentFocus => focus;
         public event Action<IInteractable> FocusChanged;
-
-        // Highlight cache
         private InteractableHighlighter lastHighlighter;
+
+        private GameState currentState = GameState.DayExploration;
 
         void Awake()
         {
@@ -53,23 +53,45 @@ namespace ARKOM.Player
         {
             inputActions.Player.Enable();
             inputActions.Player.SetCallbacks(this);
+            EventBus.Subscribe<GameStateChangedEvent>(OnGameState);
         }
 
         void OnDisable()
         {
             inputActions.Player.RemoveCallbacks(this);
             inputActions.Player.Disable();
+            EventBus.Unsubscribe<GameStateChangedEvent>(OnGameState);
         }
 
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
-            currentSpeed = walkSpeed;
             controller.height = standingHeight;
+        }
+
+        private void OnGameState(GameStateChangedEvent e)
+        {
+            currentState = e.State;
+
+            bool block = (e.State == GameState.GameOver || e.State == GameState.Victory);
+            if (block)
+            {
+                // ปิดทั้ง map เพื่อตัด WASD / เมาส์
+                if (inputActions.Player.enabled)
+                    inputActions.Player.Disable();
+            }
+            else
+            {
+                if (!inputActions.Player.enabled)
+                    inputActions.Player.Enable();
+            }
         }
 
         void Update()
         {
+            if (currentState == GameState.GameOver || currentState == GameState.Victory)
+                return;
+
             UpdateFocus();
             HandleMovement();
             HandleCamera();
@@ -86,43 +108,34 @@ namespace ARKOM.Player
 
             if (!ReferenceEquals(newTarget, focus))
             {
-                // remove highlight old
                 if (lastHighlighter)
                     lastHighlighter.SetHighlight(false);
 
                 focus = newTarget;
-
                 lastHighlighter = null;
                 if (focus is Component comp)
                 {
-                    // previously only GetComponent<InteractableHighlighter>() (failed if highlighter on child)
-                    lastHighlighter = comp.GetComponent<InteractableHighlighter>() 
-                                      ?? comp.GetComponentInChildren<InteractableHighlighter>() 
+                    lastHighlighter = comp.GetComponent<InteractableHighlighter>()
+                                      ?? comp.GetComponentInChildren<InteractableHighlighter>()
                                       ?? comp.GetComponentInParent<InteractableHighlighter>();
                     if (lastHighlighter)
                         lastHighlighter.SetHighlight(true);
                 }
-
                 FocusChanged?.Invoke(focus);
             }
         }
 
         private void HandleMovement()
         {
-            if (isCrouching)
-                currentSpeed = crouchSpeed;
-            else if (isSprinting && moveInput.y > 0.1f)
-                currentSpeed = sprintSpeed;
-            else
-                currentSpeed = walkSpeed;
+            if (isCrouching) currentSpeed = crouchSpeed;
+            else if (isSprinting && moveInput.y > 0.1f) currentSpeed = sprintSpeed;
+            else currentSpeed = walkSpeed;
 
             Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
             Vector3 horizontal = move.normalized * currentSpeed;
 
-            if (controller.isGrounded)
-                velocity.y = -2f;
-            else
-                velocity.y += gravity * Time.deltaTime;
+            if (controller.isGrounded) velocity.y = -2f;
+            else velocity.y += gravity * Time.deltaTime;
 
             controller.Move((horizontal + velocity) * Time.deltaTime);
         }
@@ -145,6 +158,8 @@ namespace ARKOM.Player
 
         private void TryInteract()
         {
+            if (currentState == GameState.GameOver || currentState == GameState.Victory) return;
+
             if (focus != null)
             {
                 focus.Interact(this);
@@ -159,11 +174,11 @@ namespace ARKOM.Player
             }
         }
 
-        // ===== Input Callbacks =====
-        public void OnMove(InputAction.CallbackContext context)    => moveInput = context.ReadValue<Vector2>();
-        public void OnLook(InputAction.CallbackContext context)    => lookInput = context.ReadValue<Vector2>();
-        public void OnSprint(InputAction.CallbackContext context)  => isSprinting = context.ReadValue<float>() > 0.5f;
-        public void OnCrouch(InputAction.CallbackContext context)  { if (context.performed) ToggleCrouch(); }
-        public void OnInteract(InputAction.CallbackContext context){ if (context.performed) TryInteract(); }
+        // Input Callbacks
+        public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
+        public void OnLook(InputAction.CallbackContext context) => lookInput = context.ReadValue<Vector2>();
+        public void OnSprint(InputAction.CallbackContext context) => isSprinting = context.ReadValue<float>() > 0.5f;
+        public void OnCrouch(InputAction.CallbackContext context) { if (context.performed) ToggleCrouch(); }
+        public void OnInteract(InputAction.CallbackContext context) { if (context.performed) TryInteract(); }
     }
 }

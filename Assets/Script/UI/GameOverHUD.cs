@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 using ARKOM.Core;
-using ARKOM.Story;
 using ARKOM.Game;
-using System.Text;
 
-public class VictoryHUD : MonoBehaviour
+public class GameOverHUD : MonoBehaviour
 {
     public GameObject panel;
-    public Text victoryText;
+    public Text messageText;
     public Button restartButton;
     public Button quitButton;
 
@@ -17,10 +15,10 @@ public class VictoryHUD : MonoBehaviour
 
     private void Awake()
     {
+        gm = FindObjectOfType<GameManager>();
         if (!panel) panel = gameObject;
         panel.SetActive(false);
-        if (victoryText) victoryText.text = "";
-        gm = FindObjectOfType<GameManager>();
+        if (messageText) messageText.text = "";
         if (restartButton) restartButton.onClick.AddListener(() =>
         {
             Time.timeScale = 1f;
@@ -43,24 +41,13 @@ public class VictoryHUD : MonoBehaviour
 
     private void OnState(GameStateChangedEvent e)
     {
-        bool show = e.State == GameState.Victory;
+        bool show = e.State == GameState.GameOver;
         if (show)
         {
             panel.SetActive(true);
+            if (messageText) messageText.text = "GAME OVER";
             if (!panelShown) Time.timeScale = 0f;
             panelShown = true;
-            if (victoryText)
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine("VICTORY");
-                if (StoryFlags.Instance)
-                {
-                    sb.AppendLine("Flags:");
-                    foreach (var f in StoryFlags.Instance.All)
-                        sb.Append("- ").AppendLine(f);
-                }
-                victoryText.text = sb.ToString();
-            }
         }
         else
         {

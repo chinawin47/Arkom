@@ -1,6 +1,7 @@
 using UnityEngine;
 using ARKOM.Core;
 using ARKOM.Anomalies.Runtime;
+using ARKOM.Story;
 
 namespace ARKOM.Game
 {
@@ -12,13 +13,16 @@ namespace ARKOM.Game
         public GameState State { get; private set; } = GameState.DayExploration;
 
         [Header("Night Timer")]
-        [Tooltip("Total seconds for a night before fail if anomalies remain")]
         public float nightDuration = 180f;
         public float NightTimeRemaining { get; private set; }
+
+        [Header("Story Win")]
+        public string[] requiredStoryFlags;
 
         private void Awake()
         {
             EventBus.Publish(new GameStateChangedEvent(State));
+            ApplyCursorForState(State);
         }
 
         private void OnEnable()
@@ -26,6 +30,7 @@ namespace ARKOM.Game
             EventBus.Subscribe<NightCompletedEvent>(HandleNightCompleted);
             EventBus.Subscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
+            EventBus.Subscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
         }
 
         private void OnDisable()
@@ -33,22 +38,19 @@ namespace ARKOM.Game
             EventBus.Unsubscribe<NightCompletedEvent>(HandleNightCompleted);
             EventBus.Unsubscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
+            EventBus.Unsubscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
         }
 
         private void Update()
         {
-            if (State == GameState.NightAnomaly)
+            if (State == GameState.NightAnomaly && NightTimeRemaining > 0f)
             {
-                if (NightTimeRemaining > 0f)
+                NightTimeRemaining -= Time.deltaTime;
+                if (NightTimeRemaining <= 0f)
                 {
-                    NightTimeRemaining -= Time.deltaTime;
-                    if (NightTimeRemaining <= 0f)
-                    {
-                        NightTimeRemaining = 0f;
-                        // If still unresolved anomalies ? fail
-                        if (anomalyManager != null && anomalyManager.RemainingCount > 0)
-                            TriggerGameOver();
-                    }
+                    NightTimeRemaining = 0f;
+                    if (anomalyManager && anomalyManager.RemainingCount > 0)
+                        TriggerGameOver();
                 }
             }
         }
@@ -75,6 +77,7 @@ namespace ARKOM.Game
         {
             NightTimeRemaining = 0f;
             currentDay++;
+            if (CheckStoryVictory()) return;
             if (currentDay > maxDays)
             {
                 TriggerVictory();
@@ -91,11 +94,29 @@ namespace ARKOM.Game
             else SetState(GameState.NightAnomaly);
         }
 
+        private void OnStoryFlagAdded(StoryFlagAddedEvent evt)
+        {
+            if (CheckStoryVictory())
+                Debug.Log($"[Story] Victory triggered by flag '{evt.Flag}'");
+        }
+
+        private bool CheckStoryVictory()
+        {
+            if (requiredStoryFlags == null || requiredStoryFlags.Length == 0) return false;
+            if (StoryFlags.Instance == null) return false;
+            foreach (var f in requiredStoryFlags)
+            {
+                if (string.IsNullOrEmpty(f)) continue;
+                if (!StoryFlags.Instance.Has(f)) return false;
+            }
+            TriggerVictory();
+            return true;
+        }
+
         private void TriggerGameOver()
         {
             if (State == GameState.GameOver || State == GameState.Victory) return;
             SetState(GameState.GameOver);
-            Invoke(nameof(ResetGame), 3f);
         }
 
         private void TriggerVictory()
@@ -105,17 +126,53 @@ namespace ARKOM.Game
             EventBus.Publish(new VictoryEvent());
         }
 
-        private void ResetGame()
+        public void ResetGame()
         {
+            Time.timeScale = 1f;
             currentDay = 1;
             NightTimeRemaining = 0f;
+
+            // ล้าง flags เพื่อให้ evidence กลับมาเก็บใหม่ (ถ้าเป็นดีไซน์ที่ต้องเก็บซ้ำ)
+            if (StoryFlags.Instance) StoryFlags.Instance.ClearAll();
+
+            // รีเซ็ต evidence ที่ซ่อน (สำหรับ destroyOnPickup=false)
+            EvidenceRegistry.ResetAll(clearFlags: false);
+
             SetState(GameState.DayExploration);
+        }
+
+        public void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         private void SetState(GameState newState)
         {
             State = newState;
             EventBus.Publish(new GameStateChangedEvent(newState));
+
+            bool uiMode = newState == GameState.GameOver || newState == GameState.Victory;
+            Cursor.lockState = uiMode ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = uiMode;
+        }
+
+        private void ApplyCursorForState(GameState st)
+        {
+            bool uiMode = st == GameState.GameOver || st == GameState.Victory || st == GameState.QTE;
+            if (uiMode)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
         }
     }
 }
