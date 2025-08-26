@@ -13,7 +13,7 @@ public class GameOverHUD : MonoBehaviour
     private GameManager gm;
     private bool panelShown;
 
-    private void Awake()
+    void Awake()
     {
         gm = FindObjectOfType<GameManager>();
         if (!panel) panel = gameObject;
@@ -32,28 +32,41 @@ public class GameOverHUD : MonoBehaviour
         EventBus.Subscribe<GameStateChangedEvent>(OnState);
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
         EventBus.Unsubscribe<GameStateChangedEvent>(OnState);
         if (restartButton) restartButton.onClick.RemoveAllListeners();
         if (quitButton) quitButton.onClick.RemoveAllListeners();
     }
 
-    private void OnState(GameStateChangedEvent e)
+    void OnState(GameStateChangedEvent e)
     {
         bool show = e.State == GameState.GameOver;
         if (show)
         {
             panel.SetActive(true);
-            if (messageText) messageText.text = "GAME OVER";
             if (!panelShown) Time.timeScale = 0f;
             panelShown = true;
+            if (messageText)
+                messageText.text = GetGameOverMessage();
         }
         else
         {
             if (panelShown) Time.timeScale = 1f;
             panelShown = false;
             panel.SetActive(false);
+        }
+    }
+
+    private string GetGameOverMessage()
+    {
+        if (!gm) return "GAME OVER";
+        switch (gm.LastGameOverReason)
+        {
+            case GameOverReason.Timeout: return "GAME OVER\nหมดเวลา";
+            case GameOverReason.LoudNoise: return "GAME OVER\nเสียงดังเกินกำหนด";
+            case GameOverReason.QTEFail: return "GAME OVER\nQTE ล้มเหลว";
+            default: return "GAME OVER";
         }
     }
 }

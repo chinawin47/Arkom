@@ -10,9 +10,7 @@ public class OnboardingHUD : MonoBehaviour
     public float fadeTime = 1f;
 
     [Header("Input Pass-through")]
-    [Tooltip("If true, this tip will NOT block clicks / button presses behind it.")]
     public bool allowClickThrough = true;
-    [Tooltip("Optional background (enable if you want a panel that can block input when allowClickThrough = false).")]
     public Graphic background;
 
     private float timer;
@@ -28,17 +26,12 @@ public class OnboardingHUD : MonoBehaviour
             enabled = false;
             return;
         }
-
         cg = tipText.GetComponent<CanvasGroup>();
         if (!cg) cg = tipText.gameObject.AddComponent<CanvasGroup>();
-
         gm = FindObjectOfType<GameManager>();
-
         tipText.text = "";
         cg.alpha = 0f;
-
         ApplyInputFlags();
-
         EventBus.Subscribe<GameStateChangedEvent>(OnState);
     }
 
@@ -78,28 +71,23 @@ public class OnboardingHUD : MonoBehaviour
     {
         if (allowClickThrough)
         {
-            // Let pointer events pass through
             cg.blocksRaycasts = false;
             cg.interactable = false;
             tipText.raycastTarget = false;
-            if (background)
-                background.raycastTarget = false;
+            if (background) background.raycastTarget = false;
         }
         else
         {
             cg.blocksRaycasts = true;
             cg.interactable = true;
             tipText.raycastTarget = true;
-            if (background)
-                background.raycastTarget = true;
+            if (background) background.raycastTarget = true;
         }
     }
 
     private void OnState(GameStateChangedEvent e)
     {
         if (!gm) return;
-
-        // Only show guidance on first day
         if (gm.currentDay == 1 && e.State == GameState.DayExploration)
             ShowTip("สำรวจบ้านเพื่อเก็บเบาะแส (เริ่มกลางคืนเมื่อพร้อม)", fadeDelay);
         else if (gm.currentDay == 1 && e.State == GameState.NightAnomaly)

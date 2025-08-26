@@ -15,6 +15,14 @@ public class AnomalyHUD : MonoBehaviour
     public Text timerText;
     public bool hideTimerOutsideNight = true;
 
+    [Header("Low-Time Warning")]
+    public Color normalColor = Color.white;
+    public Color warningColor = Color.red;
+    public float warningThreshold = 30f;
+    public AudioClip warningSfx;
+    private bool warningPlayed;
+    private bool warningActive;
+
     [Header("Spawn Flash")]
     public Text flashText;
     public float flashDuration = 1.0f;
@@ -62,11 +70,37 @@ public class AnomalyHUD : MonoBehaviour
             if (gameManager.State == GameState.NightAnomaly)
             {
                 timerText.enabled = true;
-                timerText.text = FormatTime(gameManager.NightTimeRemaining);
+                float t = gameManager.NightTimeRemaining;
+                timerText.text = FormatTime(t);
+
+                // Low-time warning logic
+                if (t <= warningThreshold)
+                {
+                    // เปลี่ยนสี/กระพริบ
+                    warningActive = true;
+                    float blink = Mathf.PingPong(Time.time * 2f, 1f);
+                    timerText.color = Color.Lerp(normalColor, warningColor, blink);
+
+                    // เล่นเสียงเตือนครั้งเดียว
+                    if (!warningPlayed && warningSfx)
+                    {
+                        AudioSource.PlayClipAtPoint(warningSfx, Camera.main ? Camera.main.transform.position : Vector3.zero);
+                        warningPlayed = true;
+                    }
+                }
+                else
+                {
+                    warningActive = false;
+                    timerText.color = normalColor;
+                    warningPlayed = false;
+                }
             }
             else if (hideTimerOutsideNight)
             {
                 timerText.enabled = false;
+                warningActive = false;
+                warningPlayed = false;
+                timerText.color = normalColor;
             }
         }
     }

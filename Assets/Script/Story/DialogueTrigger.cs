@@ -5,6 +5,7 @@ public class DialogueTrigger : MonoBehaviour
 {
     [Tooltip("ชื่อ Flag จะตั้งเมื่อผู้เล่นเข้าสนาม (ครั้งแรกเท่านั้น)")]
     public string flagOnEnter;
+    public string dialogueId;
     [Tooltip("ใช้ครั้งเดียว")]
     public bool oneShot = true;
     private bool fired;
@@ -14,11 +15,9 @@ public class DialogueTrigger : MonoBehaviour
         if (fired && oneShot) return;
         if (!other.CompareTag("Player")) return;
         if (!string.IsNullOrEmpty(flagOnEnter))
-        {
-            if (StoryFlags.Instance.Add(flagOnEnter))
-                Debug.Log($"[DialogueTrigger] Flag {flagOnEnter} set");
-        }
+            StoryFlags.Instance.Add(flagOnEnter);
+        if (!string.IsNullOrEmpty(dialogueId))
+            DialogueSystem.Instance.ShowDialogue(dialogueId);
         fired = true;
-        // จุดนี้ต่อระบบ Dialogue จริงภายหลัง (เช่น เรียก DialogueSystem.Play(id))
     }
 }

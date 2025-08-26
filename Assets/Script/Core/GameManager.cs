@@ -5,6 +5,14 @@ using ARKOM.Story;
 
 namespace ARKOM.Game
 {
+    public enum GameOverReason
+    {
+        None,
+        Timeout,
+        LoudNoise,
+        QTEFail
+    }
+
     public class GameManager : MonoBehaviour
     {
         public int currentDay = 1;
@@ -19,10 +27,11 @@ namespace ARKOM.Game
         [Header("Story Win")]
         public string[] requiredStoryFlags;
 
+        public GameOverReason LastGameOverReason { get; private set; } = GameOverReason.None;
+
         private void Awake()
         {
             EventBus.Publish(new GameStateChangedEvent(State));
-            ApplyCursorForState(State);
         }
 
         private void OnEnable()
@@ -50,13 +59,16 @@ namespace ARKOM.Game
                 {
                     NightTimeRemaining = 0f;
                     if (anomalyManager && anomalyManager.RemainingCount > 0)
-                        TriggerGameOver();
+                        TriggerGameOver(GameOverReason.Timeout);
                 }
             }
         }
 
         private void HandleNightCompleted(NightCompletedEvent _) => OnNightComplete();
-        private void HandleLoudNoiseDetected(LoudNoiseDetectedEvent _) => TriggerGameOver();
+        private void HandleLoudNoiseDetected(LoudNoiseDetectedEvent _)
+        {
+            TriggerGameOver(GameOverReason.LoudNoise);
+        }
 
         public void BeginDay()
         {
@@ -90,7 +102,7 @@ namespace ARKOM.Game
         private void OnQTEResult(QTEResultEvent evt)
         {
             if (State != GameState.QTE) return;
-            if (!evt.Success) TriggerGameOver();
+            if (!evt.Success) TriggerGameOver(GameOverReason.QTEFail);
             else SetState(GameState.NightAnomaly);
         }
 
@@ -113,9 +125,10 @@ namespace ARKOM.Game
             return true;
         }
 
-        private void TriggerGameOver()
+        private void TriggerGameOver(GameOverReason reason)
         {
             if (State == GameState.GameOver || State == GameState.Victory) return;
+            LastGameOverReason = reason;
             SetState(GameState.GameOver);
         }
 
@@ -131,13 +144,9 @@ namespace ARKOM.Game
             Time.timeScale = 1f;
             currentDay = 1;
             NightTimeRemaining = 0f;
-
-            // ล้าง flags เพื่อให้ evidence กลับมาเก็บใหม่ (ถ้าเป็นดีไซน์ที่ต้องเก็บซ้ำ)
+            LastGameOverReason = GameOverReason.None;
             if (StoryFlags.Instance) StoryFlags.Instance.ClearAll();
-
-            // รีเซ็ต evidence ที่ซ่อน (สำหรับ destroyOnPickup=false)
             EvidenceRegistry.ResetAll(clearFlags: false);
-
             SetState(GameState.DayExploration);
         }
 
@@ -154,25 +163,9 @@ namespace ARKOM.Game
         {
             State = newState;
             EventBus.Publish(new GameStateChangedEvent(newState));
-
             bool uiMode = newState == GameState.GameOver || newState == GameState.Victory;
             Cursor.lockState = uiMode ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = uiMode;
-        }
-
-        private void ApplyCursorForState(GameState st)
-        {
-            bool uiMode = st == GameState.GameOver || st == GameState.Victory || st == GameState.QTE;
-            if (uiMode)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
         }
     }
 }
