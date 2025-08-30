@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using ARKOM.Core;
 using ARKOM.Game;
@@ -89,10 +89,10 @@ public class OnboardingHUD : MonoBehaviour
     {
         if (!gm) return;
         if (gm.currentDay == 1 && e.State == GameState.DayExploration)
-            ShowTip(" ”√«®∫È“π‡æ◊ËÕ‡°Á∫‡∫“–·  (‡√‘Ë¡°≈“ß§◊π‡¡◊ËÕæ√ÈÕ¡)", fadeDelay);
+            ShowTip("‡∏™‡∏≥‡∏£‡∏ß‡∏à‡∏ö‡πâ‡∏≤‡∏ô‡πÄ‡∏û‡∏∑‡πà‡∏≠‡πÄ‡∏Å‡πá‡∏ö‡πÄ‡∏ö‡∏≤‡∏∞‡πÅ‡∏™ (‡πÄ‡∏£‡∏¥‡πà‡∏°‡∏Å‡∏•‡∏≤‡∏á‡∏Ñ‡∏∑‡∏ô‡πÄ‡∏°‡∏∑‡πà‡∏≠‡∏û‡∏£‡πâ‡∏≠‡∏°)", fadeDelay);
         else if (gm.currentDay == 1 && e.State == GameState.NightAnomaly)
-            ShowTip("°≈“ß§◊π: ¡ÕßÀ“§«“¡º‘¥ª°µ‘ °¥ E ‡æ◊ËÕµ√«®", fadeDelay);
+            ShowTip("‡∏Å‡∏•‡∏≤‡∏á‡∏Ñ‡∏∑‡∏ô: ‡∏°‡∏≠‡∏á‡∏´‡∏≤‡∏Ñ‡∏ß‡∏≤‡∏°‡∏ú‡∏¥‡∏î‡∏õ‡∏Å‡∏ï‡∏¥ ‡∏Å‡∏î E ‡πÄ‡∏û‡∏∑‡πà‡∏≠‡∏ï‡∏£‡∏ß‡∏à", fadeDelay);
         else if (e.State == GameState.QTE)
-            ShowTip("QTE: °¥ªÿË¡µ“¡∑’Ë· ¥ß∫πÀπÈ“®Õ", fadeDelay);
+            ShowTip("QTE: ‡∏Å‡∏î‡∏õ‡∏∏‡πà‡∏°‡∏ï‡∏≤‡∏°‡∏ó‡∏µ‡πà‡πÅ‡∏™‡∏î‡∏á‡∏ö‡∏ô‡∏´‡∏ô‡πâ‡∏≤‡∏à‡∏≠", fadeDelay);
     }
 }
