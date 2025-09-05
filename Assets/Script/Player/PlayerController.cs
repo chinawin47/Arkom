@@ -8,6 +8,10 @@ namespace ARKOM.Player
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour, PlayerInputActions.IPlayerActions
     {
+        [Header("Camera Setup")]
+        public Transform cameraRoot; // Empty ที่หัว
+        public Camera mainCamera;    // MainCamera (child ของ cameraRoot)
+
         [Header("Movement Settings")]
         public float walkSpeed = 4f;
         public float sprintSpeed = 6.5f;
@@ -22,7 +26,6 @@ namespace ARKOM.Player
         public bool invertY = false;
 
         [Header("Camera / Interaction")]
-        public Transform playerCamera;
         public float interactDistance = 3f;
         public LayerMask interactLayerMask = ~0;
 
@@ -66,7 +69,9 @@ namespace ARKOM.Player
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
-            controller.height = standingHeight;
+
+            // ไม่ reset ตำแหน่ง/หมุนกล้อง
+            xRotation = cameraRoot ? cameraRoot.localEulerAngles.x : 0f;
         }
 
         private void OnGameState(GameStateChangedEvent e)
@@ -76,7 +81,6 @@ namespace ARKOM.Player
             bool block = (e.State == GameState.GameOver || e.State == GameState.Victory);
             if (block)
             {
-                // ปิดทั้ง map เพื่อตัด WASD / เมาส์
                 if (inputActions.Player.enabled)
                     inputActions.Player.Disable();
             }
@@ -99,7 +103,7 @@ namespace ARKOM.Player
 
         private void UpdateFocus()
         {
-            Ray ray = new Ray(playerCamera.position, playerCamera.forward);
+            Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
             IInteractable newTarget = null;
             if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask, QueryTriggerInteraction.Collide))
             {
@@ -145,8 +149,12 @@ namespace ARKOM.Player
             float mouseX = lookInput.x * mouseSensitivityX;
             float mouseY = lookInput.y * mouseSensitivityY * (invertY ? 1 : -1);
 
+            // หมุนแนวตั้ง (pitch) ที่ cameraRoot
             xRotation = Mathf.Clamp(xRotation + mouseY, -80f, 80f);
-            playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            if (cameraRoot)
+                cameraRoot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+            // หมุนแนวนอน (yaw) ที่ Player
             transform.Rotate(Vector3.up * mouseX);
         }
 
@@ -166,7 +174,7 @@ namespace ARKOM.Player
                 return;
             }
 
-            Ray ray = new Ray(playerCamera.position, playerCamera.forward);
+            Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
             if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask, QueryTriggerInteraction.Collide))
             {
                 if (hit.collider.TryGetComponent<IInteractable>(out var interactable))
