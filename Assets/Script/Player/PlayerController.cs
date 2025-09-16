@@ -29,6 +29,12 @@ namespace ARKOM.Player
         public float interactDistance = 3f;
         public LayerMask interactLayerMask = ~0;
 
+        [Header("Flashlight")]
+        [Tooltip("อ้างอิง Flashlight (ถ้าเว้นว่างจะหาในลูกของกล้อง)")]
+        public Flashlight flashlight;
+        [Tooltip("ปุ่มเปิด/ปิดไฟฉาย (ใช้ระบบ Input System แบบเร็ว)")]
+        public Key flashlightKey = Key.F;
+
         private PlayerInputActions inputActions;
         private CharacterController controller;
         private Vector2 moveInput;
@@ -50,6 +56,9 @@ namespace ARKOM.Player
         {
             controller = GetComponent<CharacterController>();
             inputActions = new PlayerInputActions();
+
+            if (!flashlight && cameraRoot)
+                flashlight = cameraRoot.GetComponentInChildren<Flashlight>();
         }
 
         void OnEnable()
@@ -99,6 +108,18 @@ namespace ARKOM.Player
             UpdateFocus();
             HandleMovement();
             HandleCamera();
+            HandleFlashlightInput(); // ? เพิ่ม
+        }
+
+        private void HandleFlashlightInput()
+        {
+            if (flashlight == null) return;
+
+            var kb = Keyboard.current;
+            if (kb != null && kb[flashlightKey].wasPressedThisFrame)
+            {
+                flashlight.Toggle();
+            }
         }
 
         private void UpdateFocus()

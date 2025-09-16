@@ -12,6 +12,22 @@ namespace ARKOM.Anomalies.Runtime
         [Tooltip("รายการ Anomaly (คอมโพเนนต์) ที่เตรียมไว้ในซีนทั้งหมด / All anomaly components placed in scene")]
         public List<Anomaly> anomalyPool = new();
 
+        [Header("Points Mode / โหมดจุด")]
+        [Tooltip("รายการจุด (AnomalyPoint) ถ้าตั้งค่านี้ ระบบจะสลับไปใช้โหมดจุด + คูลดาวน์ + จำกัดจำนวนพร้อมกัน")]
+        public List<AnomalyPoint> pointPool = new();
+        [Tooltip("จำนวนจุดที่ Active พร้อมกันได้สูงสุด (เฉพาะโหมดจุด)")]
+        public int maxConcurrentActive = 2;
+
+        [Header("Point Options")]
+        [Tooltip("พยายามไม่เลือก 'ตำแหน่งเดิม' ซ้ำในรอบถัดไป (ถ้ามีตัวเลือกอื่น)")]
+        public bool avoidImmediateRepeatPoint = true;
+        [Tooltip("รีเซ็ตคูลดาวน์ของทุกจุดเมื่อเริ่มคืนใหม่")]
+        public bool resetCooldownOnStartNight = false;
+        [Tooltip("เติมตัวใหม่อย่างไวหลัง Resolve (ไม่ต้องรอทั้ง spawnInterval)")]
+        public bool spawnImmediatelyOnResolve = true;
+        [Tooltip("ดีเลย์เติมหลัง Resolve (วินาที) ถ้าเปิด spawnImmediatelyOnResolve")]
+        public float resolveRefillDelay = 0.5f;
+
         [Header("Difficulty / ความยาก")]
         public int baseAnomaliesPerNight = 3;
         public int dayIntervalIncrease = 2;
@@ -19,6 +35,8 @@ namespace ARKOM.Anomalies.Runtime
         [Header("Progressive Spawning / ทยอยเกิด")]
         [Range(0f,1f)] public float initialSpawnFraction = 0.5f;
         public float spawnInterval = 25f;
+        [Tooltip("แปรผันเวลาระหว่างสปอว์น ±สัดส่วน (เช่น 0.25 = ±25%) เพื่อไม่ให้เป็นจังหวะคงที่เกินไป")]
+        [Range(0f, 0.95f)] public float spawnIntervalJitter = 0.25f;
         public int spawnBatchSize = 1;
 
         [Header("Spawn Feedback")]
@@ -43,7 +61,7 @@ namespace ARKOM.Anomalies.Runtime
         private float spawnTimer;
 
         // Metrics
-        private readonly Dictionary<string, float> spawnTimes = new(); // anomalyId -> Time.time ตอน spawn
+        private readonly Dictionary<string, float> spawnTimes = new(); // id -> Time.time ตอน spawn
         private readonly List<float> resolveDurations = new();        // เวลาที่ใช้หาแต่ละตัว
         public float AverageResolveTime => resolveDurations.Count == 0 ? 0f : TotalResolveTime / resolveDurations.Count;
         public float LastResolveTime { get; private set; }
@@ -52,8 +70,14 @@ namespace ARKOM.Anomalies.Runtime
         // Public read-only info
         public int ActiveAnomalyCount => activeIds.Count;
         public int ResolvedCount => resolvedCount;
-        public int RemainingCount => targetForNight - resolvedCount;
+        public int RemainingCount => Mathf.Max(0, targetForNight - resolvedCount);
         public int RemainingToActivate => Mathf.Max(0, targetForNight - ActiveAnomalyCount);
+
+        public int TargetForNight => targetForNight;
+        public bool IsPointMode => pointPool != null && pointPool.Count > 0;
+
+        // Point-mode memory
+        private string lastActivatedPointId; // ใช้กันตำแหน่งเดิมซ้ำทันที
 
         private void OnEnable()  => EventBus.Subscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
         private void OnDisable() => EventBus.Unsubscribe<AnomalyResolvedEvent>(OnAnomalyResolved);
@@ -61,16 +85,46 @@ namespace ARKOM.Anomalies.Runtime
         private void Update()
         {
             if (!nightRunning) return;
-            if (ActiveAnomalyCount >= targetForNight) return;
-            spawnTimer -= Time.deltaTime;
-            if (spawnTimer <= 0f)
+
+            bool pointMode = pointPool != null && pointPool.Count > 0;
+
+            if (pointMode)
             {
-                SpawnBatch();
-                spawnTimer = spawnInterval;
+                if (ResolvedCount >= targetForNight) return;
+
+                spawnTimer -= Time.deltaTime;
+                if (spawnTimer <= 0f)
+                {
+                    int allow = Mathf.Max(0, maxConcurrentActive - ActiveAnomalyCount);
+                    int remainToTarget = Mathf.Max(0, targetForNight - (resolvedCount + ActiveAnomalyCount));
+                    int toSpawn = Mathf.Min(spawnBatchSize, allow, remainToTarget);
+                    if (toSpawn > 0)
+                        SpawnPointsBatch(toSpawn);
+
+                    spawnTimer = NextSpawnInterval();
+                }
+            }
+            else
+            {
+                if (ActiveAnomalyCount >= targetForNight) return;
+                spawnTimer -= Time.deltaTime;
+                if (spawnTimer <= 0f)
+                {
+                    SpawnBatch();
+                    spawnTimer = NextSpawnInterval();
+                }
             }
         }
 
-        // เพิ่มเมธอด
+        private float NextSpawnInterval()
+        {
+            float j = Mathf.Clamp01(spawnIntervalJitter);
+            float min = spawnInterval * (1f - j);
+            float max = spawnInterval * (1f + j);
+            return Random.Range(min, max);
+        }
+
+        // ===== Validation =====
         private bool ValidateAnomalyIds()
         {
             var seen = new HashSet<string>();
@@ -97,54 +151,198 @@ namespace ARKOM.Anomalies.Runtime
                     Debug.LogWarning($"[AnomalyManager] Duplicate anomalyId '{id}' ({d.name})", d);
                     ok = false;
                 }
-                // Optional: normalize
                 d.anomalyId = id;
             }
             if (!ok) Debug.LogWarning("[AnomalyManager] Validation finished with issues.");
             return ok;
         }
 
+        private bool ValidatePointIds()
+        {
+            var seen = new HashSet<string>();
+            bool ok = true;
+            foreach (var p in pointPool)
+            {
+                if (!p) continue;
+                string id = (p.pointId ?? "").Trim();
+                if (string.IsNullOrEmpty(id))
+                {
+                    Debug.LogWarning($"[AnomalyManager] Point with empty pointId on '{p.name}'", p);
+                    ok = false;
+                }
+                else if (!seen.Add(id))
+                {
+                    Debug.LogWarning($"[AnomalyManager] Duplicate pointId '{id}' on '{p.name}'", p);
+                    ok = false;
+                }
+
+                if (!p.anomaly)
+                {
+                    Debug.LogWarning($"[AnomalyManager] Point '{p.pointId}' missing Anomaly component reference.", p);
+                    ok = false;
+                }
+            }
+            if (!ok) Debug.LogWarning("[AnomalyManager] Point validation finished with issues.");
+            return ok;
+        }
+
         public void StartNight()
         {
+            bool pointMode = pointPool != null && pointPool.Count > 0;
+
             if (validateIdsOnStartNight)
-                ValidateAnomalyIds();
+            {
+                if (pointMode) ValidatePointIds();
+                else ValidateAnomalyIds();
+            }
 
             resolvedCount = 0;
-            ResetAll();
+            ResetAll(pointMode);
             nightRunning = true;
 
             resolveDurations.Clear();
             spawnTimes.Clear();
             TotalResolveTime = 0f;
             LastResolveTime = 0f;
+            lastActivatedPointId = null;
 
             int currentDay = FindObjectOfType<GameManager>()?.currentDay ?? 1;
             int bonus = Mathf.FloorToInt((currentDay - 1) / Mathf.Max(1, dayIntervalIncrease));
-            targetForNight = Mathf.Clamp(baseAnomaliesPerNight + bonus, 1, anomalyPool.Count);
+            targetForNight = pointMode
+                ? Mathf.Clamp(baseAnomaliesPerNight + bonus, 1, Mathf.Max(1, pointPool.Count * 10)) // โหมดจุด อาจเกิดซ้ำจุดเดิมได้หลายครั้งในคืนเดียว
+                : Mathf.Clamp(baseAnomaliesPerNight + bonus, 1, anomalyPool.Count);
 
-            int initialCount = Mathf.Clamp(Mathf.RoundToInt(targetForNight * initialSpawnFraction), 1, targetForNight);
-            ActivateRandomDistinct(initialCount);
-
-            spawnTimer = spawnInterval;
-            if (initialCount > 0)
+            if (pointMode)
             {
-                if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, (audioPoint ? audioPoint : transform).position);
-                EventBus.Publish(new AnomalySpawnBatchEvent(initialCount, ActiveAnomalyCount, targetForNight));
-            }
+                // เริ่มด้วยจำนวนตาม maxConcurrentActive และไม่เกินเป้าหมาย
+                int initialCount = Mathf.Clamp(Mathf.Min(maxConcurrentActive, targetForNight), 1, Mathf.Max(1, maxConcurrentActive));
+                int spawned = SpawnPointsBatch(initialCount);
 
-            Debug.Log($"[AnomalyManager] Night started Target={targetForNight} Initial={initialCount} RemainToActivate={RemainingToActivate}");
+                spawnTimer = NextSpawnInterval();
+                if (spawned > 0)
+                {
+                    if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, (audioPoint ? audioPoint : transform).position);
+                    EventBus.Publish(new AnomalySpawnBatchEvent(spawned, ActiveAnomalyCount, targetForNight));
+                }
+
+                Debug.Log($"[AnomalyManager] Night started (PointMode) Target={targetForNight} Initial={spawned} Active={ActiveAnomalyCount} MaxConcurrent={maxConcurrentActive}");
+            }
+            else
+            {
+                int initialCount = Mathf.Clamp(Mathf.RoundToInt(targetForNight * initialSpawnFraction), 1, targetForNight);
+                ActivateRandomDistinct(initialCount);
+
+                spawnTimer = NextSpawnInterval();
+                if (initialCount > 0)
+                {
+                    if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, (audioPoint ? audioPoint : transform).position);
+                    EventBus.Publish(new AnomalySpawnBatchEvent(initialCount, ActiveAnomalyCount, targetForNight));
+                }
+
+                Debug.Log($"[AnomalyManager] Night started Target={targetForNight} Initial={initialCount} RemainToActivate={RemainingToActivate}");
+            }
         }
 
-        private void ResetAll()
+        private void ResetAll(bool pointMode)
         {
             activeIds.Clear();
-            foreach (var a in anomalyPool)
-                a.Deactivate();
+
+            if (pointMode)
+            {
+                foreach (var p in pointPool)
+                {
+                    if (!p) continue;
+                    if (p.anomaly) p.anomaly.Deactivate();
+                    p.ResetPointState(resetCooldown: resetCooldownOnStartNight);
+                }
+            }
+            else
+            {
+                foreach (var a in anomalyPool)
+                    if (a) a.Deactivate();
+            }
+
             nightRunning = false;
-            targetForNight = 0;
             spawnTimer = 0f;
         }
 
+        // ===== โหมดจุด (Point Mode) =====
+        private int SpawnPointsBatch(int count)
+        {
+            if (!nightRunning || count <= 0) return 0;
+
+            List<AnomalyPoint> candidates = new();
+            float now = Time.time;
+
+            foreach (var p in pointPool)
+            {
+                if (!p) continue;
+                if (p.IsActive) continue;
+                if (!p.CanActivate(now)) continue;
+                if (activeIds.Contains(p.pointId)) continue; // กันซ้ำในชุด Active ปัจจุบัน
+                candidates.Add(p);
+            }
+            if (candidates.Count == 0) return 0;
+
+            // เลี่ยงตำแหน่งเดิมซ้ำทันที (ถ้ามีตัวเลือกอื่น)
+            if (avoidImmediateRepeatPoint && !string.IsNullOrEmpty(lastActivatedPointId))
+            {
+                bool hasOthers = false;
+                for (int i = 0; i < candidates.Count; i++)
+                {
+                    if (candidates[i].pointId != lastActivatedPointId) { hasOthers = true; break; }
+                }
+                if (hasOthers)
+                {
+                    candidates.RemoveAll(p => p.pointId == lastActivatedPointId);
+                }
+            }
+
+            // สุ่มลำดับ candidates
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                int j = Random.Range(i, candidates.Count);
+                (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+            }
+
+            int spawned = 0;
+            int allow = Mathf.Max(0, maxConcurrentActive - ActiveAnomalyCount);
+            int remainToTarget = Mathf.Max(0, targetForNight - (resolvedCount + ActiveAnomalyCount));
+            int toSpawn = Mathf.Min(count, allow, remainToTarget);
+
+            for (int i = 0; i < candidates.Count && spawned < toSpawn; i++)
+            {
+                var p = candidates[i];
+                p.ActivateRandom();
+                activeIds.Add(p.pointId);
+                spawnTimes[p.pointId] = Time.time;
+                lastActivatedPointId = p.pointId;
+                spawned++;
+            }
+
+            if (spawned > 0)
+            {
+                if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, (audioPoint ? audioPoint : transform).position);
+                EventBus.Publish(new AnomalySpawnBatchEvent(spawned, ActiveAnomalyCount, targetForNight));
+                Debug.Log($"[AnomalyManager] Spawn points +{spawned} Active={ActiveAnomalyCount}/{targetForNight} (Candidates={candidates.Count})");
+            }
+
+            TryCompleteNight_PointMode();
+            return spawned;
+        }
+
+        private void TryCompleteNight_PointMode()
+        {
+            if (nightRunning && resolvedCount >= targetForNight)
+            {
+                nightRunning = false;
+                if (logSummaryAtNightEnd)
+                    Debug.Log($"[Metrics] Night done. Resolved={resolvedCount} Avg={AverageResolveTime:0.00}s Total={TotalResolveTime:0.0}s");
+                EventBus.Publish(new NightCompletedEvent());
+            }
+        }
+
+        // ===== โหมดเดิม (Anomaly list) =====
         private void SpawnBatch()
         {
             if (!nightRunning) return;
@@ -159,7 +357,18 @@ namespace ARKOM.Anomalies.Runtime
                 Debug.Log($"[AnomalyManager] Spawn batch +{toSpawn} Active={ActiveAnomalyCount}/{targetForNight}");
             }
 
-            TryCompleteNight();
+            TryCompleteNight_Legacy();
+        }
+
+        private void TryCompleteNight_Legacy()
+        {
+            if (nightRunning && resolvedCount >= targetForNight && ActiveAnomalyCount >= targetForNight)
+            {
+                nightRunning = false;
+                if (logSummaryAtNightEnd)
+                    Debug.Log($"[Metrics] Night done. Resolved={resolvedCount} Avg={AverageResolveTime:0.00}s Total={TotalResolveTime:0.0}s");
+                EventBus.Publish(new NightCompletedEvent());
+            }
         }
 
         private void ActivateRandomDistinct(int count)
@@ -167,12 +376,14 @@ namespace ARKOM.Anomalies.Runtime
             List<Anomaly> candidates = new();
             foreach (var a in anomalyPool)
             {
+                if (a == null) continue;
                 if (a.data == null) continue;
                 if (activeIds.Contains(a.data.anomalyId)) continue;
                 candidates.Add(a);
             }
             if (candidates.Count == 0) return;
 
+            // สุ่มลำดับ candidates
             for (int i = 0; i < candidates.Count; i++)
             {
                 int j = Random.Range(i, candidates.Count);
@@ -192,10 +403,13 @@ namespace ARKOM.Anomalies.Runtime
             }
         }
 
+        // ===== Event: Resolve =====
         private void OnAnomalyResolved(AnomalyResolvedEvent evt)
         {
             if (!activeIds.Contains(evt.Id)) return;
+
             resolvedCount++;
+            activeIds.Remove(evt.Id);
 
             if (spawnTimes.TryGetValue(evt.Id, out float tSpawn))
             {
@@ -213,17 +427,52 @@ namespace ARKOM.Anomalies.Runtime
             }
 
             EventBus.Publish(new AnomalyProgressEvent(resolvedCount, targetForNight));
-            TryCompleteNight();
+
+            // เติมตัวใหม่ทันทีตามดีเลย์
+            if (spawnImmediatelyOnResolve && RemainingToActivate > 0)
+            {
+                Invoke(nameof(DelayedSpawnRefill), resolveRefillDelay);
+            }
+
+            // โหมดจุด: ปล่อยให้รอบ spawn ถัดไปเติมเองตาม interval
+            if (pointPool != null && pointPool.Count > 0)
+            {
+                if (spawnImmediatelyOnResolve && nightRunning && resolvedCount < targetForNight)
+                {
+                    int allow = Mathf.Max(0, maxConcurrentActive - ActiveAnomalyCount);
+                    int remainToTarget = Mathf.Max(0, targetForNight - (resolvedCount + ActiveAnomalyCount));
+                    if (allow > 0 && remainToTarget > 0)
+                        spawnTimer = Mathf.Min(spawnTimer, Mathf.Max(0f, resolveRefillDelay));
+                }
+
+                TryCompleteNight_PointMode();
+            }
+            else
+            {
+                TryCompleteNight_Legacy();
+            }
         }
 
-        private void TryCompleteNight()
+        private void DelayedSpawnRefill()
         {
-            if (nightRunning && resolvedCount >= targetForNight && ActiveAnomalyCount >= targetForNight)
+            if (!nightRunning) return;
+            if (IsPointMode)
             {
-                nightRunning = false;
-                if (logSummaryAtNightEnd)
-                    Debug.Log($"[Metrics] Night done. Resolved={resolvedCount} Avg={AverageResolveTime:0.00}s Total={TotalResolveTime:0.0}s");
-                EventBus.Publish(new NightCompletedEvent());
+                SpawnPointsBatch(1);
+            }
+            else
+            {
+                SpawnBatch();
+            }
+        }
+
+        // ===== Utils =====
+        private static void Shuffle<T>(List<T> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                int j = Random.Range(i, list.Count);
+                (list[i], list[j]) = (list[j], list[i]);
             }
         }
     }

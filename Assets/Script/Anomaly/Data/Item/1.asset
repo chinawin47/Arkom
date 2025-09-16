@@ -23,4 +23,4 @@ MonoBehaviour:
   useEffectPrefab: 0
   soundEffect: {fileID: 0}
   requiresQTE: 1
-  qteFailGameOver: 1
+  qteFailGameOver: 0

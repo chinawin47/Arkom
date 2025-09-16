@@ -49,4 +49,11 @@ namespace ARKOM.Core
     public readonly struct AnomalyProgressEvent { public readonly int Resolved; public readonly int Total; public AnomalyProgressEvent(int r,int t){Resolved=r;Total=t;} }
     public readonly struct AnomalySpawnBatchEvent { public readonly int Spawned; public readonly int Active; public readonly int Target; public AnomalySpawnBatchEvent(int s,int a,int t){Spawned=s;Active=a;Target=t;} }
     public readonly struct VictoryEvent { } // เพิ่มเหตุการณ์ชนะชั่วคราว
+
+    // NEW: บอก GameManager ให้ Game Over จาก QTE fail กรณีที่ต้องบังคับจบเกมเท่านั้น
+    public readonly struct QTEFailGameOverEvent
+    {
+        public readonly string PointId;
+        public QTEFailGameOverEvent(string pointId) { PointId = pointId; }
+    }
 }

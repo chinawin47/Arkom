@@ -2,6 +2,7 @@
 using ARKOM.Anomalies.Data;
 using ARKOM.Core;
 using ARKOM.QTE; // เพิ่มสำหรับเรียก QTE
+using ARKOM.Anomalies.Runtime; // ใช้หา AnomalyPoint
 
 namespace ARKOM.Anomalies.Runtime
 {
@@ -63,7 +64,6 @@ namespace ARKOM.Anomalies.Runtime
                 // ป้องกันซ้อน ถ้ามี QTE อื่นค้างอยู่
                 if (pendingQTE != null && pendingQTE != this)
                 {
-                    // อาจใส่เสียงปฏิเสธเบา ๆ ภายหลัง
                     return;
                 }
 
@@ -89,8 +89,20 @@ namespace ARKOM.Anomalies.Runtime
 
         private void ResolveDirect()
         {
-            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId));
+            // ใช้ pointId ถ้ามี เพื่อให้ระบบนับระดับ "จุด"
+            string id = data != null ? data.anomalyId : null;
+            var point = GetComponent<AnomalyPoint>();
+            if (point != null && !string.IsNullOrEmpty(point.pointId))
+                id = point.pointId;
+
+            if (!string.IsNullOrEmpty(id))
+                EventBus.Publish(new AnomalyResolvedEvent(id));
+
             Deactivate();
+
+            // แจ้งจุดให้เริ่มคูลดาวน์
+            if (point != null)
+                point.OnResolved();
         }
 
         private void SubscribeQTE()
@@ -120,12 +132,13 @@ namespace ARKOM.Anomalies.Runtime
             }
             else
             {
-                // ถ้าตั้งว่า Fail แล้ว Game Over ปล่อย GameManager จัดการ (อยู่แล้ว)
-                if (!data.qteFailGameOver)
+                // ถ้า Fail แล้วต้อง Game Over → ให้บอก GameManager ผ่าน Event ใหม่
+                if (data != null && data.qteFailGameOver)
                 {
-                    // ถ้าไม่ให้ Game Over ก็แค่ยังไม่ resolve (ยัง active) ผู้เล่นลองใหม่ได้
-                    // อาจตั้ง cooldown ภายหลัง
+                    string pid = GetComponent<AnomalyPoint>()?.pointId ?? (data?.anomalyId ?? "");
+                    EventBus.Publish(new QTEFailGameOverEvent(pid));
                 }
+                // ถ้าไม่บังคับ Game Over → ไม่ resolve, anomaly ยัง active ให้ผู้เล่นลองใหม่ได้
             }
         }
 
@@ -184,7 +197,6 @@ namespace ARKOM.Anomalies.Runtime
             }
             else
             {
-                // คืนค่าเดิม
                 switch (data.type)
                 {
                     case AnomalyData.AnomalyType.Position:

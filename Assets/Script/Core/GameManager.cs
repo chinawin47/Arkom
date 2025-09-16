@@ -40,6 +40,9 @@ namespace ARKOM.Game
             EventBus.Subscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
             EventBus.Subscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
+
+            // NEW: รับสัญญาณเฉพาะกรณี QTE fail ที่ต้อง Game Over
+            EventBus.Subscribe<QTEFailGameOverEvent>(OnQTEFailGameOver);
         }
 
         private void OnDisable()
@@ -48,6 +51,9 @@ namespace ARKOM.Game
             EventBus.Unsubscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
             EventBus.Unsubscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
+
+            // NEW: ยกเลิก sub
+            EventBus.Unsubscribe<QTEFailGameOverEvent>(OnQTEFailGameOver);
         }
 
         private void Update()
@@ -102,8 +108,15 @@ namespace ARKOM.Game
         private void OnQTEResult(QTEResultEvent evt)
         {
             if (State != GameState.QTE) return;
-            if (!evt.Success) TriggerGameOver(GameOverReason.QTEFail);
-            else SetState(GameState.NightAnomaly);
+
+            // เปลี่ยนกลับเข้าสภาวะ NightAnomaly เสมอเมื่อ QTE จบ (จะ Game Over หรือไม่ให้เหตุการณ์อื่นเป็นคนตัดสิน)
+            SetState(GameState.NightAnomaly);
+        }
+
+        // NEW: รับเฉพาะกรณี QTE fail ที่ต้อง Game Over
+        private void OnQTEFailGameOver(QTEFailGameOverEvent _)
+        {
+            TriggerGameOver(GameOverReason.QTEFail);
         }
 
         private void OnStoryFlagAdded(StoryFlagAddedEvent evt)

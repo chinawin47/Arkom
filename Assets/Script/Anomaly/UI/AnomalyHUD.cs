@@ -10,6 +10,10 @@ public class AnomalyHUD : MonoBehaviour
     public AnomalyManager anomalyManager;
     public Text statusText;
 
+    [Header("Show Metrics")]
+    public bool showAverageResolveTime = true;
+    public bool showLastResolveTime = false;
+
     [Header("Night Timer")]
     public GameManager gameManager;
     public Text timerText;
@@ -73,15 +77,12 @@ public class AnomalyHUD : MonoBehaviour
                 float t = gameManager.NightTimeRemaining;
                 timerText.text = FormatTime(t);
 
-                // Low-time warning logic
                 if (t <= warningThreshold)
                 {
-                    // เปลี่ยนสี/กระพริบ
                     warningActive = true;
                     float blink = Mathf.PingPong(Time.time * 2f, 1f);
                     timerText.color = Color.Lerp(normalColor, warningColor, blink);
 
-                    // เล่นเสียงเตือนครั้งเดียว
                     if (!warningPlayed && warningSfx)
                     {
                         AudioSource.PlayClipAtPoint(warningSfx, Camera.main ? Camera.main.transform.position : Vector3.zero);
@@ -129,7 +130,35 @@ public class AnomalyHUD : MonoBehaviour
     {
         if (!statusText) return;
 
-        if (!anomalyManager || anomalyManager.ActiveAnomalyCount == 0)
+        if (!anomalyManager)
+        {
+            statusText.text = "";
+            return;
+        }
+
+        if (anomalyManager.IsPointMode)
+        {
+            string line1 = $"Resolved: {anomalyManager.ResolvedCount}/{anomalyManager.TargetForNight}  |  Active: {anomalyManager.ActiveAnomalyCount}/{anomalyManager.maxConcurrentActive}";
+            if (showAverageResolveTime || showLastResolveTime)
+            {
+                string extra = "";
+                if (showAverageResolveTime)
+                    extra += $"Avg: {anomalyManager.AverageResolveTime:0.00}s";
+                if (showLastResolveTime)
+                {
+                    if (extra.Length > 0) extra += "  ";
+                    extra += $"Last: {anomalyManager.LastResolveTime:0.00}s";
+                }
+                statusText.text = line1 + "\n" + extra;
+            }
+            else
+            {
+                statusText.text = line1;
+            }
+            return;
+        }
+
+        if (anomalyManager.ActiveAnomalyCount == 0)
         {
             statusText.text = "";
             return;
