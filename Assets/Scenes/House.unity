@@ -211,7 +211,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &717020230
+--- !u!1001 &534638080
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -221,7 +221,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 5a820122f37e55740bf38b8766366769, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.44432
+      value: -3.10704
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5a820122f37e55740bf38b8766366769, type: 3}
       propertyPath: m_LocalPosition.y
@@ -229,7 +229,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5a820122f37e55740bf38b8766366769, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -7.0337
+      value: -13.66246
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5a820122f37e55740bf38b8766366769, type: 3}
       propertyPath: m_LocalRotation.w
@@ -263,6 +263,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: HorrorHouse3D
       objectReference: {fileID: 0}
+    - target: {fileID: 8001945605636281490, guid: 5a820122f37e55740bf38b8766366769, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8001945605636281490, guid: 5a820122f37e55740bf38b8766366769, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f975fc8f57922814697a520f9d41354d, type: 2}
+    - target: {fileID: 8001945605636281490, guid: 5a820122f37e55740bf38b8766366769, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 576774159082626113, guid: 5a820122f37e55740bf38b8766366769, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -395,4 +407,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 416590683}
   - {fileID: 2046646352}
-  - {fileID: 717020230}
+  - {fileID: 534638080}
