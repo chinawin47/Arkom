@@ -27,11 +27,22 @@ namespace ARKOM.Game
         [Header("Story Win")]
         public string[] requiredStoryFlags;
 
+        // NEW: เริ่มเกมเป็นกลางคืนได้จาก Inspector
+        [Header("Startup")]
+        [SerializeField] private bool startAtNight = true;
+
         public GameOverReason LastGameOverReason { get; private set; } = GameOverReason.None;
 
         private void Awake()
         {
             EventBus.Publish(new GameStateChangedEvent(State));
+        }
+
+        // NEW: เรียกเริ่มคืนทันทีหลังเข้าซีน (ปลอดภัยกว่า Awake เพราะให้คอมโพเนนต์อื่น Awake เสร็จก่อน)
+        private void Start()
+        {
+            if (startAtNight) BeginNight();
+            else BeginDay();
         }
 
         private void OnEnable()
@@ -40,9 +51,6 @@ namespace ARKOM.Game
             EventBus.Subscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
             EventBus.Subscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
-
-            // NEW: รับสัญญาณเฉพาะกรณี QTE fail ที่ต้อง Game Over
-            EventBus.Subscribe<QTEFailGameOverEvent>(OnQTEFailGameOver);
         }
 
         private void OnDisable()
@@ -51,9 +59,6 @@ namespace ARKOM.Game
             EventBus.Unsubscribe<LoudNoiseDetectedEvent>(HandleLoudNoiseDetected);
             EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
             EventBus.Unsubscribe<StoryFlagAddedEvent>(OnStoryFlagAdded);
-
-            // NEW: ยกเลิก sub
-            EventBus.Unsubscribe<QTEFailGameOverEvent>(OnQTEFailGameOver);
         }
 
         private void Update()
@@ -108,15 +113,8 @@ namespace ARKOM.Game
         private void OnQTEResult(QTEResultEvent evt)
         {
             if (State != GameState.QTE) return;
-
-            // เปลี่ยนกลับเข้าสภาวะ NightAnomaly เสมอเมื่อ QTE จบ (จะ Game Over หรือไม่ให้เหตุการณ์อื่นเป็นคนตัดสิน)
-            SetState(GameState.NightAnomaly);
-        }
-
-        // NEW: รับเฉพาะกรณี QTE fail ที่ต้อง Game Over
-        private void OnQTEFailGameOver(QTEFailGameOverEvent _)
-        {
-            TriggerGameOver(GameOverReason.QTEFail);
+            if (!evt.Success) TriggerGameOver(GameOverReason.QTEFail);
+            else SetState(GameState.NightAnomaly);
         }
 
         private void OnStoryFlagAdded(StoryFlagAddedEvent evt)
