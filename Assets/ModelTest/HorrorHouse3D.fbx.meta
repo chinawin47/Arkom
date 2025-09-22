@@ -3,7 +3,127 @@ guid: 5a820122f37e55740bf38b8766366769
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BuddhaShelfMat
+    second: {fileID: 2100000, guid: 25b0f7e89fa954349be512283fd4581f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BuddhaStatue
+    second: {fileID: 2100000, guid: 0ea83c381f482114fb3cb4ffcac45c48, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CalendarMat
+    second: {fileID: 2100000, guid: ac78109ee85e8d54086d8cb194687baa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CocaCola
+    second: {fileID: 2100000, guid: a0dd4f6071e361d49b2aeae54976f51e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cupboard1
+    second: {fileID: 2100000, guid: 07aed3d4c8ab55b49a70698694016122, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DoorMat
+    second: {fileID: 2100000, guid: 136fd2437690f97438c8549812ad5573, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Drawer&Cupboard
+    second: {fileID: 2100000, guid: 738a574f4fc03f0418bdf1e6d89b33a6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DrawerTV
+    second: {fileID: 2100000, guid: eb68721ac93d5474898514af9ef665ad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FanMat
+    second: {fileID: 2100000, guid: db6623571ec564e4a9246277e7a36ed8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FloorGround
+    second: {fileID: 2100000, guid: 5b8bc7721a187034bbc169986cd25a53, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FoodCupbard
+    second: {fileID: 2100000, guid: 222d598b05d69714abd88f62ff3a63bd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FrontHousePillarsMat
+    second: {fileID: 2100000, guid: 3cb1a55999e734844b93f1a6d9a127ea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HouseStrauture
+    second: {fileID: 2100000, guid: 6c55c49a5f6f7054ea8a7a04467a666d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: KitchenCounter
+    second: {fileID: 2100000, guid: acf08c97c93c06047b041501befbdf5e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lamp&CandleMat
+    second: {fileID: 2100000, guid: da69f5f2235e9c348bf06f8c98b53bbf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SmallTable&WindowFrameMat
+    second: {fileID: 2100000, guid: 83c37d0dbc2d07446b49062d30db0ef4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SofarMat
+    second: {fileID: 2100000, guid: e24503c06009710439b25bf5a7d6f3b7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TV&DVD
+    second: {fileID: 2100000, guid: 84f9dfa61a5577a4cbc3f6542b4087f2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TVRemoteMat
+    second: {fileID: 2100000, guid: 225266a47a2d1be4ba82a8b35a9e06a7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Table&Chair&Speaker
+    second: {fileID: 2100000, guid: fdaad5981d1fa2543ae5fbcadc99a60f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ToiletMat
+    second: {fileID: 2100000, guid: e9f453757cf60ed429bc49e07255fc9c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TravelBagMat
+    second: {fileID: 2100000, guid: ff600b6441d124b4d93043a96beb82f4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WindowFrame&RestroomDoorMat
+    second: {fileID: 2100000, guid: b4c679af2a2fa2147beabf0a1156ced9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WoodPlank
+    second: {fileID: 2100000, guid: 8a3543b50e0b39c4e8946c1bb210bb63, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
