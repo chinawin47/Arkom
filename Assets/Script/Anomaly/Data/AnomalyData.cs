@@ -35,6 +35,12 @@ namespace ARKOM.Anomalies.Data
         [Tooltip("เสียงที่จะเล่นตอน Anomaly ถูกเปิดใช้งาน")]
         public AudioClip soundEffect;
 
+        [Header("QTE Settings")]
+        [Tooltip("ต้องผ่าน QTE ก่อนนับว่าแก้ไขได้หรือไม่")]
+        public bool requiresQTE;
+        [Tooltip("ล้มเหลว QTE แล้ว Game Over ทันทีหรือไม่ (ถ้าไม่ติ๊ก จะถือว่าเพียงแค่ไม่แก้ Anomaly)")]
+        public bool qteFailGameOver = true;
+
         public enum AnomalyType
         {
             Position,       // เลื่อนตำแหน่ง

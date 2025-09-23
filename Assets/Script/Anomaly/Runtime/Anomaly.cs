@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using ARKOM.Anomalies.Data;
 using ARKOM.Core;
+using ARKOM.QTE; // เพิ่มสำหรับเรียก QTE
+using ARKOM.Anomalies.Runtime; // ใช้หา AnomalyPoint
 
 namespace ARKOM.Anomalies.Runtime
 {
@@ -22,6 +24,11 @@ namespace ARKOM.Anomalies.Runtime
         private bool rendererInitiallyEnabled;
         private GameObject spawnedPrefab;
 
+        // ===== QTE Integration =====
+        private static Anomaly pendingQTE;         // เก็บ anomaly ที่รอผล QTE (มีได้ครั้งละ 1)
+        private bool waitingQTE;                   // ตัวนี้อยู่ระหว่างรอ QTE ผลหรือไม่
+        private bool qteSubscribed;                // ป้องกัน unsubscribe ซ้ำ
+
         public void Activate()
         {
             if (data == null || active) return;
@@ -35,15 +42,104 @@ namespace ARKOM.Anomalies.Runtime
             if (!active) return;
             Apply(false);
             active = false;
+            waitingQTE = false;
+            if (pendingQTE == this) pendingQTE = null;
+            UnsubscribeQTE();
         }
 
-        public override bool CanInteract(object interactor) => active && base.CanInteract(interactor);
+        public override bool CanInteract(object interactor)
+        {
+            if (!active) return false;
+            if (data != null && data.requiresQTE && waitingQTE) return false; // ระหว่างทำ QTE ห้ามกดซ้ำ
+            return base.CanInteract(interactor);
+        }
 
         protected override void OnInteract(object interactor)
         {
-            // ผู้เล่นตรวจพบ → แจ้ง Event ให้ Manager รู้
-            EventBus.Publish(new AnomalyResolvedEvent(data.anomalyId));
+            if (data == null)
+                return;
+
+            if (data.requiresQTE)
+            {
+                // ป้องกันซ้อน ถ้ามี QTE อื่นค้างอยู่
+                if (pendingQTE != null && pendingQTE != this)
+                {
+                    return;
+                }
+
+                // เริ่ม QTE
+                var qte = FindObjectOfType<QTEManager>();
+                if (qte == null)
+                {
+                    Debug.LogWarning("[Anomaly] QTEManager not found; fallback resolve directly.");
+                    ResolveDirect();
+                    return;
+                }
+
+                pendingQTE = this;
+                waitingQTE = true;
+                SubscribeQTE();
+                qte.StartQTE(); // QTEManager จะ Publish GameStateChangedEvent(QTE)
+                return;
+            }
+
+            // ผู้เล่นตรวจพบ (ไม่ต้อง QTE) → แจ้ง Event ให้ Manager รู้
+            ResolveDirect();
+        }
+
+        private void ResolveDirect()
+        {
+            // ใช้ pointId ถ้ามี เพื่อให้ระบบนับระดับ "จุด"
+            string id = data != null ? data.anomalyId : null;
+            var point = GetComponent<AnomalyPoint>();
+            if (point != null && !string.IsNullOrEmpty(point.pointId))
+                id = point.pointId;
+
+            if (!string.IsNullOrEmpty(id))
+                EventBus.Publish(new AnomalyResolvedEvent(id));
+
             Deactivate();
+
+            // แจ้งจุดให้เริ่มคูลดาวน์
+            if (point != null)
+                point.OnResolved();
+        }
+
+        private void SubscribeQTE()
+        {
+            if (qteSubscribed) return;
+            EventBus.Subscribe<QTEResultEvent>(OnQTEResult);
+            qteSubscribed = true;
+        }
+
+        private void UnsubscribeQTE()
+        {
+            if (!qteSubscribed) return;
+            EventBus.Unsubscribe<QTEResultEvent>(OnQTEResult);
+            qteSubscribed = false;
+        }
+
+        private void OnQTEResult(QTEResultEvent evt)
+        {
+            if (pendingQTE != this) return; // ไม่ใช่ของเรา ข้าม
+            waitingQTE = false;
+            pendingQTE = null;
+            UnsubscribeQTE();
+
+            if (evt.Success)
+            {
+                ResolveDirect();
+            }
+            else
+            {
+                // ถ้า Fail แล้วต้อง Game Over → ให้บอก GameManager ผ่าน Event ใหม่
+                if (data != null && data.qteFailGameOver)
+                {
+                    string pid = GetComponent<AnomalyPoint>()?.pointId ?? (data?.anomalyId ?? "");
+                    EventBus.Publish(new QTEFailGameOverEvent(pid));
+                }
+                // ถ้าไม่บังคับ Game Over → ไม่ resolve, anomaly ยัง active ให้ผู้เล่นลองใหม่ได้
+            }
         }
 
         private void CacheOriginal()
@@ -101,7 +197,6 @@ namespace ARKOM.Anomalies.Runtime
             }
             else
             {
-                // คืนค่าเดิม
                 switch (data.type)
                 {
                     case AnomalyData.AnomalyType.Position:
@@ -133,6 +228,13 @@ namespace ARKOM.Anomalies.Runtime
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawLine(transform.position, transform.position + transform.TransformVector(data.positionOffset));
             }
+        }
+
+        private void OnDisable()
+        {
+            if (waitingQTE && pendingQTE == this)
+                pendingQTE = null;
+            UnsubscribeQTE();
         }
     }
 }
