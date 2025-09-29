@@ -9,8 +9,8 @@ namespace ARKOM.Player
     public class PlayerController : MonoBehaviour, PlayerInputActions.IPlayerActions
     {
         [Header("Camera Setup")]
-        public Transform cameraRoot; // Empty ที่หัว
-        public Camera mainCamera;    // MainCamera (child ของ cameraRoot)
+        public Transform cameraRoot;
+        public Camera mainCamera;
 
         [Header("Movement Settings")]
         public float walkSpeed = 4f;
@@ -30,10 +30,18 @@ namespace ARKOM.Player
         public LayerMask interactLayerMask = ~0;
 
         [Header("Flashlight")]
-        [Tooltip("อ้างอิง Flashlight (ถ้าเว้นว่างจะหาในลูกของกล้อง)")]
-        public Flashlight flashlight;
-        [Tooltip("ปุ่มเปิด/ปิดไฟฉาย (ใช้ระบบ Input System แบบเร็ว)")]
-        public Key flashlightKey = Key.F;
+        public Flashlight flashlight;              // จะถูกตั้งค่าเมื่อเก็บได้
+        public Key flashlightKey = Key.L;          // ปุ่มไฟฉาย
+        [Tooltip("เริ่มเกมมีไฟฉายเลยหรือไม่ (ถ้าไม่ ต้อฃเก็บก่อน)")]
+        public bool startWithFlashlight = false;
+        [Tooltip("ตำแหน่งยึดไฟฉายใต้กล้องหลังจากเก็บ (ถ้าว่าง ใช้ cameraRoot)")]
+        public Transform flashlightAttachPoint;
+        private bool hasFlashlight;                // เก็บแล้วหรือยัง
+
+        [Header("Seating / Sit Mode")]
+        public Key seatToggleKey = Key.F; // ใช้ลุกอย่างเดียว (นั่งต้อง Interact กับเก้าอี้)
+        public bool lockPitchWhileSeated = true; // ล็อกมุมก้ม/เงยตอนนั่ง
+        public float seatedPitch = 0f;          // มุมคงที่ถ้าล็อก
 
         private PlayerInputActions inputActions;
         private CharacterController controller;
@@ -44,6 +52,19 @@ namespace ARKOM.Player
         private bool isSprinting;
         private bool isCrouching;
         private float currentSpeed;
+
+        // Seating state
+        public bool IsSeated => isSeated;
+        private bool isSeated;
+        private Transform currentSeat;          // จุดที่นั่ง (anchor player)
+        private Transform currentSeatCamPoint;  // จุดกล้องเฉพาะของเก้าอี้ (optional)
+        private float seatYaw;                  // ทิศผู้เล่นตอนนั่ง
+
+        // เก็บค่าเดิมของ cameraRoot ตอนใช้ camera override
+        private Vector3 cameraLocalPosDefault;
+        private Quaternion cameraLocalRotDefault;
+        private bool storedCameraDefault;
+        private bool usingCameraOverride;
 
         private IInteractable focus;
         public IInteractable CurrentFocus => focus;
@@ -57,8 +78,11 @@ namespace ARKOM.Player
             controller = GetComponent<CharacterController>();
             inputActions = new PlayerInputActions();
 
-            if (!flashlight && cameraRoot)
-                flashlight = cameraRoot.GetComponentInChildren<Flashlight>();
+            if (startWithFlashlight && flashlight)
+            {
+                hasFlashlight = true;
+                AttachFlashlightParent();
+            }
         }
 
         void OnEnable()
@@ -78,25 +102,21 @@ namespace ARKOM.Player
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
-
-            // ไม่ reset ตำแหน่ง/หมุนกล้อง
             xRotation = cameraRoot ? cameraRoot.localEulerAngles.x : 0f;
         }
 
         private void OnGameState(GameStateChangedEvent e)
         {
             currentState = e.State;
-
             bool block = (e.State == GameState.GameOver || e.State == GameState.Victory);
             if (block)
             {
                 if (inputActions.Player.enabled)
                     inputActions.Player.Disable();
             }
-            else
+            else if (!inputActions.Player.enabled)
             {
-                if (!inputActions.Player.enabled)
-                    inputActions.Player.Enable();
+                inputActions.Player.Enable();
             }
         }
 
@@ -105,21 +125,93 @@ namespace ARKOM.Player
             if (currentState == GameState.GameOver || currentState == GameState.Victory)
                 return;
 
+            HandleSeatToggleInput(); // F = ลุก (ถ้านั่งอยู่)
+            HandleFlashlightInput();
             UpdateFocus();
             HandleMovement();
             HandleCamera();
-            HandleFlashlightInput(); // ? เพิ่ม
+        }
+
+        private void HandleSeatToggleInput()
+        {
+            if (!isSeated) return;
+            var kb = Keyboard.current;
+            if (kb != null && kb[seatToggleKey].wasPressedThisFrame)
+            {
+                ExitSeat();
+            }
         }
 
         private void HandleFlashlightInput()
         {
-            if (flashlight == null) return;
-
+            if (!hasFlashlight) return;          // ยังไม่เก็บ
+            if (!flashlight) return;              // ไม่มีอ้างอิง
+            if (isSeated) return;                 // ไม่ให้เปิดขณะนั่ง (เอาออกหากต้องการ)
             var kb = Keyboard.current;
             if (kb != null && kb[flashlightKey].wasPressedThisFrame)
             {
                 flashlight.Toggle();
             }
+        }
+
+        // เรียกจาก SeatInteractable เมื่อนั่ง
+        public void EnterSeat(Transform seatAnchor, Transform cameraPoint)
+        {
+            if (seatAnchor == null) return;
+
+            currentSeat = seatAnchor;
+            currentSeatCamPoint = cameraPoint;
+            isSeated = true;
+            isCrouching = false; // ปิด crouch
+            controller.height = crouchHeight;   // ใช้ความสูงนั่ง
+            velocity = Vector3.zero;
+            moveInput = Vector2.zero;
+
+            transform.position = seatAnchor.position;
+            transform.rotation = Quaternion.Euler(0f, seatAnchor.eulerAngles.y, 0f);
+            seatYaw = transform.eulerAngles.y;
+
+            if (cameraRoot)
+            {
+                if (!storedCameraDefault)
+                {
+                    cameraLocalPosDefault = cameraRoot.localPosition;
+                    cameraLocalRotDefault = cameraRoot.localRotation;
+                    storedCameraDefault = true;
+                }
+                if (cameraPoint)
+                {
+                    cameraRoot.position = cameraPoint.position;
+                    cameraRoot.rotation = cameraPoint.rotation;
+                    usingCameraOverride = true;
+                    if (lockPitchWhileSeated)
+                    {
+                        Vector3 e = cameraRoot.localEulerAngles;
+                        xRotation = e.x;
+                        seatedPitch = xRotation;
+                    }
+                }
+                else
+                {
+                    usingCameraOverride = false;
+                }
+            }
+        }
+
+        public void ExitSeat()
+        {
+            if (!isSeated) return;
+            isSeated = false;
+            currentSeat = null;
+            currentSeatCamPoint = null;
+            controller.height = standingHeight;
+
+            if (usingCameraOverride && cameraRoot)
+            {
+                cameraRoot.localPosition = cameraLocalPosDefault;
+                cameraRoot.localRotation = cameraLocalRotDefault;
+            }
+            usingCameraOverride = false;
         }
 
         private void UpdateFocus()
@@ -152,6 +244,12 @@ namespace ARKOM.Player
 
         private void HandleMovement()
         {
+            if (isSeated)
+            {
+                velocity = Vector3.zero;
+                return;
+            }
+
             if (isCrouching) currentSpeed = crouchSpeed;
             else if (isSprinting && moveInput.y > 0.1f) currentSpeed = sprintSpeed;
             else currentSpeed = walkSpeed;
@@ -170,17 +268,25 @@ namespace ARKOM.Player
             float mouseX = lookInput.x * mouseSensitivityX;
             float mouseY = lookInput.y * mouseSensitivityY * (invertY ? 1 : -1);
 
-            // หมุนแนวตั้ง (pitch) ที่ cameraRoot
-            xRotation = Mathf.Clamp(xRotation + mouseY, -80f, 80f);
+            if (isSeated && lockPitchWhileSeated)
+            {
+                xRotation = seatedPitch; // ล็อก pitch
+                mouseY = 0f;
+            }
+            else
+            {
+                xRotation = Mathf.Clamp(xRotation + mouseY, -80f, 80f);
+            }
+
             if (cameraRoot)
                 cameraRoot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-            // หมุนแนวนอน (yaw) ที่ Player
             transform.Rotate(Vector3.up * mouseX);
         }
 
         private void ToggleCrouch()
         {
+            if (isSeated) return;
             isCrouching = !isCrouching;
             controller.height = isCrouching ? crouchHeight : standingHeight;
         }
@@ -203,6 +309,29 @@ namespace ARKOM.Player
             }
         }
 
+        // เรียกโดย FlashlightPickupInteractable เมื่อผู้เล่นเก็บไฟฉาย
+        public void AcquireFlashlight(Flashlight picked, bool setOn = false)
+        {
+            if (picked == null) return;
+            flashlight = picked;
+            hasFlashlight = true;
+            AttachFlashlightParent();
+            if (setOn)
+                flashlight.SetOn(true);
+            else
+                flashlight.SetOn(false); // ปิดไว้ก่อนให้ผู้เล่นกดเอง
+        }
+
+        private void AttachFlashlightParent()
+        {
+            if (!flashlight) return;
+            Transform parent = flashlightAttachPoint ? flashlightAttachPoint : cameraRoot;
+            if (parent)
+            {
+                flashlight.transform.SetParent(parent, worldPositionStays: false);
+            }
+        }
+        
         // Input Callbacks
         public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
         public void OnLook(InputAction.CallbackContext context) => lookInput = context.ReadValue<Vector2>();
