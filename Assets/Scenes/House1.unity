@@ -2001,7 +2001,7 @@ Transform:
   m_GameObject: {fileID: 249342540}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -6.117878, y: -1.408, z: 0.973}
+  m_LocalPosition: {x: -6.117878, y: -1.408, z: 0.97}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5473,6 +5473,7 @@ GameObject:
   - component: {fileID: 706308534}
   - component: {fileID: 706308533}
   - component: {fileID: 706308532}
+  - component: {fileID: 706308535}
   m_Layer: 0
   m_Name: LightSwitch BedRoom
   m_TagString: Untagged
@@ -5571,6 +5572,23 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 706308530}
   m_Mesh: {fileID: 822332148083754222, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
+--- !u!114 &706308535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706308530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d65a97949ec96ed4db9686a1bc098afb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayName: Interact
+  oneTime: 0
+  lightObject: {fileID: 1864272261}
+  switchDuration: 0.2
+  isOn: 1
 --- !u!1 &717343218 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4214726985332892257, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
@@ -15610,6 +15628,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7074843932181944011, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8670761335428686811, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.794
@@ -16462,3 +16484,5 @@ SceneRoots:
   - {fileID: 1271785117}
   - {fileID: 1448558354}
   - {fileID: 1851318203}
+  - {fileID: 815975722}
+  - {fileID: 927627096}
