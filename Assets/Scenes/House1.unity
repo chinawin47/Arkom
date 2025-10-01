@@ -5942,6 +5942,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 851951316}
     m_Modifications:
+    - target: {fileID: -8961359253771211100, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_LocalPosition.x
       value: -458.632
@@ -6126,6 +6130,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: -1888354962770534868, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1796264129556458404, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1018664272722485354, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 210166260697481618, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 302937984246637232, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 882712690967084914, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_Name
       value: TewCharacter
@@ -6158,6 +6186,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 3337315356709198532, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3625125440646100489, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0
@@ -6182,6 +6214,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 3777404413093402324, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4767400413853537203, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5312004344620782188, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0
@@ -6254,6 +6294,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 6146275318639410543, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8632055958874330854, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0
@@ -6277,6 +6321,10 @@ PrefabInstance:
     - target: {fileID: 8632055958874330854, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 8784133426388381108, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14510,8 +14558,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraRoot: {fileID: 158394401}
   mainCamera: {fileID: 158394405}
-  walkSpeed: 4
-  sprintSpeed: 6.5
+  walkSpeed: 2
+  sprintSpeed: 3.5
   crouchSpeed: 2.2
   crouchHeight: 1.1
   standingHeight: 1.8
