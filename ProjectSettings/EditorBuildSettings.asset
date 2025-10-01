@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/Start.unity
     guid: b3ad336b9b57bec4dad0d8f89eec03f1
   - enabled: 1
-    path: Assets/Scenes/TestScene.unity
-    guid: cd26b573c70c6a541abcf21ee638b61c
+    path: Assets/Scenes/House1.unity
+    guid: 3414b062f4fec564e89441a527238b9e
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 0c669f58d789f0f43b6a82c329b0d61e, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
