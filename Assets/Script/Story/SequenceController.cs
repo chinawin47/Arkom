@@ -15,7 +15,7 @@ namespace ARKOM.Story
         public SeatInteractable introSeat; // ที่นั่งเริ่ม
         public SeatInteractable reuseSeat; // เก้าอี้ตัวเดิมกลับมานั่งหลังเปิดไฟ (ถ้าไม่ตั้งใช้ introSeat)
         public FlashlightPickupInteractable flashlightPickup;
-        public Interactable breakerInteractable; // จะใช้เป็นคัตเอาท์/เบรกเกอร์
+        public Interactable breakerInteractable; // จะใช้เป็นคัตเอ้าท์/เบรกเกอร์
         public TVController tv; // OPTIONAL: ตัวควบคุมทีวี (ยังไม่สร้าง ให้เว้นได้)
         public PowerManager powerManager; // OPTIONAL
 
@@ -45,6 +45,9 @@ namespace ARKOM.Story
 
         [Header("Hint System")]
         public bool useProgressiveHints = true; // ถ้า true จะไม่โชว์ hint เริ่มต้น (ให้ระบบ ProgressiveHintController จัดการ)
+
+        [Header("Flow Options")] // new
+        public bool autoTriggerKitchenEntered = true; // ให้ KitchenEnteredEvent ออโต้ (ไม่ต้องมี trigger collider)
 
         // internal flags
         private bool sweepDone;
@@ -130,12 +133,22 @@ namespace ARKOM.Story
             EventBus.Unsubscribe<PrayerFinishedEvent>(OnPrayerFinished);
         }
 
+        private void SetState(StoryState newState)
+        {
+            if (state == newState) return;
+            var prev = state;
+            state = newState;
+            StoryDebug.Log($"State -> {newState}", this);
+            EventBus.Publish(new StoryStateChangedEvent(prev, newState));
+        }
+
         private void SetupInitial()
         {
             if (started) return;
             started = true;
             state = StoryState.IntroSeated;
             StoryDebug.Log("State -> IntroSeated", this);
+            EventBus.Publish(new StoryStateChangedEvent(StoryState.IntroSeated, StoryState.IntroSeated));
 
             // บังคับให้นั่ง (ถ้า seatInteractable เรียก EnterSeat)
             if (introSeat && player && !player.IsSeated)
@@ -164,12 +177,9 @@ namespace ARKOM.Story
             if (tv) tv.PowerOff();
             if (powerManager) powerManager.SetPower(false);
             EventBus.Publish(new BlackoutStartedEvent());
-            // ปล่อยผู้เล่นลุกเองโดยอัตโนมัติ
             if (player && player.IsSeated) player.ExitSeat();
-            // เปิดไฟฉายให้เก็บ
             if (flashlightPickup) flashlightPickup.gameObject.SetActive(true);
-            state = StoryState.FindFlashlight;
-            StoryDebug.Log("State -> FindFlashlight", this);
+            SetState(StoryState.FindFlashlight);
             if(!useProgressiveHints) ShowHint("ไฟดับ... หาไฟฉายก่อน", 4f);
         }
 
@@ -177,8 +187,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.FindFlashlight) return;
             StoryDebug.Log("Flashlight acquired", this);
-            state = StoryState.RestorePower;
-            StoryDebug.Log("State -> RestorePower", this);
+            SetState(StoryState.RestorePower);
             if (breakerInteractable) breakerInteractable.gameObject.SetActive(true);
             if(!useProgressiveHints) ShowHint("ไปเปิดคัตเอาท์", 4f);
         }
@@ -187,8 +196,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.RestorePower) return;
             StoryDebug.Log("Power restored", this);
-            state = StoryState.ReturnToSeat;
-            StoryDebug.Log("State -> ReturnToSeat", this);
+            SetState(StoryState.ReturnToSeat);
             if (powerManager) powerManager.SetPower(true);
             if (tv) tv.PreparePostRestoreNews();
             ShowHint("กลับไปนั่งดูข่าว", 4f);
@@ -205,8 +213,7 @@ namespace ARKOM.Story
 
         private IEnumerator TimeSkipRoutine()
         {
-            state = StoryState.TimeSkipCutscene;
-            StoryDebug.Log("State -> TimeSkipCutscene", this);
+            SetState(StoryState.TimeSkipCutscene);
             LockPlayer(true);
             if (hint) hint.HideImmediate();
             var fader = FindObjectOfType<ScreenFader>();
@@ -215,8 +222,7 @@ namespace ARKOM.Story
             yield return new WaitForSeconds(timeSkipBlackHold);
             if (fader) yield return fader.FadeIn(timeSkipFadeIn);
             LockPlayer(false);
-            state = StoryState.Finished;
-            StoryDebug.Log("State -> Finished", this);
+            SetState(StoryState.Finished);
             EventBus.Publish(new TimeSkipFinishedEvent());
             ShowHint("กด F เพื่อลุก", 3f);
         }
@@ -249,26 +255,30 @@ namespace ARKOM.Story
 
         private IEnumerator PlateCrashSequence()
         {
-            state = StoryState.PlateCrashStart;
-            StoryDebug.Log("State -> PlateCrashStart", this);
-            // TODO: เล่นเสียงเพล้ง + spawn เศษจาน
+            SetState(StoryState.PlateCrashStart);
             ShowHint("เกิดเสียงดังจากครัว...", 3f);
             yield return new WaitForSeconds(2f);
-            // เป้าหมาย: ไปตรวจที่ครัว
-            state = StoryState.InvestigateKitchen;
-            StoryDebug.Log("State -> InvestigateKitchen", this);
+            SetState(StoryState.InvestigateKitchen);
             ShowHint("ไปดูที่ครัว", 4f);
+            if (autoTriggerKitchenEntered)
+            {
+                StoryDebug.Log("Auto publish KitchenEnteredEvent", this);
+                EventBus.Publish(new KitchenEnteredEvent());
+            }
         }
 
         private void OnKitchenEntered(KitchenEnteredEvent _)
         {
             if (state != StoryState.InvestigateKitchen) return;
             StoryDebug.Log("KitchenEnteredEvent", this);
-            state = StoryState.CleanPlates;
-            StoryDebug.Log("State -> CleanPlates", this);
+            SetState(StoryState.CleanPlates);
             var shards = FindObjectsOfType<PlateShardPickup>();
             PlateShardPickup.ResetCounter(shards.Length);
-            foreach (var s in shards) s.gameObject.SetActive(true);
+            foreach (var s in shards)
+            {
+                if (!s) continue;
+                s.RevealForCleanPlates();
+            }
             if(!useProgressiveHints) ShowHint("เก็บเศษจานให้หมด", 4f);
         }
 
@@ -276,8 +286,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.CleanPlates) return;
             StoryDebug.Log("PlatesCleanedEvent (Total=" + e.Total + ")", this);
-            state = StoryState.FridgeSequence;
-            StoryDebug.Log("State -> FridgeSequence", this);
+            SetState(StoryState.FridgeSequence);
             if(!useProgressiveHints) ShowHint("เปิดตู้เย็น", 4f);
         }
 
@@ -285,8 +294,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.FridgeSequence) return;
             StoryDebug.Log("FridgeScareDoneEvent", this);
-            state = StoryState.CheckOoy;
-            StoryDebug.Log("State -> CheckOoy", this);
+            SetState(StoryState.CheckOoy);
             if(!useProgressiveHints) ShowHint("ไปดูออย", 4f);
         }
 
@@ -294,8 +302,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.CheckOoy) return;
             StoryDebug.Log("OoyCheckedEvent", this);
-            state = StoryState.HouseSweep;
-            StoryDebug.Log("State -> HouseSweep", this);
+            SetState(StoryState.HouseSweep);
             if (sweepManager) sweepManager.BeginSweep();
             if(!useProgressiveHints) ShowHint("ตรวจรอบบ้าน", 4f);
         }
@@ -337,8 +344,7 @@ namespace ARKOM.Story
             if (autoAnomalyCo != null) { StopCoroutine(autoAnomalyCo); autoAnomalyCo = null; }
             StoryDebug.Log("AnomalyFirstSeenEvent id=" + e.AnomalyId, this);
             anomalySeen = true;
-            state = StoryState.AnomalyFound;
-            StoryDebug.Log("State -> AnomalyFound", this);
+            SetState(StoryState.AnomalyFound);
             SpawnGhost();
         }
 
@@ -346,15 +352,13 @@ namespace ARKOM.Story
         {
             if (ghostSpawned) return;
             StoryDebug.Log("SpawnGhost()", this);
-            state = StoryState.GhostSpawn;
-            StoryDebug.Log("State -> GhostSpawn", this);
+            SetState(StoryState.GhostSpawn);
             if (ghostSpawner)
             {
                 ghostSpawner.SpawnRandom();
             }
             else
             {
-                // ถ้าไม่มี spawner ให้ข้ามไปเอง
                 EventBus.Publish(new GhostSpawnedEvent(-1));
             }
         }
@@ -364,8 +368,7 @@ namespace ARKOM.Story
             if (state != StoryState.GhostSpawn) return;
             StoryDebug.Log("GhostSpawnedEvent index=" + e.Index, this);
             ghostSpawned = true;
-            state = StoryState.RunToBed;
-            StoryDebug.Log("State -> RunToBed", this);
+            SetState(StoryState.RunToBed);
             ShowHint("กลับไปนอน!", 4f);
             if (finalBedTrigger) finalBedTrigger.EnableBed();
         }
@@ -374,8 +377,7 @@ namespace ARKOM.Story
         {
             if (state != StoryState.RunToBed) return;
             StoryDebug.Log("PlayerInBedEvent", this);
-            state = StoryState.PraySequence;
-            StoryDebug.Log("State -> PraySequence", this);
+            SetState(StoryState.PraySequence);
             ShowHint("สวด 3 รอบ...", 2f);
             if (prayController) prayController.BeginPrayer(3);
             else EventBus.Publish(new PrayerFinishedEvent()); // fallback
@@ -385,10 +387,8 @@ namespace ARKOM.Story
         {
             if (state != StoryState.PraySequence) return;
             StoryDebug.Log("PrayerFinishedEvent", this);
-            state = StoryState.SleepEnd;
-            StoryDebug.Log("State -> SleepEnd", this);
+            SetState(StoryState.SleepEnd);
             ShowHint("...",1f);
-            // Optionally fade out or change GameState here.
         }
 
         public StoryState CurrentState => state; // public read-only accessor

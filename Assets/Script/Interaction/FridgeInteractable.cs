@@ -13,13 +13,26 @@ public class FridgeInteractable : Interactable
     public AudioClip dropSfx;
     public float autoHideFootAfter = 2f;
 
+    [Header("Door Open Settings")] // ใหม่: ระบบเปิดประตู
+    public bool requireStoryState = true; // ถ้า false เปิดได้ตลอด (ยังคง one-time jump scare)
+    public Transform door;                // ใส่ transform ของบานประตู (หมุนแกน Y)
+    public Vector3 doorOpenEuler = new Vector3(0f, 110f, 0f); // มุม relative จากตอนเริ่ม
+    public float doorOpenDuration = 0.6f;
+    public AnimationCurve doorOpenCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    public bool playDoorAnimBeforeScare = true; // ถ้า true รอเปิดจบก่อนปล่อยของร่วง
+
     private bool done;
+    private Quaternion doorClosedRot;
+    private bool doorCached;
 
     public override bool CanInteract(object interactor)
     {
         if (done) return false;
-        if (!SequenceController.Instance || SequenceController.Instance.CurrentState != SequenceController.StoryState.FridgeSequence)
-            return false; // ยังไม่ถึงขั้นตู้เย็น
+        if (requireStoryState)
+        {
+            if (!SequenceController.Instance || SequenceController.Instance.CurrentState != SequenceController.StoryState.FridgeSequence)
+                return false; // ยังไม่ถึงขั้นตู้เย็น
+        }
         return base.CanInteract(interactor);
     }
 
@@ -27,9 +40,24 @@ public class FridgeInteractable : Interactable
     {
         if (done) return;
         done = true;
+        CacheDoor();
         StoryDebug.Log("Fridge Interacted", this);
+        if (playDoorAnimBeforeScare && door)
+        {
+            StartCoroutine(OpenDoorAndScare());
+        }
+        else
+        {
+            if (door) StartCoroutine(OpenDoorRoutine());
+            TriggerScare();
+        }
+    }
+
+    private void TriggerScare()
+    {
         // เปิดของร่วง
-        if (itemsContainer) {
+        if (itemsContainer)
+        {
             itemsContainer.SetActive(true);
             StoryDebug.Log("Items container activated", itemsContainer);
         }
@@ -46,6 +74,35 @@ public class FridgeInteractable : Interactable
         EventBus.Publish(new FridgeScareDoneEvent());
         if (jumpScareFoot && autoHideFootAfter > 0f)
             StartCoroutine(HideFoot());
+    }
+
+    private System.Collections.IEnumerator OpenDoorAndScare()
+    {
+        yield return OpenDoorRoutine();
+        TriggerScare();
+    }
+
+    private void CacheDoor()
+    {
+        if (doorCached) return;
+        if (door) doorClosedRot = door.localRotation;
+        doorCached = true;
+    }
+
+    private System.Collections.IEnumerator OpenDoorRoutine()
+    {
+        if (!door) yield break;
+        CacheDoor();
+        Quaternion target = doorClosedRot * Quaternion.Euler(doorOpenEuler);
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / Mathf.Max(0.0001f, doorOpenDuration);
+            float k = doorOpenCurve.Evaluate(Mathf.Clamp01(t));
+            door.localRotation = Quaternion.Slerp(doorClosedRot, target, k);
+            yield return null;
+        }
+        door.localRotation = target;
     }
 
     private System.Collections.IEnumerator HideFoot()
