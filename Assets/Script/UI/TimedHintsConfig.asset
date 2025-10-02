@@ -12,8 +12,97 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48a9c766be9c7c549985674dd6e7f682, type: 3}
   m_Name: TimedHintsConfig
   m_EditorClassIdentifier: 
-  hints:
-  - state: 0
-    timeFromEnter: 0
-    text: 
-    duration: 0
+  hints: []
+  groupedHints:
+  - state: 1
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E21\u0E37\u0E14\u0E2A\u0E19\u0E34\u0E17\u2026"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 10
+      text: "\u0E44\u0E1F\u0E09\u0E32\u0E22\u0E19\u0E48\u0E32\u0E08\u0E30\u0E2D\u0E22\u0E39\u0E48\u0E41\u0E16\u0E27\u0E40\u0E15\u0E35\u0E22\u0E07"
+      duration: 0
+      strength: 0
+  - state: 2
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 7
+      text: "\u0E04\u0E31\u0E15\u0E40\u0E2D\u0E32\u0E17\u0E4C\u0E2D\u0E22\u0E39\u0E48\u0E42\u0E0B\u0E19\u0E04\u0E23\u0E31\u0E27"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 18
+      text: "\u0E01\u0E25\u0E48\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E01\u0E40\u0E01\u0E2D\u0E23\u0E4C\u0E43\u0E01\u0E25\u0E49\u0E15\u0E39\u0E49\u0E40\u0E22\u0E47\u0E19"
+      duration: 0
+      strength: 0
+  - state: 3
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E44\u0E1F\u0E01\u0E25\u0E31\u0E1A\u0E21\u0E32\u0E41\u0E25\u0E49\u0E27"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 6
+      text: "\u0E02\u0E48\u0E32\u0E27\u0E22\u0E31\u0E07\u0E40\u0E25\u0E48\u0E19\u0E15\u0E48\u0E2D"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 14
+      text: "\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E19\u0E31\u0E48\u0E07\u0E40\u0E01\u0E49\u0E32\u0E2D\u0E35\u0E49\u0E40\u0E14\u0E34\u0E21"
+      duration: 0
+      strength: 0
+  - state: 8
+    hints:
+    - timeFromEnter: 0
+      text: ...
+      duration: 0
+      strength: 0
+    - timeFromEnter: 6
+      text: "\u0E44\u0E1B\u0E14\u0E39\u0E04\u0E23\u0E31\u0E27"
+      duration: 0
+      strength: 0
+  - state: 9
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E15\u0E39\u0E49\u0E40\u0E22\u0E47\u0E19"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 9
+      text: "\u0E25\u0E2D\u0E07\u0E40\u0E1B\u0E34\u0E14"
+      duration: 0
+      strength: 0
+  - state: 10
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E27\u0E37\u0E48\u0E07!!!"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 8
+      text: "\u0E44\u0E1B\u0E14\u0E39\u0E17\u0E35\u0E48\u0E40\u0E15\u0E35\u0E22\u0E07"
+      duration: 0
+      strength: 0
+  - state: 10
+    hints:
+    - timeFromEnter: 0
+      text: "\u0E27\u0E37\u0E48\u0E07!!!"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 8
+      text: "\u0E44\u0E1B\u0E14\u0E39\u0E17\u0E35\u0E48\u0E40\u0E15\u0E35\u0E22\u0E07"
+      duration: 0
+      strength: 0
+  - state: 13
+    hints:
+    - timeFromEnter: 0
+      text: 
+      duration: 0
+      strength: 0
+    - timeFromEnter: 5
+      text: "\u0E16\u0E2D\u0E22\u0E44\u0E1B\u0E17\u0E35\u0E48\u0E40\u0E15\u0E35\u0E22\u0E07"
+      duration: 0
+      strength: 0
+    - timeFromEnter: 11
+      text: "\u0E23\u0E35\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E19\u0E2D\u0E19"
+      duration: 0
+      strength: 0

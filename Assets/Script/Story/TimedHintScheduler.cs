@@ -14,8 +14,15 @@ namespace ARKOM.Story
         public bool cancelOnStateExit = true;
         public bool clearOnStateChange = true;
 
+        [Header("Strength Control")] // ใหม่: คุมไม่ให้สปอยมากไป
+        [Tooltip("ระดับสูงสุดที่ยอมให้บอกอัตโนมัติ (Explicit = ทั้งหมด)")] public TimedHintsConfig.HintStrength maxAutoStrength = TimedHintsConfig.HintStrength.Explicit;
+        [Tooltip("ถ้า true เมื่อแสดง hint ระดับสูงกว่าแล้ว จะไม่แสดงระดับที่ต่ำกว่าที่เหลือ")] public bool suppressLowerAfterEscalation = true;
+        [Tooltip("ดีเลย์ขั้นต่ำระหว่าง hint สองอัน (ป้องกันถี่เกิน)")] public float minGapBetweenHints = 1.5f;
+
         private SequenceController.StoryState currentState;
         private Coroutine runCo;
+        private float lastHintTimeRealtime;
+        private TimedHintsConfig.HintStrength highestShownThisState = TimedHintsConfig.HintStrength.Subtle;
 
         void Awake()
         {
@@ -45,21 +52,60 @@ namespace ARKOM.Story
                     hintPresenter.HideImmediate();
             }
             currentState = e.Current;
-            if (config == null || config.hints == null) return;
+            highestShownThisState = TimedHintsConfig.HintStrength.Subtle; // reset tracking
+            lastHintTimeRealtime = Time.realtimeSinceStartup;
+            if (config == null) return;
             runCo = StartCoroutine(RunHintsForState(e.Current));
+        }
+
+        private struct RuntimeHint
+        {
+            public float timeFromEnter;
+            public string text;
+            public float duration;
+            public TimedHintsConfig.HintStrength strength;
         }
 
         private IEnumerator RunHintsForState(SequenceController.StoryState st)
         {
-            // collect hints for this state ordered by timeFromEnter
-            var list = System.Array.FindAll(config.hints, h => h != null && h.state == st);
-            if (list.Length == 0) yield break;
-            System.Array.Sort(list, (a,b)=> a.timeFromEnter.CompareTo(b.timeFromEnter));
+            // สร้าง list runtime จาก groupedHints ถ้ามี ไม่งั้นใช้ legacy hints
+            System.Collections.Generic.List<RuntimeHint> buffer = new System.Collections.Generic.List<RuntimeHint>();
+            if (config.groupedHints != null && config.groupedHints.Length > 0)
+            {
+                for (int i = 0; i < config.groupedHints.Length; i++)
+                {
+                    var g = config.groupedHints[i];
+                    if (g == null || g.hints == null || g.state != st) continue;
+                    foreach (var h in g.hints)
+                    {
+                        if (h == null) continue;
+                        buffer.Add(new RuntimeHint { timeFromEnter = h.timeFromEnter, text = h.text, duration = h.duration, strength = h.strength });
+                    }
+                }
+            }
+            else if (config.hints != null && config.hints.Length > 0)
+            {
+                for (int i = 0; i < config.hints.Length; i++)
+                {
+                    var h = config.hints[i];
+                    if (h == null || h.state != st) continue;
+                    buffer.Add(new RuntimeHint { timeFromEnter = h.timeFromEnter, text = h.text, duration = h.duration, strength = h.strength });
+                }
+            }
+
+            if (buffer.Count == 0) yield break;
+            buffer.Sort((a,b)=> a.timeFromEnter.CompareTo(b.timeFromEnter));
+
             float elapsed = 0f;
             int index = 0;
-            while (index < list.Length && currentState == st)
+            while (index < buffer.Count && currentState == st)
             {
-                var target = list[index];
+                var target = buffer[index];
+                if (target.strength > maxAutoStrength)
+                { index++; continue; }
+                if (suppressLowerAfterEscalation && target.strength < highestShownThisState)
+                { index++; continue; }
+
                 if (elapsed < target.timeFromEnter)
                 {
                     float wait = target.timeFromEnter - elapsed;
@@ -69,15 +115,34 @@ namespace ARKOM.Story
                     }
                     if (currentState != st) yield break;
                 }
-                // show hint
+
+                float since = Time.realtimeSinceStartup - lastHintTimeRealtime;
+                if (since < minGapBetweenHints)
+                {
+                    yield return new WaitForSeconds(minGapBetweenHints - since);
+                }
+                if (currentState != st) yield break;
+
                 if (hintPresenter && currentState == st)
                 {
                     hintPresenter.Show(target.text, target.duration);
+                    lastHintTimeRealtime = Time.realtimeSinceStartup;
+                    if (target.strength > highestShownThisState)
+                        highestShownThisState = target.strength;
                 }
-                elapsed = target.timeFromEnter; // ensure alignment
+                elapsed = target.timeFromEnter;
                 index++;
-                yield return null; // allow a frame
+                yield return null;
             }
+        }
+
+        public void ForceHint(string text, float duration, TimedHintsConfig.HintStrength strength)
+        {
+            if (!hintPresenter) return;
+            hintPresenter.Show(text, duration);
+            if (strength > highestShownThisState)
+                highestShownThisState = strength;
+            lastHintTimeRealtime = Time.realtimeSinceStartup;
         }
     }
 }
