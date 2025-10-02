@@ -3,7 +3,22 @@ guid: 8755dbef4a10b0d439947887f647a5ca
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: OilHairMat
+    second: {fileID: 2100000, guid: d1f854771ac8ee84fafba4659a4e3ce5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: OilSkinMat
+    second: {fileID: 2100000, guid: 841c5371a85dfb242858ec77d11ca9b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: OildDress&GumMat
+    second: {fileID: 2100000, guid: 20b3b28e49131624680cb1e665edc2ed, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
