@@ -16,6 +16,9 @@ namespace ARKOM.Audio
             [Range(0f,10f)] public float fadeOut = 2f;
             public bool loop = true;
             [Range(0f,1f)] public float volume = 1f;
+            [Header("Delay Options")] 
+            [Tooltip("หน่วงก่อนเล่น stinger (วินาที)")] public float stingerDelay = 0f;
+            [Tooltip("หน่วงก่อนเริ่ม loop หลัก (วินาที)")] public float loopDelay = 0f;
         }
 
         public StateAmbience[] entries;

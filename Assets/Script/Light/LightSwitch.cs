@@ -8,6 +8,12 @@ public class LightSwitch : Interactable
     public float switchDuration = 0.2f; // เวลา transition (เผื่อเอาไปทำ fade)
     public bool isOn = true;            // สถานะเริ่มต้นไฟ (ก่อน blackout)
 
+    [Header("Audio")]
+    [Tooltip("เสียงตอนเปิดไฟ")] public AudioClip toggleOnSfx;
+    [Tooltip("เสียงตอนปิดไฟ")] public AudioClip toggleOffSfx;
+    [Tooltip("เสียงตอนพยายามกดช่วงไฟดับ (ถูกบล็อค)")] public AudioClip blockedSfx;
+    [Range(0f,1f)] public float sfxVolume = 1f;
+
     [Header("Global Power Integration")]
     [Tooltip("ให้สวิตช์ตอบสนองตอนเกิด Blackout / PowerRestored")] public bool reactToGlobalPower = true;
     [Tooltip("ดับไฟบังคับเมื่อ Blackout (ไม่ให้เปิดได้)")] public bool forceOffOnBlackout = true;
@@ -43,7 +49,7 @@ public class LightSwitch : Interactable
 
     public override bool CanInteract(object interactor)
     {
-        if (blackoutActive && forceOffOnBlackout) return false; // ระหว่าง blackout ห้ามเปิด
+        if (blackoutActive && forceOffOnBlackout) return false; // ระหว่าง blackout ห้ามเปิด (จะให้เล่น blockedSfx ใน ToggleLight)
         return base.CanInteract(interactor);
     }
 
@@ -55,11 +61,23 @@ public class LightSwitch : Interactable
 
     public void ToggleLight()
     {
-        // ถ้า blackout และบังคับปิด ไม่ให้ toggle
-        if (blackoutActive && forceOffOnBlackout) return;
+        // ถ้า blackout และบังคับปิด ไม่ให้ toggle แต่เล่นเสียง blocked (ถ้ามี)
+        if (blackoutActive && forceOffOnBlackout)
+        {
+            if (blockedSfx) AudioSource.PlayClipAtPoint(blockedSfx, transform.position, sfxVolume);
+            return;
+        }
 
-        isOn = !isOn;
+        bool newState = !isOn;
+        isOn = newState;
         ApplyLightImmediate(isOn);
+
+        // เล่นเสียงตามสถานะใหม่
+        if (isOn && toggleOnSfx)
+            AudioSource.PlayClipAtPoint(toggleOnSfx, transform.position, sfxVolume);
+        else if (!isOn && toggleOffSfx)
+            AudioSource.PlayClipAtPoint(toggleOffSfx, transform.position, sfxVolume);
+
         switchTimer = 0f;
         isSwitching = true;
     }
@@ -85,7 +103,6 @@ public class LightSwitch : Interactable
         lastUserStateBeforeBlackout = isOn; // จำสถานะผู้ใช้
         if (forceOffOnBlackout)
         {
-            // ไม่เปลี่ยน isOn ถ้าอยากให้จำค่าเดิมไว้ หลังไฟกลับ
             if (lightObject) lightObject.SetActive(false);
         }
     }
@@ -96,17 +113,14 @@ public class LightSwitch : Interactable
         blackoutActive = false;
         if (restorePreviousOnPower)
         {
-            // คืนสถานะที่ผู้ใช้ตั้งก่อน blackout
             if (forceOffOnBlackout)
             {
-                // isOn ยังคงค่าเดิม (toggle ที่จำ) -> ใช้ lastUserStateBeforeBlackout
                 isOn = lastUserStateBeforeBlackout;
                 ApplyLightImmediate(isOn);
             }
         }
         else
         {
-            // หรือกำหนดเปิดเสมอหลังไฟกลับ (ปรับได้)
             if (forceOffOnBlackout)
             {
                 isOn = true;

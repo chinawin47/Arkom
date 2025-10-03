@@ -9,6 +9,11 @@ public class DoorInteractable : Interactable
     public float openCloseDuration = 0.7f;
     public bool isOpen = false;
 
+    [Header("Audio")]
+    [Tooltip("เสียงตอนเปิดประตู")] public AudioClip openSfx;
+    [Tooltip("เสียงตอนปิดประตู")] public AudioClip closeSfx;
+    [Range(0f,1f)] public float sfxVolume = 1f;
+
     private bool isMoving = false;
     private Quaternion targetRot;
     private Quaternion startRot;
@@ -28,7 +33,14 @@ public class DoorInteractable : Interactable
 
     public void ToggleDoor()
     {
-        isOpen = !isOpen;
+        bool newState = !isOpen;
+        // Play sound first (based on new state)
+        if (newState && openSfx)
+            AudioSource.PlayClipAtPoint(openSfx, doorTransform ? doorTransform.position : transform.position, sfxVolume);
+        else if (!newState && closeSfx)
+            AudioSource.PlayClipAtPoint(closeSfx, doorTransform ? doorTransform.position : transform.position, sfxVolume);
+
+        isOpen = newState;
         startRot = doorTransform.localRotation;
         targetRot = Quaternion.Euler(isOpen ? openRotation : closedRotation);
         moveTimer = 0f;
