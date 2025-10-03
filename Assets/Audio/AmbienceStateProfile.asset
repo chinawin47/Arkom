@@ -13,12 +13,19 @@ MonoBehaviour:
   m_Name: AmbienceStateProfile
   m_EditorClassIdentifier: 
   entries:
+  - state: 0
+    baseLoop: {fileID: 8300000, guid: 0d3cc48caedd535469146d5e65691290, type: 3}
+    enterStinger: {fileID: 0}
+    fadeIn: 10
+    fadeOut: 10
+    loop: 0
+    volume: 0.5
   - state: 1
     baseLoop: {fileID: 8300000, guid: bb90dee525d43bd4ba24559ba22137fc, type: 3}
     enterStinger: {fileID: 0}
     fadeIn: 10
     fadeOut: 10
-    loop: 0
+    loop: 1
     volume: 0.5
   - state: 5
     baseLoop: {fileID: 8300000, guid: 499d87e46c333ff4c8202753c96fdb0d, type: 3}
@@ -26,4 +33,25 @@ MonoBehaviour:
     fadeIn: 10
     fadeOut: 10
     loop: 0
-    volume: 0.5
+    volume: 0.689
+  - state: 2
+    baseLoop: {fileID: 8300000, guid: 6ae82504b31293947a54c9e73bc772ee, type: 3}
+    enterStinger: {fileID: 0}
+    fadeIn: 10
+    fadeOut: 10
+    loop: 1
+    volume: 0.806
+  - state: 3
+    baseLoop: {fileID: 8300000, guid: aee28f032e9bb8b438f744673a92271e, type: 3}
+    enterStinger: {fileID: 0}
+    fadeIn: 10
+    fadeOut: 10
+    loop: 1
+    volume: 0.806
+  - state: 2
+    baseLoop: {fileID: 8300000, guid: 7e55c1308dfd7b14283df2bebfb9dbe9, type: 3}
+    enterStinger: {fileID: 0}
+    fadeIn: 10
+    fadeOut: 10
+    loop: 1
+    volume: 0.806

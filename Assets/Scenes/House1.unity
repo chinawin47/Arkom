@@ -7673,7 +7673,7 @@ MonoBehaviour:
   - {fileID: 3252716606318532161, guid: 4361c06b2c8411140b52ae007a04b2c8, type: 3}
   - {fileID: 7111558923809456751, guid: bf4c282f247718f41b142546c40508f6, type: 3}
   - {fileID: 580928972425283572, guid: 83a905a945fe8b54fbc5f706f126bf2b, type: 3}
-  spawnSfx: {fileID: 0}
+  spawnSfx: {fileID: 8300000, guid: 25a493758f5d31e4eb1a4a90d05e8687, type: 3}
   lookDespawnTime: 5
   lookAngleThreshold: 18
   requireContinuousLook: 1
