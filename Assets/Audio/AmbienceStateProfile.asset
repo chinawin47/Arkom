@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - state: 1
-    baseLoop: {fileID: 8300000, guid: bb90dee525d43bd4ba24559ba22137fc, type: 3}
+    baseLoop: {fileID: 0}
     enterStinger: {fileID: 0}
     fadeIn: 10
     fadeOut: 10
@@ -37,7 +37,7 @@ MonoBehaviour:
     fadeIn: 10
     fadeOut: 10
     loop: 0
-    volume: 0.689
+    volume: 1
     stingerDelay: 0
     loopDelay: 0
   - state: 2
@@ -55,7 +55,7 @@ MonoBehaviour:
     fadeIn: 10
     fadeOut: 10
     loop: 1
-    volume: 0.806
+    volume: 0.35
     stingerDelay: 0
     loopDelay: 0
   - state: 2
