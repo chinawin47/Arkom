@@ -17,39 +17,27 @@ MonoBehaviour:
   - state: 1
     hints:
     - timeFromEnter: 0
-      text: "\u0E21\u0E37\u0E14\u0E2A\u0E19\u0E34\u0E17\u2026"
+      text: 
       duration: 0
       strength: 0
-    - timeFromEnter: 10
-      text: "\u0E44\u0E1F\u0E09\u0E32\u0E22\u0E19\u0E48\u0E32\u0E08\u0E30\u0E2D\u0E22\u0E39\u0E48\u0E41\u0E16\u0E27\u0E40\u0E15\u0E35\u0E22\u0E07"
+    - timeFromEnter: 2
+      text: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E44\u0E1F\u0E09\u0E32\u0E22"
       duration: 0
       strength: 0
   - state: 2
     hints:
     - timeFromEnter: 0
-      text: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32"
-      duration: 0
-      strength: 0
-    - timeFromEnter: 7
-      text: "\u0E04\u0E31\u0E15\u0E40\u0E2D\u0E32\u0E17\u0E4C\u0E2D\u0E22\u0E39\u0E48\u0E42\u0E0B\u0E19\u0E04\u0E23\u0E31\u0E27"
-      duration: 0
-      strength: 0
-    - timeFromEnter: 18
-      text: "\u0E01\u0E25\u0E48\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E01\u0E40\u0E01\u0E2D\u0E23\u0E4C\u0E43\u0E01\u0E25\u0E49\u0E15\u0E39\u0E49\u0E40\u0E22\u0E47\u0E19"
+      text: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E04\u0E31\u0E15\u0E40\u0E2D\u0E32\u0E17\u0E4C\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F"
       duration: 0
       strength: 0
   - state: 3
     hints:
     - timeFromEnter: 0
-      text: "\u0E44\u0E1F\u0E01\u0E25\u0E31\u0E1A\u0E21\u0E32\u0E41\u0E25\u0E49\u0E27"
+      text: 
       duration: 0
       strength: 0
-    - timeFromEnter: 6
-      text: "\u0E02\u0E48\u0E32\u0E27\u0E22\u0E31\u0E07\u0E40\u0E25\u0E48\u0E19\u0E15\u0E48\u0E2D"
-      duration: 0
-      strength: 0
-    - timeFromEnter: 14
-      text: "\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E19\u0E31\u0E48\u0E07\u0E40\u0E01\u0E49\u0E32\u0E2D\u0E35\u0E49\u0E40\u0E14\u0E34\u0E21"
+    - timeFromEnter: 0
+      text: "\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E19\u0E31\u0E48\u0E07\u0E14\u0E39\u0E02\u0E48\u0E32\u0E27"
       duration: 0
       strength: 0
   - state: 8
@@ -65,11 +53,11 @@ MonoBehaviour:
   - state: 9
     hints:
     - timeFromEnter: 0
-      text: "\u0E15\u0E39\u0E49\u0E40\u0E22\u0E47\u0E19"
+      text: 
       duration: 0
       strength: 0
-    - timeFromEnter: 9
-      text: "\u0E25\u0E2D\u0E07\u0E40\u0E1B\u0E34\u0E14"
+    - timeFromEnter: 5
+      text: "\u0E2B\u0E34\u0E27\u0E19\u0E49\u0E33\u0E08\u0E31\u0E07....\u0E2B\u0E32\u0E19\u0E49\u0E33\u0E14\u0E37\u0E48\u0E21\u0E14\u0E35\u0E01\u0E27\u0E48\u0E32"
       duration: 0
       strength: 0
   - state: 10
