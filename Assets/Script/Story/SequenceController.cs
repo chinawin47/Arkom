@@ -49,6 +49,22 @@ namespace ARKOM.Story
         [Header("Flow Options")] // new
         public bool autoTriggerKitchenEntered = true; // ให้ KitchenEnteredEvent ออโต้ (ไม่ต้องมี trigger collider)
 
+        [Header("Audio Loops")] // new persistent loop settings
+        [Tooltip("เสียง loop สำหรับช่วง CleanPlates (จะเล่นต่อไปจนกว่าจะหยุดด้วยโค้ด)")] public AudioClip cleanPlatesLoopClip;
+        [Range(0f,1f)] public float cleanPlatesLoopVolume = 0.7f;
+        [Tooltip("เล่นเฉพาะครั้งแรก (ไม่เริ่มซ้ำถ้า state เข้า CleanPlates อีก)")] public bool cleanPlatesLoopPlayOnce = true;
+        private AudioSource persistentLoopSource; // internal audio source
+        private bool cleanPlatesLoopStarted;
+
+        [Header("Global Game Loop Audio")] // NEW global loop across whole game
+        [Tooltip("คลิปเสียงที่เล่นตั้งแต่เริ่มเกมจนถึง SleepEnd")] public AudioClip globalLoopClip;
+        [Range(0f,1f)] public float globalLoopVolume = 1f;
+        [Tooltip("เริ่มเล่น global loop ตอน Awake")] public bool startGlobalLoopOnAwake = true;
+        [Tooltip("ถ้าไม่เล่นตอน Awake ให้เริ่มเมื่อเข้า IntroSeated")] public bool startGlobalLoopOnIntro = true;
+        [Tooltip("หยุดทุกเสียง + mute ตอนเข้าสู่ SleepEnd")] public bool stopAllAudioAtSleepEnd = true;
+        private AudioSource globalLoopSource; // internal audio source
+        private bool globalLoopStarted;
+
         // internal flags
         private bool sweepDone;
         private bool anomalySeen;
@@ -58,6 +74,24 @@ namespace ARKOM.Story
         private bool started;
 
         private Coroutine autoAnomalyCo;
+
+        [Header("Sleep End Options")] // new
+        [Tooltip("เข้าสู่ SleepEnd แล้วให้จอดำเลย")] public bool blackScreenOnSleepEnd = true;
+        [Tooltip("เวลาค่อยๆ fade ไปดำ")] public float sleepEndFadeTime = 1f;
+        [Tooltip("แสดง hint ตอนจอดำ (เว้นว่างถ้าไม่ต้องการ)")] public string sleepEndHintText = "";
+        [Header("Sleep End Display")] // NEW
+        [Tooltip("ข้อความใหญ่แสดงบนจอดำ (เช่น TO BE CONTINUED)")] public string sleepEndDisplayText = "TO BE CONTINUED";
+        [Tooltip("ดีเลย์ก่อนโชว์ข้อความหลังเข้าสู่ SleepEnd")] public float sleepEndTextDelay = 0.6f;
+        [Tooltip("ใช้ HintPresenter เดิมแshowข้อความสุดท้าย")] public bool useHintPresenterForSleepEndText = true;
+        [Tooltip("ระยะเวลาค้างข้อความสุดท้าย")] public float sleepEndTextDuration = 9999f;
+        [Header("Sleep End Background Audio")] public AudioClip sleepEndBackgroundClip;
+        [Range(0f,1f)] public float sleepEndBackgroundVolume = 1f;
+        [Tooltip("ให้ loop เสียง SleepEnd")] public bool sleepEndBackgroundLoop = true;
+        private AudioSource sleepEndBgSource;
+
+        [Header("Debug / Dev")] // NEW
+        [Tooltip("ข้ามทุกอย่างไปฉากจบทันทีตอน Start")] public bool debugSkipToSleepEndOnStart = false;
+        [Tooltip("กดปุ่มนี้เพื่อข้ามไป SleepEnd ระหว่างเล่น (0 = ปิด)")] public KeyCode debugSkipKey = KeyCode.F9;
 
         public enum StoryState
         {
@@ -90,6 +124,32 @@ namespace ARKOM.Story
                 return;
             }
             Instance = this;
+            // create persistent audio source child
+            var loopGo = new GameObject("PersistentLoopAudio");
+            loopGo.transform.SetParent(transform);
+            persistentLoopSource = loopGo.AddComponent<AudioSource>();
+            persistentLoopSource.loop = true;
+            persistentLoopSource.playOnAwake = false;
+            persistentLoopSource.spatialBlend = 0f; // 2D
+            persistentLoopSource.volume = cleanPlatesLoopVolume;
+
+            // prepare global loop source (always create if clip assigned)
+            if (globalLoopClip)
+            {
+                var globalGo = new GameObject("GlobalLoopAudio");
+                globalGo.transform.SetParent(transform);
+                globalLoopSource = globalGo.AddComponent<AudioSource>();
+                globalLoopSource.loop = true;
+                globalLoopSource.playOnAwake = false;
+                globalLoopSource.spatialBlend = 0f;
+                globalLoopSource.clip = globalLoopClip;
+                globalLoopSource.volume = globalLoopVolume;
+                if (startGlobalLoopOnAwake)
+                {
+                    globalLoopSource.Play();
+                    globalLoopStarted = true;
+                }
+            }
         }
 
         void Start()
@@ -97,6 +157,15 @@ namespace ARKOM.Story
             if (!player) player = FindObjectOfType<PlayerController>();
             if (!introSeat) introSeat = FindObjectOfType<SeatInteractable>();
             if (!reuseSeat) reuseSeat = introSeat;
+
+            if (debugSkipToSleepEndOnStart)
+            {
+                // สร้างขั้นต่ำให้พร้อม แล้วเข้าฉากจบเลย
+                SetupInitial();
+                EnterSleepEnd();
+                return;
+            }
+
             SetupInitial();
         }
 
@@ -149,6 +218,14 @@ namespace ARKOM.Story
             state = StoryState.IntroSeated;
             StoryDebug.Log("State -> IntroSeated", this);
             EventBus.Publish(new StoryStateChangedEvent(StoryState.IntroSeated, StoryState.IntroSeated));
+
+            // start global loop here if configured to begin at intro instead of Awake
+            if (!globalLoopStarted && globalLoopSource && !startGlobalLoopOnAwake && startGlobalLoopOnIntro)
+            {
+                globalLoopSource.volume = globalLoopVolume;
+                globalLoopSource.Play();
+                globalLoopStarted = true;
+            }
 
             // บังคับให้นั่ง (ถ้า seatInteractable เรียก EnterSeat)
             if (introSeat && player && !player.IsSeated)
@@ -279,6 +356,14 @@ namespace ARKOM.Story
                 if (!s) continue;
                 s.RevealForCleanPlates();
             }
+            // start persistent loop for CleanPlates
+            if (cleanPlatesLoopClip && persistentLoopSource && (!cleanPlatesLoopPlayOnce || !cleanPlatesLoopStarted))
+            {
+                persistentLoopSource.clip = cleanPlatesLoopClip;
+                persistentLoopSource.volume = cleanPlatesLoopVolume;
+                persistentLoopSource.Play();
+                cleanPlatesLoopStarted = true;
+            }
             if(!useProgressiveHints) ShowHint("เก็บเศษจานให้หมด", 4f);
         }
 
@@ -386,12 +471,66 @@ namespace ARKOM.Story
         private void OnPrayerFinished(PrayerFinishedEvent _)
         {
             if (state != StoryState.PraySequence) return;
-            StoryDebug.Log("PrayerFinishedEvent", this);
+            EnterSleepEnd();
+        }
+
+        private void EnterSleepEnd()
+        {
+            StoryDebug.Log("EnterSleepEnd (debug=" + debugSkipToSleepEndOnStart + ")", this);
             SetState(StoryState.SleepEnd);
             ShowHint("...",1f);
+            if (!string.IsNullOrEmpty(sleepEndHintText)) ShowHint(sleepEndHintText,1f);
+            if (blackScreenOnSleepEnd)
+            {
+                var fader = FindObjectOfType<ScreenFader>();
+                if (fader) StartCoroutine(fader.FadeOut(Mathf.Max(0.01f, sleepEndFadeTime)));
+                LockPlayer(true);
+            }
+            if (stopAllAudioAtSleepEnd)
+            {
+                if (globalLoopSource) globalLoopSource.Stop();
+                if (persistentLoopSource) persistentLoopSource.Stop();
+                if (!sleepEndBackgroundClip)
+                    AudioListener.pause = true;
+            }
+            if (sleepEndBackgroundClip)
+            {
+                if (!sleepEndBgSource)
+                {
+                    var bg = new GameObject("SleepEndBackgroundAudio");
+                    bg.transform.SetParent(transform);
+                    sleepEndBgSource = bg.AddComponent<AudioSource>();
+                    sleepEndBgSource.loop = sleepEndBackgroundLoop;
+                    sleepEndBgSource.playOnAwake = false;
+                    sleepEndBgSource.spatialBlend = 0f;
+                }
+                sleepEndBgSource.clip = sleepEndBackgroundClip;
+                sleepEndBgSource.volume = sleepEndBackgroundVolume;
+                sleepEndBgSource.Play();
+            }
+            StartCoroutine(SleepEndTextRoutine());
+        }
+
+        private IEnumerator SleepEndTextRoutine()
+        {
+            if (!useHintPresenterForSleepEndText) yield break;
+            if (string.IsNullOrEmpty(sleepEndDisplayText)) yield break;
+            if (sleepEndTextDelay > 0f) yield return new WaitForSeconds(sleepEndTextDelay);
+            ShowHint(sleepEndDisplayText, sleepEndTextDuration);
         }
 
         public StoryState CurrentState => state; // public read-only accessor
+
+        void Update()
+        {
+            if (debugSkipKey != KeyCode.None && Input.GetKeyDown(debugSkipKey))
+            {
+                if (state != StoryState.SleepEnd)
+                {
+                    EnterSleepEnd();
+                }
+            }
+        }
     }
 
     // Placeholder TV & Power Manager interfaces (คุณจะสร้างจริงแยกไฟล์ก็ได้)

@@ -13,6 +13,8 @@ public class FridgeInteractable : Interactable
     [Tooltip("ผีในตู้เย็น (ตั้ง inactive เริ่มต้น)")] public GameObject fridgeGhost; // โมเดลผีโผล่พร้อมของร่วง
     [Tooltip("เวลาที่ผีโผล่อยู่ก่อนซ่อน")] public float ghostVisibleTime = 2f;
     [Tooltip("เสียงตอนผีโผล่")] public AudioClip ghostSfx; // ใหม่: เสียงโผล่
+    [Range(0f,2f)] public float ghostSfxVolume = 1f; // เพิ่มปรับความดัง
+    [Tooltip("เล่นเสียงผีเป็น 2D (ไม่โดนลดจากระยะ)")] public bool ghostSfxPlay2D = false;
     public AudioClip openSfx;         // เล่นทันทีเมื่อกด (ประตู)
     public AudioClip dropSfx;         // เล่นตอนของร่วง
     public AudioClip preOpenSfx;      // SFX สั้นๆ ก่อนเปิด (เช่น แรงสั่น) (optional)
@@ -121,7 +123,26 @@ public class FridgeInteractable : Interactable
         if (fridgeGhost)
         {
             fridgeGhost.SetActive(true);
-            if (ghostSfx) AudioSource.PlayClipAtPoint(ghostSfx, fridgeGhost.transform.position);
+            if (ghostSfx)
+            {
+                if (ghostSfxPlay2D)
+                {
+                    // 2D เล่นดังตาม volume ไม่ลดจากระยะ
+                    var temp = new GameObject("GhostSfx2D");
+                    var src = temp.AddComponent<AudioSource>();
+                    src.clip = ghostSfx;
+                    src.volume = ghostSfxVolume;
+                    src.loop = false;
+                    src.playOnAwake = false;
+                    src.spatialBlend = 0f;
+                    src.Play();
+                    Destroy(temp, ghostSfx.length + 0.5f);
+                }
+                else
+                {
+                    AudioSource.PlayClipAtPoint(ghostSfx, fridgeGhost.transform.position, ghostSfxVolume);
+                }
+            }
             if (ghostVisibleTime > 0f) StartCoroutine(HideGhost());
         }
         if (dropSfx) AudioSource.PlayClipAtPoint(dropSfx, transform.position);

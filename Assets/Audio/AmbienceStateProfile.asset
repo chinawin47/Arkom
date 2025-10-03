@@ -13,22 +13,13 @@ MonoBehaviour:
   m_Name: AmbienceStateProfile
   m_EditorClassIdentifier: 
   entries:
-  - state: 1
-    baseLoop: {fileID: 0}
-    enterStinger: {fileID: 0}
-    fadeIn: 10
-    fadeOut: 10
-    loop: 1
-    volume: 0.5
-    stingerDelay: 0
-    loopDelay: 0
   - state: 0
     baseLoop: {fileID: 8300000, guid: 0d3cc48caedd535469146d5e65691290, type: 3}
     enterStinger: {fileID: 0}
-    fadeIn: 10
-    fadeOut: 10
+    fadeIn: 0
+    fadeOut: 0
     loop: 0
-    volume: 0.5
+    volume: 1
     stingerDelay: 5
     loopDelay: 0
   - state: 5
@@ -40,30 +31,12 @@ MonoBehaviour:
     volume: 1
     stingerDelay: 0
     loopDelay: 0
-  - state: 2
-    baseLoop: {fileID: 8300000, guid: 6ae82504b31293947a54c9e73bc772ee, type: 3}
-    enterStinger: {fileID: 0}
-    fadeIn: 10
-    fadeOut: 10
-    loop: 1
-    volume: 0.806
-    stingerDelay: 0
-    loopDelay: 0
   - state: 3
-    baseLoop: {fileID: 8300000, guid: aee28f032e9bb8b438f744673a92271e, type: 3}
+    baseLoop: {fileID: 8300000, guid: 0d908e3e085a2044faf8ac57f6c86625, type: 3}
     enterStinger: {fileID: 0}
     fadeIn: 10
     fadeOut: 10
     loop: 1
-    volume: 0.35
-    stingerDelay: 0
-    loopDelay: 0
-  - state: 2
-    baseLoop: {fileID: 8300000, guid: 7e55c1308dfd7b14283df2bebfb9dbe9, type: 3}
-    enterStinger: {fileID: 0}
-    fadeIn: 10
-    fadeOut: 10
-    loop: 1
-    volume: 0.806
+    volume: 0.2
     stingerDelay: 0
     loopDelay: 0

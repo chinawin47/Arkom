@@ -12,6 +12,13 @@ namespace ARKOM.Audio
         public bool playOnStart = true;
         public bool reactToStateChanges = true;
         [Tooltip("ถ้าติ๊ก = ข้าม stingerDelay / loopDelay ครั้งแรก (พฤติกรรมเดิม)")] public bool skipDelaysOnFirstPlay = false;
+
+        [Header("Global Options")] 
+        [Tooltip("ปิดการเล่น stinger ทั้งหมด (enterStinger จะถูกข้าม)")] public bool disableAllStingers = false;
+        [Tooltip("ล็อกไม่ให้เริ่มระบบจนกว่าจะถึง state ที่กำหนด")] public bool gateUntilActivationState = false;
+        [Tooltip("เริ่มเปิดระบบ ambience ตอนเข้าสู่ state นี้ (ใช้คู่กับ gateUntilActivationState)")] public SequenceController.StoryState activationState = SequenceController.StoryState.ReturnToSeat;
+        [Tooltip("เมื่อ activate แล้วเริ่มเล่น clip ของ state ปัจจุบันทันที")] public bool playCurrentOnActivate = true;
+
         [Header("Mixer Routing (Optional)")]
         public AudioMixerGroupReference mixerGroup; // optional lightweight reference (wrapper you can implement) or leave null
 
@@ -19,34 +26,82 @@ namespace ARKOM.Audio
         public float defaultFadeIn = 2f;
         public float defaultFadeOut = 2f;
 
+        [Header("Debug")] public bool debugLog = false;
+
+        [Header("State Filters")] 
+        [Tooltip("เปิดเพื่อให้ข้าม state ที่ระบุไม่ให้เล่น ambience")] public bool ignoreSelectedStates = false;
+        [Tooltip("รายชื่อ state ที่จะไม่เล่น ambience")] public SequenceController.StoryState[] ignoredStates = new SequenceController.StoryState[] { SequenceController.StoryState.IntroSeated, SequenceController.StoryState.FindFlashlight };
+
+        [Header("Startup Override")] 
+        [Tooltip("บังคับให้เล่นเสียง ambience ของ state เริ่มต้นทันทีแม้จะถูก gating / filter")] public bool forceIntroPlay = true;
+        [Tooltip("state ที่ถือเป็นจุดเริ่ม (ใช้กับ forceIntroPlay)")] public SequenceController.StoryState introStartupState = SequenceController.StoryState.IntroSeated;
+
         private AudioSource currentSource;
         private AudioSource fadingOutSource;
         private Coroutine fadeCo;
-        private Coroutine pendingLoopDelayCo;
         private SequenceController.StoryState lastState;
+        private bool activated; // gating flag
+        private bool startedInit;
 
         void Awake()
         {
             currentSource = CreateSource("Ambience_Current");
             fadingOutSource = CreateSource("Ambience_FadingOut");
+
+            if (!gateUntilActivationState)
+            {
+                activated = true;
+                DebugMsg("Activated immediately (no gating)");
+            }
         }
 
-        void OnEnable()
-        {
-            EventBus.Subscribe<StoryStateChangedEvent>(OnStoryStateChanged);
-        }
-        void OnDisable()
-        {
-            EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryStateChanged);
-        }
+        void OnEnable() => EventBus.Subscribe<StoryStateChangedEvent>(OnStoryStateChanged);
+        void OnDisable() => EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryStateChanged);
 
         void Start()
         {
-            if (playOnStart && SequenceController.Instance)
+            if (!playOnStart) { DebugMsg("playOnStart disabled"); return; }
+
+            // SequenceController.Instance อาจยังไม่ Awake -> รอเฟรม
+            if (SequenceController.Instance == null)
             {
-                // ใช้ immediate = skipDelaysOnFirstPlay (ถ้า false จะให้ delay ทำงาน)
-                PlayForState(SequenceController.Instance.CurrentState, immediate: skipDelaysOnFirstPlay);
+                DebugMsg("SequenceController.Instance not ready, defer start");
+                StartCoroutine(DeferredStartRoutine());
+                return;
             }
+            var current = SequenceController.Instance.CurrentState;
+            if (forceIntroPlay && current == introStartupState && profile)
+            {
+                // override gating & filters for the very first play if we have entry
+                DebugMsg("Force intro play bypass");
+                var wasActivated = activated;
+                activated = true; // temporarily ensure active
+                PlayForState(current, immediate: skipDelaysOnFirstPlay, bypassFilters:true);
+                activated = wasActivated || true; // keep activated after first play so crossfade works
+                return; // already played
+            }
+            if (activated)
+            {
+                PlayForState(current, immediate: skipDelaysOnFirstPlay);
+            }
+            else DebugMsg("Not activated yet (gated)");
+        }
+
+        private IEnumerator DeferredStartRoutine()
+        {
+            if (startedInit) yield break;
+            startedInit = true;
+            int safety = 60; // max ~1 sec at 60fps
+            while (SequenceController.Instance == null && safety-- > 0)
+                yield return null;
+            if (SequenceController.Instance == null)
+            {
+                DebugMsg("SequenceController still null after wait; abort start");
+                yield break;
+            }
+            if (activated && playOnStart)
+                PlayForState(SequenceController.Instance.CurrentState, immediate: skipDelaysOnFirstPlay);
+            else DebugMsg("Deferred start reached but not activated");
         }
 
         private AudioSource CreateSource(string name)
@@ -62,25 +117,57 @@ namespace ARKOM.Audio
 
         private void OnStoryStateChanged(StoryStateChangedEvent e)
         {
-            if (!reactToStateChanges) return;
+            if (!reactToStateChanges) { DebugMsg("Ignore state change (reactToStateChanges=false)"); return; }
+
+            if (gateUntilActivationState && !activated)
+            {
+                if (e.Current == activationState)
+                {
+                    activated = true;
+                    DebugMsg($"Activated at state {e.Current}");
+                    if (playCurrentOnActivate)
+                        PlayForState(e.Current, immediate: skipDelaysOnFirstPlay);
+                }
+                else
+                {
+                    DebugMsg($"Gated: state {e.Current} < activation {activationState}");
+                }
+                return;
+            }
+
+            if (!activated)
+            {
+                DebugMsg("State change ignored (not activated)");
+                return;
+            }
             PlayForState(e.Current);
         }
 
-        public void PlayForState(SequenceController.StoryState st, bool immediate = false)
+        public void PlayForState(SequenceController.StoryState st, bool immediate = false, bool bypassFilters = false)
         {
-            if (!profile) return;
-            if (!profile.TryGet(st, out var amb)) return;
-
-            if (pendingLoopDelayCo != null)
+            if (!activated && !bypassFilters) { DebugMsg($"PlayForState {st} ignored (not activated)"); return; }
+            if (!bypassFilters && ignoreSelectedStates && ignoredStates != null)
             {
-                StopCoroutine(pendingLoopDelayCo);
-                pendingLoopDelayCo = null;
+                for (int i = 0; i < ignoredStates.Length; i++)
+                {
+                    if (ignoredStates[i] == st)
+                    {
+                        DebugMsg($"State {st} ignored by filter");
+                        return;
+                    }
+                }
             }
+            if (!profile) { DebugMsg("No profile set"); return; }
+            if (!profile.TryGet(st, out var amb)) { DebugMsg($"No entry for state {st}"); return; }
 
             lastState = st;
+            DebugMsg($"PlayForState {st} immediate={immediate} loop={(amb.baseLoop?amb.baseLoop.name:"null")} stinger={(amb.enterStinger?amb.enterStinger.name:"none")}" );
 
-            // stinger (with optional delay)
-            if (amb.enterStinger)
+            // auto un-pause if previously muted (e.g., after SleepEnd test)
+            if (AudioListener.pause) { AudioListener.pause = false; DebugMsg("AudioListener.pause was true -> unpaused"); }
+
+            // stinger (with optional delay) unless globally disabled
+            if (!disableAllStingers && amb.enterStinger)
             {
                 if (!immediate && amb.stingerDelay > 0f)
                 {
@@ -91,8 +178,7 @@ namespace ARKOM.Audio
                     AudioSource.PlayClipAtPoint(amb.enterStinger, Camera.main ? Camera.main.transform.position : Vector3.zero, amb.volume);
                 }
             }
-
-            if (amb.baseLoop == null) return; // nothing to loop
+            if (amb.baseLoop == null) { DebugMsg("No baseLoop clip; stinger only"); return; }
 
             // swap sources (current -> fadingOut, new clip -> current)
             var temp = fadingOutSource; fadingOutSource = currentSource; currentSource = temp;
@@ -119,6 +205,7 @@ namespace ARKOM.Audio
         private IEnumerator PlayStingerDelayed(AudioClip clip, float vol, float delay)
         {
             yield return new WaitForSeconds(delay);
+            if (!activated) yield break;
             if (clip)
                 AudioSource.PlayClipAtPoint(clip, Camera.main ? Camera.main.transform.position : Vector3.zero, vol);
         }
@@ -137,7 +224,7 @@ namespace ARKOM.Audio
             if (fadingOutSource.isPlaying) fadingOutSource.Stop();
 
             if (loopDelay > 0f) yield return new WaitForSeconds(loopDelay);
-
+            if (!activated) yield break;
             currentSource.Play();
             if (fadeIn <= 0f)
             {
@@ -162,7 +249,6 @@ namespace ARKOM.Audio
                 currentSource.volume = targetVol;
                 yield break;
             }
-
             float t = 0f;
             float startOut = fadingOutSource.isPlaying ? fadingOutSource.volume : 0f;
             while (t < Mathf.Max(fadeIn, fadeOut))
@@ -178,9 +264,31 @@ namespace ARKOM.Audio
             currentSource.volume = targetVol;
             if (fadingOutSource.isPlaying) fadingOutSource.Stop();
         }
+
+        // Public method to manually activate if gating used
+        public void ActivateAmbienceIfGated()
+        {
+            if (activated) return;
+            activated = true;
+            DebugMsg("Manually activated via ActivateAmbienceIfGated()");
+            if (SequenceController.Instance && playCurrentOnActivate)
+                PlayForState(SequenceController.Instance.CurrentState, immediate: skipDelaysOnFirstPlay);
+        }
+
+        public void StopAllAmbience()
+        {
+            if (currentSource && currentSource.isPlaying) currentSource.Stop();
+            if (fadingOutSource && fadingOutSource.isPlaying) fadingOutSource.Stop();
+            DebugMsg("StopAllAmbience called");
+        }
+
+        private void DebugMsg(string msg)
+        {
+            if (debugLog)
+                Debug.Log($"[AmbienceManager] {msg}", this);
+        }
     }
 
-    // Optional wrapper (so project compiles even if you don't have a mixer group yet)
     [System.Serializable]
     public class AudioMixerGroupReference
     {

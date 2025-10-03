@@ -9,6 +9,11 @@ public class FlashlightPickupInteractable : PickupInteractable
     public Flashlight flashlightPrefabOrInstance;
     [Tooltip("เปิดทันทีหลังเก็บหรือไม่")] public bool turnOnAfterPickup = false;
 
+    [Header("Flashlight Pickup Audio")] // เพิ่มเสียงเฉพาะตอนรับไฟฉาย
+    [Tooltip("เสียงตอนเก็บแล้วเปิดไฟฉาย (ใช้เมื่อ turnOnAfterPickup = true)")] public AudioClip pickupTurnOnSfx;
+    [Tooltip("เสียงตอนเก็บแต่ยังไม่เปิดไฟฉาย (turnOnAfterPickup = false)")] public AudioClip pickupTurnOffSfx;
+    [Range(0f,1f)] public float flashlightTogglePickupVolume = 1f;
+
     protected override void ApplyPickup(PlayerController player)
     {
         if (!flashlightPrefabOrInstance)
@@ -24,5 +29,15 @@ public class FlashlightPickupInteractable : PickupInteractable
         }
         player.AcquireFlashlight(toGive, turnOnAfterPickup);
         EventBus.Publish(new FlashlightAcquiredEvent());
+
+        // เล่นเสียงเฉพาะสถานะเปิด/ยังไม่เปิด (นอกเหนือจาก pickupSfx ของฐาน)
+        if (turnOnAfterPickup && pickupTurnOnSfx)
+        {
+            AudioSource.PlayClipAtPoint(pickupTurnOnSfx, transform.position, flashlightTogglePickupVolume);
+        }
+        else if (!turnOnAfterPickup && pickupTurnOffSfx)
+        {
+            AudioSource.PlayClipAtPoint(pickupTurnOffSfx, transform.position, flashlightTogglePickupVolume);
+        }
     }
 }
