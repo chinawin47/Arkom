@@ -8,7 +8,7 @@ namespace ARKOM.Story
     public class OoyBedTrigger : MonoBehaviour
     {
         [Header("Settings")] public bool fireOnce = true;
-        [Tooltip("เปิดเพื่อพิมพ์ Log รายละเอียดการชนทุกครั้ง (แม้ไม่ผ่านเงื่อนไข)")] public bool verboseDebug = true;
+        [Tooltip("แสดงข้อความ Log เพิ่มเติมช่วยดีบัก (ปล่อยปิดในงานจริง)")] public bool verboseDebug = true;
 
         private bool fired;
         private Collider _col;
@@ -18,7 +18,7 @@ namespace ARKOM.Story
             _col = GetComponent<Collider>();
             if (_col && !_col.isTrigger)
             {
-                if (verboseDebug) StoryDebug.Log("Collider ไม่ได้ตั้ง IsTrigger = true", this);
+                if (verboseDebug) StoryDebug.Log("Collider ควรตั้ง IsTrigger = true", this);
             }
         }
 
@@ -32,20 +32,30 @@ namespace ARKOM.Story
                 return;
             }
 
-            // ต้องถึงสถานะ CheckOoy เท่านั้น
-            if (!SequenceController.Instance || SequenceController.Instance.CurrentState != SequenceController.StoryState.CheckOoy)
+            var sc = SequenceController.Instance;
+            if (!sc)
             {
-                if (verboseDebug) StoryDebug.Log("ยังไม่ถึงขั้น CheckOoy (state ปัจจุบัน = " + (SequenceController.Instance? SequenceController.Instance.CurrentState.ToString():"NULL") + ")", this);
-                return; // ไม่ล๊อก fired เพื่อให้กลับมาซ้ำได้
+                if (verboseDebug) StoryDebug.Log("SequenceController = NULL", this);
+                return;
+            }
+
+            // อนุญาตทั้งสเตตัสเก่า (CheckOoy) และสเตตัสใหม่ (FindOoy)
+            bool validState = sc.CurrentState == SequenceController.StoryState.CheckOoy
+                              || sc.CurrentState == SequenceController.StoryState.FindOoy;
+            if (!validState)
+            {
+                if (verboseDebug) StoryDebug.Log("[ลำดับเรื่อง] ยังไม่ถึงขั้น CheckOoy/FindOoy (state ปัจจุบัน = " + sc.CurrentState + ")", this);
+                return;
             }
 
             if (fireOnce && fired)
             {
-                if (verboseDebug) StoryDebug.Log("เคยยิงไปแล้ว (fireOnce)", this);
+                if (verboseDebug) StoryDebug.Log("ทริกเกอร์แล้ว (fireOnce)", this);
                 return;
             }
 
             fired = true;
+            if (fireOnce && _col) _col.enabled = false;
             StoryDebug.LogEvent("OoyCheckedEvent", this);
             EventBus.Publish(new OoyCheckedEvent());
         }

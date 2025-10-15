@@ -1,13 +1,14 @@
 using UnityEngine;
 using ARKOM.Core;
 using ARKOM.Player;
+using ARKOM.Enemy; // added
 
 namespace ARKOM.Story
 {
     public class GhostSpawner : MonoBehaviour
     {
-        public Transform[] spawnPoints; // 8 จุด
-        public GameObject[] ghostPrefabs; // อย่างน้อย 1
+        public Transform[] spawnPoints; // spawn locations
+        public GameObject[] ghostPrefabs; // at least 1
         public AudioClip spawnSfx;
 
         [Header("Despawn Settings")]
@@ -26,7 +27,7 @@ namespace ARKOM.Story
         {
             if (spawned) return;
             spawned = true;
-            if (spawnPoints.Length == 0 || ghostPrefabs.Length == 0)
+            if (spawnPoints == null || spawnPoints.Length == 0 || ghostPrefabs == null || ghostPrefabs.Length == 0)
             {
                 EventBus.Publish(new GhostSpawnedEvent(-1));
                 return;
@@ -38,12 +39,39 @@ namespace ARKOM.Story
             if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, p.position);
             EventBus.Publish(new GhostSpawnedEvent(pointIndex));
             playerCam = FindPlayerCamera();
-            if (activeGhost) StartCoroutine(LookDespawnRoutine());
+
+            // ถ้าเป็นผีไล่ (มี ChasingGhost) อย่าใช้ระบบหายเมื่อถูกมอง
+            var chaser = activeGhost ? activeGhost.GetComponent<ChasingGhost>() : null;
+            if (!chaser && activeGhost)
+                StartCoroutine(LookDespawnRoutine());
+        }
+
+        public void SpawnAtIndex(int pointIndex)
+        {
+            if (spawned) return;
+            spawned = true;
+            if (spawnPoints == null || spawnPoints.Length == 0 || ghostPrefabs == null || ghostPrefabs.Length == 0)
+            {
+                EventBus.Publish(new GhostSpawnedEvent(-1));
+                return;
+            }
+            if (pointIndex < 0 || pointIndex >= spawnPoints.Length)
+                pointIndex = 0;
+            int prefabIndex = Random.Range(0, ghostPrefabs.Length);
+            var p = spawnPoints[pointIndex];
+            activeGhost = Instantiate(ghostPrefabs[prefabIndex], p.position, p.rotation);
+            if (spawnSfx) AudioSource.PlayClipAtPoint(spawnSfx, p.position);
+            EventBus.Publish(new GhostSpawnedEvent(pointIndex));
+            playerCam = FindPlayerCamera();
+
+            // ถ้าเป็นผีไล่ (มี ChasingGhost) อย่าใช้ระบบหายเมื่อถูกมอง
+            var chaser = activeGhost ? activeGhost.GetComponent<ChasingGhost>() : null;
+            if (!chaser && activeGhost)
+                StartCoroutine(LookDespawnRoutine());
         }
 
         private Camera FindPlayerCamera()
         {
-            // พยายามจาก PlayerController ก่อน ถ้าไม่มีใช้ Camera.main
             var pc = FindObjectOfType<PlayerController>();
             if (pc)
             {
@@ -57,18 +85,18 @@ namespace ARKOM.Story
         {
             accumulatedLook = 0f;
             aliveTime = 0f;
-            bool instantMode = lookDespawnTime <= 0f; // หายทันทีเมื่อถูกมอง
+            bool instantMode = lookDespawnTime <= 0f;
             while (activeGhost)
             {
                 aliveTime += Time.deltaTime;
-                if (hardTimeout > 0f && aliveTime >= hardTimeout) break; // timeout hard
+                if (hardTimeout > 0f && aliveTime >= hardTimeout) break;
 
                 if (playerCam)
                 {
                     bool looking = IsLookingAtGhost();
                     if (instantMode)
                     {
-                        if (looking) break; // มองปุ๊บหาย
+                        if (looking) break;
                     }
                     else
                     {
@@ -79,7 +107,7 @@ namespace ARKOM.Story
                         }
                         else if (requireContinuousLook)
                         {
-                            accumulatedLook = 0f; // รีเซ็ตถ้าต้องต่อเนื่องและหลุดมอง
+                            accumulatedLook = 0f;
                         }
                     }
                 }

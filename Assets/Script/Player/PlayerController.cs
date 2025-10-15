@@ -331,7 +331,22 @@ namespace ARKOM.Player
                 flashlight.transform.SetParent(parent, worldPositionStays: false);
             }
         }
-        
+
+        // External helper: force yaw/pitch to specific values (used by intro camera sequence)
+        public void ForceLookYawPitch(float yaw, float pitch)
+        {
+            // clamp pitch to controller limits
+            xRotation = Mathf.Clamp(pitch, -80f, 80f);
+            if (cameraRoot)
+                cameraRoot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            // when seated and lockPitch, keep seatedPitch in sync
+            if (isSeated && lockPitchWhileSeated)
+            {
+                seatedPitch = xRotation;
+            }
+        }
+
         // Input Callbacks
         public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
         public void OnLook(InputAction.CallbackContext context) => lookInput = context.ReadValue<Vector2>();

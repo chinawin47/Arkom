@@ -69,6 +69,26 @@ namespace ARKOM.Story
         private bool sweepDone;
         private bool anomalySeen;
         private bool ghostSpawned;
+        private bool plateCrashTriggered; // prevent duplicate plate crash
+        private bool upstairsFusePicked;  // picked upstairs fuse
+        private bool stairsGhostSpawned;  // ghost at stairs already spawned
+        private bool platesCleaned;       // finished cleaning plates
+        private bool requireCleanPlatesBeforeFuse; // gate fuse insertion until cleaned
+        private bool storageFuseTriggered; // ensure TV scare runs once
+        [Header("TV Scare (Storage Fuse)")]
+        [Tooltip("เวลาถือ Static บนทีวีก่อนปิด (วินาที)")] public float tvStaticHoldTime = 4f;
+
+        // Public accessors for other scripts (e.g., Breaker)
+        public bool RequireCleanPlatesBeforeFuse => requireCleanPlatesBeforeFuse;
+        public bool PlatesCleaned => platesCleaned;
+        [Tooltip("ข้อความเตือนเมื่อยังต้องเก็บเศษจานก่อนใส่ฟิวส์")] public string needCleanPlatesHint = "เก็บเศษจานในครัวให้หมดก่อน";
+
+        [Header("Find Ooy Flow")] // NEW
+        [Tooltip("ข้อความชี้เป้าให้ไปหาออยหลังไฟติด")] public string findOoyHint = "ไปหาออย";
+        [Tooltip("เสียงบรรยายเมื่อหาไม่พบออย")] public AudioClip ooyNotFoundVoice;
+        [Range(0f,1f)] public float ooyNotFoundVoiceVolume = 1f;
+        [Tooltip("ใช้ข้อความแทนเสียง ถ้าไม่มีคลิป")] public string ooyNotFoundText = "นี่มันเกิดอะไรขึ้นวะ ลองไปปลุกออยหน่อยดีกว่า";
+        [Tooltip("หน่วงก่อนตัดไฟอีกครั้งหลังจบบรรยาย (วินาที)")] public float blackoutAgainDelay = 0.25f;
 
         private StoryState state;
         private bool started;
@@ -112,7 +132,8 @@ namespace ARKOM.Story
             GhostSpawn,
             RunToBed,
             PraySequence,
-            SleepEnd
+            SleepEnd,
+            FindOoy // simplified path after power restored
         }
 
         void Awake()
@@ -177,13 +198,16 @@ namespace ARKOM.Story
             EventBus.Subscribe<TimeSkipFinishedEvent>(OnTimeSkipFinished);
             EventBus.Subscribe<KitchenEnteredEvent>(OnKitchenEntered);
             EventBus.Subscribe<PlatesCleanedEvent>(OnPlatesCleaned);
-            EventBus.Subscribe<FridgeScareDoneEvent>(OnFridgeScareDone);
-            EventBus.Subscribe<OoyCheckedEvent>(OnOoyChecked);
-            EventBus.Subscribe<SweepCompleteEvent>(OnSweepComplete);
-            EventBus.Subscribe<AnomalyFirstSeenEvent>(OnAnomalyFirstSeen);
-            EventBus.Subscribe<GhostSpawnedEvent>(OnGhostSpawned);
-            EventBus.Subscribe<PlayerInBedEvent>(OnPlayerInBed);
-            EventBus.Subscribe<PrayerFinishedEvent>(OnPrayerFinished);
+            // Remove unrelated older flow subscriptions to simplify
+            // EventBus.Subscribe<FridgeScareDoneEvent>(OnFridgeScareDone);
+            // EventBus.Subscribe<OoyCheckedEvent>(OnOoyChecked);
+            // EventBus.Subscribe<SweepCompleteEvent>(OnSweepComplete);
+            // EventBus.Subscribe<AnomalyFirstSeenEvent>(OnAnomalyFirstSeen);
+            // EventBus.Subscribe<GhostSpawnedEvent>(OnGhostSpawned);
+            // EventBus.Subscribe<PlayerInBedEvent>(OnPlayerInBed);
+            // EventBus.Subscribe<PrayerFinishedEvent>(OnPrayerFinished);
+            EventBus.Subscribe<FuseFoundEvent>(OnFuseFound);
+            EventBus.Subscribe<OoyCheckedEvent>(OnOoyChecked); // keep for new flow
         }
         void OnDisable()
         {
@@ -193,13 +217,16 @@ namespace ARKOM.Story
             EventBus.Unsubscribe<TimeSkipFinishedEvent>(OnTimeSkipFinished);
             EventBus.Unsubscribe<KitchenEnteredEvent>(OnKitchenEntered);
             EventBus.Unsubscribe<PlatesCleanedEvent>(OnPlatesCleaned);
-            EventBus.Unsubscribe<FridgeScareDoneEvent>(OnFridgeScareDone);
+            // Removed older flow unsubs
+            // EventBus.Unsubscribe<FridgeScareDoneEvent>(OnFridgeScareDone);
+            // EventBus.Unsubscribe<OoyCheckedEvent>(OnOoyChecked);
+            // EventBus.Unsubscribe<SweepCompleteEvent>(OnSweepComplete);
+            // EventBus.Unsubscribe<AnomalyFirstSeenEvent>(OnAnomalyFirstSeen);
+            // EventBus.Unsubscribe<GhostSpawnedEvent>(OnGhostSpawned);
+            // EventBus.Unsubscribe<PlayerInBedEvent>(OnPlayerInBed);
+            // EventBus.Unsubscribe<PrayerFinishedEvent>(OnPrayerFinished);
+            EventBus.Unsubscribe<FuseFoundEvent>(OnFuseFound);
             EventBus.Unsubscribe<OoyCheckedEvent>(OnOoyChecked);
-            EventBus.Unsubscribe<SweepCompleteEvent>(OnSweepComplete);
-            EventBus.Unsubscribe<AnomalyFirstSeenEvent>(OnAnomalyFirstSeen);
-            EventBus.Unsubscribe<GhostSpawnedEvent>(OnGhostSpawned);
-            EventBus.Unsubscribe<PlayerInBedEvent>(OnPlayerInBed);
-            EventBus.Unsubscribe<PrayerFinishedEvent>(OnPrayerFinished);
         }
 
         private void SetState(StoryState newState)
@@ -238,6 +265,7 @@ namespace ARKOM.Story
             // เริ่มเล่นข่าว
             if (tv) tv.PlayIntro();
             ShowHint("ชมข่าว...", introNewsDuration);
+            if (introAutoCamera) StartCoroutine(IntroCameraFocusRoutine());
             StartCoroutine(IntroRoutine());
         }
 
@@ -266,18 +294,24 @@ namespace ARKOM.Story
             StoryDebug.Log("Flashlight acquired", this);
             SetState(StoryState.RestorePower);
             if (breakerInteractable) breakerInteractable.gameObject.SetActive(true);
-            if(!useProgressiveHints) ShowHint("ไปเปิดคัตเอาท์", 4f);
+            if(!useProgressiveHints) ShowHint("ไปใส่ฟิวส์ที่คัตเอ้าท์", 4f);
         }
 
         private void OnPowerRestored(PowerRestoredEvent _)
         {
             if (state != StoryState.RestorePower) return;
             StoryDebug.Log("Power restored", this);
-            SetState(StoryState.ReturnToSeat);
+
+            // เปิดไฟบ้าน
             if (powerManager) powerManager.SetPower(true);
             if (tv) tv.PreparePostRestoreNews();
-            ShowHint("กลับไปนั่งดูข่าว", 4f);
-            if (reuseSeat) reuseSeat.gameObject.SetActive(true);
+
+            // เปลี่ยน flow: ให้ผู้เล่นไปหาออย (แทนการกลับไปนั่ง/ตัดฉาก)
+            SetState(StoryState.FindOoy);
+            if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint, 4f);
+
+            // ไม่ใช้ reuseSeat / ReturnToSeat / TimeSkip อีกใน flow นี้
+            if (reuseSeat) reuseSeat.gameObject.SetActive(false);
         }
 
         private void OnPlayerSeated(PlayerSeatedEvent e)
@@ -371,9 +405,15 @@ namespace ARKOM.Story
         {
             if (state != StoryState.CleanPlates) return;
             StoryDebug.Log("PlatesCleanedEvent (Total=" + e.Total + ")", this);
-            SetState(StoryState.FridgeSequence);
-            if(!useProgressiveHints) ShowHint("เปิดตู้เย็น", 4f);
+            platesCleaned = true;
+            // allow fuse insertion now; guide player to breaker
+            if (breakerInteractable) breakerInteractable.gameObject.SetActive(true);
+            SetState(StoryState.RestorePower);
+            ShowHint("ไปใส่ฟิวส์ที่คัตเอ้าท์", 4f);
         }
+
+        // Public helper for hint
+        public void ShowTempHint(string text, float duration = 2f) => ShowHint(text, duration);
 
         private void OnFridgeScareDone(FridgeScareDoneEvent _)
         {
@@ -385,93 +425,36 @@ namespace ARKOM.Story
 
         private void OnOoyChecked(OoyCheckedEvent _)
         {
-            if (state != StoryState.CheckOoy) return;
+            // รองรับทั้ง flow เก่า (CheckOoy) และ flow ใหม่ (FindOoy)
+            if (state != StoryState.CheckOoy && state != StoryState.FindOoy) return;
             StoryDebug.Log("OoyCheckedEvent", this);
-            SetState(StoryState.HouseSweep);
-            if (sweepManager) sweepManager.BeginSweep();
-            if(!useProgressiveHints) ShowHint("ตรวจรอบบ้าน", 4f);
+
+            // เล่นเสียง/โชว์ข้อความว่าไม่เจอ และเตรียมตัดไฟอีกครั้ง
+            if (ooyNotFoundVoice)
+                AudioSource.PlayClipAtPoint(ooyNotFoundVoice, player ? player.transform.position : transform.position, ooyNotFoundVoiceVolume);
+            else if (!string.IsNullOrEmpty(ooyNotFoundText))
+                ShowHint(ooyNotFoundText, 3.5f);
+
+            StartCoroutine(SecondBlackoutRoutine());
         }
 
-        private void OnSweepComplete(SweepCompleteEvent _)
+        private IEnumerator SecondBlackoutRoutine()
         {
-            if (state != StoryState.HouseSweep) return;
-            StoryDebug.Log("SweepCompleteEvent", this);
-            sweepDone = true;
-            if(!useProgressiveHints) ShowHint("มีอะไรแปลกๆ...", 3f);
-            if (autoAnomalyAfterSweep && !anomalySeen && autoAnomalyCo == null)
-                autoAnomalyCo = StartCoroutine(AutoAnomalyRoutine());
-        }
+            // รอความยาวเสียงคร่าวๆ ถ้ามี
+            float wait = 0f;
+            if (ooyNotFoundVoice)
+                wait = Mathf.Max(wait, ooyNotFoundVoice.length);
+            if (blackoutAgainDelay > 0f)
+                wait += blackoutAgainDelay;
+            if (wait > 0f) yield return new WaitForSeconds(wait);
 
-        private IEnumerator AutoAnomalyRoutine()
-        {
-            float t = anomalyAutoDelay;
-            StoryDebug.Log("เริ่มนับเวลา Auto Anomaly (" + t + "s)", this);
-            while (t > 0f)
-            {
-                if (anomalySeen || state != StoryState.HouseSweep) yield break; // ถูกทริกเกอร์แล้ว หรือออกจากสเตจ
-                t -= Time.deltaTime;
-                yield return null;
-            }
-            if (anomalySeen || state != StoryState.HouseSweep) yield break;
-            StoryDebug.Log("Auto ทริกเกอร์ AnomalyFirstSeenEvent", this);
-            // publish anomaly event
-            EventBus.Publish(new AnomalyFirstSeenEvent("Auto"));
-            if (spawnGhostDirectOnAuto && !ghostSpawned)
-            {
-                // SpawnGhost() จะถูกเรียกผ่าน OnAnomalyFirstSeen อยู๋แล้ว
-            }
-        }
+            // ดับไฟอีกครั้ง
+            if (tv) tv.PowerOff();
+            if (powerManager) powerManager.SetPower(false);
+            EventBus.Publish(new BlackoutStartedEvent());
+            StoryDebug.Log("Second blackout triggered after Ooy not found", this);
 
-        private void OnAnomalyFirstSeen(AnomalyFirstSeenEvent e)
-        {
-            if (state != StoryState.HouseSweep && state != StoryState.AnomalyFound) return;
-            if (anomalySeen) return;
-            if (autoAnomalyCo != null) { StopCoroutine(autoAnomalyCo); autoAnomalyCo = null; }
-            StoryDebug.Log("AnomalyFirstSeenEvent id=" + e.AnomalyId, this);
-            anomalySeen = true;
-            SetState(StoryState.AnomalyFound);
-            SpawnGhost();
-        }
-
-        private void SpawnGhost()
-        {
-            if (ghostSpawned) return;
-            StoryDebug.Log("SpawnGhost()", this);
-            SetState(StoryState.GhostSpawn);
-            if (ghostSpawner)
-            {
-                ghostSpawner.SpawnRandom();
-            }
-            else
-            {
-                EventBus.Publish(new GhostSpawnedEvent(-1));
-            }
-        }
-
-        private void OnGhostSpawned(GhostSpawnedEvent e)
-        {
-            if (state != StoryState.GhostSpawn) return;
-            StoryDebug.Log("GhostSpawnedEvent index=" + e.Index, this);
-            ghostSpawned = true;
-            SetState(StoryState.RunToBed);
-            ShowHint("กลับไปนอน!", 4f);
-            if (finalBedTrigger) finalBedTrigger.EnableBed();
-        }
-
-        private void OnPlayerInBed(PlayerInBedEvent _)
-        {
-            if (state != StoryState.RunToBed) return;
-            StoryDebug.Log("PlayerInBedEvent", this);
-            SetState(StoryState.PraySequence);
-            ShowHint("สวด 3 รอบ...", 2f);
-            if (prayController) prayController.BeginPrayer(3);
-            else EventBus.Publish(new PrayerFinishedEvent()); // fallback
-        }
-
-        private void OnPrayerFinished(PrayerFinishedEvent _)
-        {
-            if (state != StoryState.PraySequence) return;
-            EnterSleepEnd();
+            // ถ้าต้องการไป flow ต่อไปค่อยเติมที่นี่
         }
 
         private void EnterSleepEnd()
@@ -531,17 +514,138 @@ namespace ARKOM.Story
                 }
             }
         }
+
+        [Header("Intro Camera Focus")] // NEW
+        [Tooltip("ระหว่างนั่งช่วง Intro ให้กล้องหันไปที่ TV และซูมเข้าออกอัตโนมัติ")] public bool introAutoCamera = true;
+        [Tooltip("จุดที่ให้มองระหว่าง Intro (ว่าง = ใช้ Transform ของ TV)")] public Transform tvLookTarget;
+        [Tooltip("เวลาหันกล้องไปหา TV")] public float introLookTime = 0.8f;
+        [Tooltip("FOV ตอนซูมเข้า (ค่าต่ำ = ซูมมาก)")] public float introZoomFov = 35f;
+        [Tooltip("เวลาในการซูมเข้า")] public float introZoomInTime = 0.8f;
+        [Tooltip("ค้างซูมไว้กี่วินาที") ] public float introZoomHoldTime = 1.0f;
+        [Tooltip("เวลาในการซูมออกกลับค่าปกติ")] public float introZoomOutTime = 0.8f;
+        [Tooltip("ล็อก PlayerController ชั่วคราวระหว่างหมุนและซูมกล้อง Intro")] public bool introLockPlayerDuringCamera = true;
+
+        private IEnumerator IntroCameraFocusRoutine()
+        {
+            if (!player) yield break;
+            var cam = player.mainCamera ? player.mainCamera : Camera.main;
+            if (!cam) yield break;
+
+            Transform focus = tvLookTarget ? tvLookTarget : (tv ? tv.transform : null);
+            if (!focus) yield break;
+
+            if (introLockPlayerDuringCamera) LockPlayer(true);
+
+            float startFov = cam.fieldOfView;
+            Quaternion startRot = player.cameraRoot ? player.cameraRoot.rotation : cam.transform.rotation;
+
+            // compute target rotation towards focus using current camera position
+            Vector3 dirNow = (focus.position - cam.transform.position).normalized;
+            Quaternion targetRot = Quaternion.LookRotation(dirNow, Vector3.up);
+
+            // 1) Ease rotate to TV
+            if (introLookTime > 0f)
+            {
+                float t = 0f;
+                while (t < introLookTime)
+                {
+                    t += Time.deltaTime;
+                    float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / introLookTime));
+                    if (player.cameraRoot)
+                        player.cameraRoot.rotation = Quaternion.Slerp(startRot, targetRot, k);
+                    else
+                        cam.transform.rotation = Quaternion.Slerp(startRot, targetRot, k);
+                    yield return null;
+                }
+            }
+            else
+            {
+                if (player.cameraRoot) player.cameraRoot.rotation = targetRot; else cam.transform.rotation = targetRot;
+            }
+
+            // update camera rig yaw/pitch to avoid snap-back when sequence ends
+            if (player && player.cameraRoot)
+            {
+                Vector3 fwd = player.cameraRoot.forward;
+                float yaw = Quaternion.LookRotation(new Vector3(fwd.x, 0f, fwd.z)).eulerAngles.y;
+                float pitch = Quaternion.LookRotation(fwd).eulerAngles.x;
+                // convert pitch from 0..360 to -180..180 then clamp
+                if (pitch > 180f) pitch -= 360f;
+                player.ForceLookYawPitch(yaw, pitch);
+            }
+
+            // 2) Ease zoom in
+            if (introZoomInTime > 0f)
+            {
+                float t = 0f;
+                while (t < introZoomInTime)
+                {
+                    t += Time.deltaTime;
+                    float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / introZoomInTime));
+                    cam.fieldOfView = Mathf.Lerp(startFov, introZoomFov, k);
+                    yield return null;
+                }
+            }
+            else cam.fieldOfView = introZoomFov;
+
+            if (introZoomHoldTime > 0f)
+                yield return new WaitForSeconds(introZoomHoldTime);
+
+            // 3) Ease zoom out
+            if (introZoomOutTime > 0f)
+            {
+                float t = 0f;
+                while (t < introZoomOutTime)
+                {
+                    t += Time.deltaTime;
+                    float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / introZoomOutTime));
+                    cam.fieldOfView = Mathf.Lerp(introZoomFov, startFov, k);
+                    yield return null;
+                }
+            }
+            else cam.fieldOfView = startFov;
+
+            if (introLockPlayerDuringCamera) LockPlayer(false);
+        }
+
+        // Handle fuse pickups to branch flows
+        private void OnFuseFound(FuseFoundEvent e)
+        {
+            if (e.Location == FuseLocation.Upstairs)
+            {
+                if (plateCrashTriggered) return;
+                plateCrashTriggered = true;
+                upstairsFusePicked = true;
+                requireCleanPlatesBeforeFuse = true;
+                StoryDebug.Log("FuseFound (Upstairs) -> PlateCrashSequence", this);
+                StartCoroutine(PlateCrashSequence());
+                return;
+            }
+
+            if (e.Location == FuseLocation.StorageRoom)
+            {
+                if (storageFuseTriggered) return;
+                storageFuseTriggered = true;
+                StoryDebug.Log("FuseFound (StorageRoom) -> TV static scare", this);
+                // Play TV static
+                if (tv) { tv.PlayStatic(); StartCoroutine(StopTvStaticAfterDelay(tvStaticHoldTime)); }
+                // Spawn ghost at TV area (assume index 1)
+                if (ghostSpawner) ghostSpawner.SpawnAtIndex(1);
+                // Optional hint
+                ShowHint("เสียงทีวีซ่า...", 2.5f);
+                return;
+            }
+        }
+
+        private IEnumerator StopTvStaticAfterDelay(float delay)
+        {
+            if (delay <= 0f) { if (tv) tv.StopStatic(); yield break; }
+            yield return new WaitForSeconds(delay);
+            if (tv) tv.StopStatic();
+        }
     }
 
-    // Placeholder TV & Power Manager interfaces (คุณจะสร้างจริงแยกไฟล์ก็ได้)
-    public class TVController : MonoBehaviour
-    {
-        public void PlayIntro() { /* เล่นข่าวแรก */ }
-        public void PowerOff() { /* ปิดหน้าจอ */ }
-        public void PreparePostRestoreNews() { /* เตรียมคลิปใหม่ */ }
-        public void PlayTimeSkipNews() { /* เล่นข่าวหลัง time skip */ }
-    }
-
+    // Placeholder Power Manager interface (คุณจะสร้างจริงแยกไฟล์ก็ได้)
     public class PowerManager : MonoBehaviour
     {
         public Light[] normalLights;
