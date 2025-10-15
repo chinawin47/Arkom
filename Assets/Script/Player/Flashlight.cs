@@ -3,39 +3,36 @@ using UnityEngine.InputSystem;
 
 namespace ARKOM.Player
 {
-    // ไฟฉายพร้อมระบบแบต/ชาร์จ และปรับความสว่างตามแบต
+    // ไฟฉาย พร้อมโหมดปิดระบบแบตเตอรี่
     public class Flashlight : MonoBehaviour
     {
         [Header("Light Source")]
-        [Tooltip("ลาก Spot Light ที่จะใช้เป็นไฟฉาย (ควรเป็นลูกของกล้อง)")]
+        [Tooltip("ลาก Spot Light ที่จะใช้เป็นไฟฉาย (หากไม่ตั้งจะลองหาอัตโนมัติ)")]
         public Light lightSource;
 
         [Header("Power / Battery")]
-        [Tooltip("เริ่มต้นเปิดไฟฉายหรือไม่")]
-        public bool initiallyOn = false;
-        [Tooltip("ความจุแบตสูงสุด (หน่วยสมมุติ)")]
-        public float batteryCapacity = 100f;
-        [Tooltip("อัตราลดแบตต่อวินาทีเมื่อเปิดไฟ")]
-        public float drainPerSecondOn = 6f;
-        [Tooltip("อัตราชาร์จต่อวินาทีเมื่อปิดไฟ (0 = ไม่ชาร์จ)")]
-        public float rechargePerSecondOff = 2f;
-        [Tooltip("ความสว่างขั้นต่ำเมื่อแบตใกล้หมด (สัดส่วน 0..1 ของความสว่างพื้นฐาน)")]
+        [Tooltip("เริ่มเปิดไฟฉายตั้งแต่แรกหรือไม่")] public bool initiallyOn = false;
+        [Tooltip("ปิดระบบแบตเตอรี่ ให้ไฟฉายใช้งานได้ตลอด")] public bool infinitePower = true; // NEW
+        [Tooltip("ความจุแบต (ใช้เมื่อ infinitePower=false)")] public float batteryCapacity = 100f;
+        [Tooltip("อัตราการลดแบตขณะเปิด (ใช้เมื่อ infinitePower=false)")] public float drainPerSecondOn = 6f;
+        [Tooltip("อัตราชาร์จแบตขณะปิด (0 = ไม่ชาร์จ) (ใช้เมื่อ infinitePower=false)")] public float rechargePerSecondOff = 2f;
+        [Tooltip("ความสว่างขั้นต่ำเมื่อแบตหมด (อัตราส่วน 0..1) (ใช้เมื่อ infinitePower=false)")]
         [Range(0f, 1f)] public float minIntensityAtEmpty = 0.2f;
-        [Tooltip("เริ่มกะพริบเมื่อแบตต่ำกว่าค่านี้ (เช่น 0.15 = 15%)")]
+        [Tooltip("ค่าเปอร์เซ็นต์ที่ถือว่าแบตต่ำ (เช่น 0.15 = 15%) (ใช้เมื่อ infinitePower=false)")]
         [Range(0f, 0.5f)] public float lowBatteryThreshold = 0.15f;
 
         [Header("FX")]
         public AudioClip toggleOnSfx;
         public AudioClip toggleOffSfx;
         public AudioClip noPowerSfx;
-        [Tooltip("ความเร็วการกะพริบเมื่อแบตต่ำ")]
+        [Tooltip("ความเร็วการกระพริบเมื่อแบตต่ำ (ใช้เมื่อ infinitePower=false)")]
         public float lowBatteryFlickerSpeed = 5f;
-        [Tooltip("แอมพลิจูดการกะพริบ (0..1 ของความสว่างพื้นฐาน)")]
+        [Tooltip("ระดับการกระพริบเมื่อแบตต่ำ (0..1) (ใช้เมื่อ infinitePower=false)")]
         [Range(0f, 0.5f)] public float lowBatteryFlickerAmount = 0.15f;
 
         public bool IsOn { get; private set; }
         public float Battery { get; private set; }
-        public float BatteryPercent => Mathf.Clamp01(Battery / Mathf.Max(0.0001f, batteryCapacity));
+        public float BatteryPercent => infinitePower ? 1f : Mathf.Clamp01(Battery / Mathf.Max(0.0001f, batteryCapacity));
 
         private float baseIntensity;
         private float baseRange;
@@ -56,17 +53,25 @@ namespace ARKOM.Player
 
         private void Update()
         {
-            // อัปเดตแบต
-            if (IsOn && Battery > 0f)
-                Battery -= drainPerSecondOn * Time.deltaTime;
-            else if (!IsOn && rechargePerSecondOff > 0f)
-                Battery += rechargePerSecondOff * Time.deltaTime;
+            if (!infinitePower)
+            {
+                // โหมดมีแบตเตอรี่
+                if (IsOn && Battery > 0f)
+                    Battery -= drainPerSecondOn * Time.deltaTime;
+                else if (!IsOn && rechargePerSecondOff > 0f)
+                    Battery += rechargePerSecondOff * Time.deltaTime;
 
-            Battery = Mathf.Clamp(Battery, 0f, batteryCapacity);
+                Battery = Mathf.Clamp(Battery, 0f, batteryCapacity);
 
-            // ปิดเองถ้าแบตหมด
-            if (IsOn && Battery <= 0f)
-                SetOn(false);
+                // ปิดเมื่อแบตหมด
+                if (IsOn && Battery <= 0f)
+                    SetOn(false);
+            }
+            else
+            {
+                // โหมดไฟฉายใช้งานได้ตลอด: รักษาแบตเต็มไว้เสมอ
+                Battery = batteryCapacity;
+            }
 
             ApplyLightParams();
         }
@@ -75,7 +80,7 @@ namespace ARKOM.Player
         {
             if (!IsOn)
             {
-                if (Battery <= 0f)
+                if (!infinitePower && Battery <= 0f)
                 {
                     if (noPowerSfx) AudioSource.PlayClipAtPoint(noPowerSfx, transform.position);
                     return;
@@ -105,11 +110,19 @@ namespace ARKOM.Player
         {
             if (!lightSource) return;
 
+            if (infinitePower)
+            {
+                // ความสว่างเต็ม ปิดเอฟเฟ็กต์แบตต่ำ
+                lightSource.intensity = baseIntensity;
+                lightSource.range = baseRange;
+                return;
+            }
+
             float p = BatteryPercent;
-            // ความสว่างปรับตามแบต
+            // ลดความสว่างตามแบต
             float intensity = baseIntensity * Mathf.Lerp(minIntensityAtEmpty, 1f, p);
 
-            // กะพริบเมื่อแบตต่ำ
+            // กระพริบเมื่อแบตต่ำ
             if (IsOn && p <= lowBatteryThreshold && Battery > 0f && lowBatteryFlickerAmount > 0f)
             {
                 float flicker = 1f + (Mathf.PerlinNoise(Time.time * lowBatteryFlickerSpeed, 0.123f) - 0.5f) * 2f * lowBatteryFlickerAmount;
@@ -117,7 +130,7 @@ namespace ARKOM.Player
             }
 
             lightSource.intensity = intensity;
-            lightSource.range = baseRange; // ปรับเพิ่มได้ตามต้องการ
+            lightSource.range = baseRange;
         }
     }
 }

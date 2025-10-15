@@ -8,6 +8,7 @@ public class FlashlightPickupInteractable : PickupInteractable
     [Header("Flashlight Ref")]
     public Flashlight flashlightPrefabOrInstance;
     [Tooltip("เปิดทันทีหลังเก็บหรือไม่")] public bool turnOnAfterPickup = false;
+    [Tooltip("บังคับให้ไฟฉายเป็นโหมดไม่ใช้แบต (Infinite Power)")] public bool forceInfinitePower = true; // NEW
 
     [Header("Flashlight Pickup Audio")] // เพิ่มเสียงเฉพาะตอนรับไฟฉาย
     [Tooltip("เสียงตอนเก็บแล้วเปิดไฟฉาย (ใช้เมื่อ turnOnAfterPickup = true)")] public AudioClip pickupTurnOnSfx;
@@ -27,6 +28,13 @@ public class FlashlightPickupInteractable : PickupInteractable
         {
             toGive = Instantiate(toGive);
         }
+
+        // Force infinite power (ไม่ใช้แบต)
+        if (forceInfinitePower)
+        {
+            toGive.infinitePower = true;
+        }
+
         player.AcquireFlashlight(toGive, turnOnAfterPickup);
         EventBus.Publish(new FlashlightAcquiredEvent());
 
