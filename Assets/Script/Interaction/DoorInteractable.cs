@@ -5,7 +5,7 @@ public class DoorInteractable : Interactable
     [Header("Door Settings")]
     public Transform doorTransform;
     public Vector3 closedRotation = Vector3.zero;
-    public Vector3 openRotation = new Vector3(0, 90, 0);
+    public Vector3 openRotation = new Vector3(0, 0, -90);
     public float openCloseDuration = 0.7f;
     public bool isOpen = false;
 

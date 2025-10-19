@@ -3,6 +3,9 @@ using UnityEngine;
 using ARKOM.Player;
 using ARKOM.Core;
 using ARKOM.UI; // added for TMP-based HintPresenter
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem; // for Keyboard/Key
+#endif
 
 namespace ARKOM.Story
 {
@@ -90,6 +93,17 @@ namespace ARKOM.Story
         [Tooltip("ใช้ข้อความแทนเสียง ถ้าไม่มีคลิป")] public string ooyNotFoundText = "นี่มันเกิดอะไรขึ้นวะ ลองไปปลุกออยหน่อยดีกว่า";
         [Tooltip("หน่วงก่อนตัดไฟอีกครั้งหลังจบบรรยาย (วินาที)")] public float blackoutAgainDelay = 0.25f;
 
+        [Header("Upstairs Unlock Flow")] // NEW
+        [Tooltip("ID ของเครื่องมือสำหรับปลดโซ่ (เช่น คีม)")] public string pliersToolId = "Pliers";
+        [Tooltip("ข้อความใบ้เมื่อยังไม่มีคีม")] public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่";
+        [Tooltip("เสียงฝีเท้าชั้นบนหลังไฟติด")] public AudioClip upstairsFootstepVoice;
+        [Range(0,1)] public float upstairsFootstepVoiceVolume = 1f;
+        [Tooltip("ข้อความบอกภารกิจเมื่อเริ่ม Object 4")] public string objectiveFindNoiseSource = "ตามหาต้นตอของเสียง";
+        [Tooltip("จุดทางเข้าชั้นสอง (ไว้โชว์ UI แถวๆนั้น)")] public Transform upstairsDoor;
+        [Tooltip("หลังปลดโซ่แล้ว ข้อความบอกให้หากุญแจ")] public string needUpstairsKeyHint = "ตามหากุญแจเพื่อไขขึ้นไปข้างบน";
+        [Tooltip("จุดห้องพระ (สำหรับโชว์ hint ไปที่วิทยุ)")] public Transform prayerRoom;
+        [Tooltip("ข้อความใบ้ให้ไปปิดวิทยุในห้องพระ")] public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุในห้องพระ";
+
         private StoryState state;
         private bool started;
 
@@ -111,7 +125,10 @@ namespace ARKOM.Story
 
         [Header("Debug / Dev")] // NEW
         [Tooltip("ข้ามทุกอย่างไปฉากจบทันทีตอน Start")] public bool debugSkipToSleepEndOnStart = false;
-        [Tooltip("กดปุ่มนี้เพื่อข้ามไป SleepEnd ระหว่างเล่น (0 = ปิด)")] public KeyCode debugSkipKey = KeyCode.F9;
+        [Tooltip("กดปุ่มนี้เพื่อข้ามไป SleepEnd ระหว่างเล่น (Legacy Input)")] public KeyCode debugSkipKey = KeyCode.F9;
+#if ENABLE_INPUT_SYSTEM
+        [Tooltip("กดปุ่มนี้เพื่อข้ามไป SleepEnd ระหว่างเล่น (Input System)")] public Key debugSkipKeyInputSystem = Key.None;
+#endif
 
         public enum StoryState
         {
@@ -301,17 +318,16 @@ namespace ARKOM.Story
         {
             if (state != StoryState.RestorePower) return;
             StoryDebug.Log("Power restored", this);
-
-            // เปิดไฟบ้าน
             if (powerManager) powerManager.SetPower(true);
             if (tv) tv.PreparePostRestoreNews();
 
-            // เปลี่ยน flow: ให้ผู้เล่นไปหาออย (แทนการกลับไปนั่ง/ตัดฉาก)
-            SetState(StoryState.FindOoy);
-            if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint, 4f);
+            // เริ่ม Object 4: ได้ยินเสียงข้างบน
+            if (upstairsFootstepVoice)
+                AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
+            if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource, 4f);
 
-            // ไม่ใช้ reuseSeat / ReturnToSeat / TimeSkip อีกใน flow นี้
-            if (reuseSeat) reuseSeat.gameObject.SetActive(false);
+            // ให้ผู้เล่นตามหา/ปลดล็อคประตูชั้นสองด้วยคีม จากนั้นตามหากุญแจ
+            SetState(StoryState.FindOoy); // ใช้ state นี้ต่อชั่วคราวเป็น objective track
         }
 
         private void OnPlayerSeated(PlayerSeatedEvent e)
@@ -506,13 +522,32 @@ namespace ARKOM.Story
 
         void Update()
         {
-            if (debugSkipKey != KeyCode.None && Input.GetKeyDown(debugSkipKey))
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (debugSkipKey != KeyCode.None && UnityEngine.Input.GetKeyDown(debugSkipKey))
             {
                 if (state != StoryState.SleepEnd)
                 {
                     EnterSleepEnd();
                 }
             }
+#endif
+#if ENABLE_INPUT_SYSTEM
+            if (debugSkipKeyInputSystem != Key.None)
+            {
+                var kb = Keyboard.current;
+                if (kb != null)
+                {
+                    var keyCtrl = kb[debugSkipKeyInputSystem];
+                    if (keyCtrl != null && keyCtrl.wasPressedThisFrame)
+                    {
+                        if (state != StoryState.SleepEnd)
+                        {
+                            EnterSleepEnd();
+                        }
+                    }
+                }
+            }
+#endif
         }
 
         [Header("Intro Camera Focus")] // NEW
@@ -627,11 +662,8 @@ namespace ARKOM.Story
                 if (storageFuseTriggered) return;
                 storageFuseTriggered = true;
                 StoryDebug.Log("FuseFound (StorageRoom) -> TV static scare", this);
-                // Play TV static
                 if (tv) { tv.PlayStatic(); StartCoroutine(StopTvStaticAfterDelay(tvStaticHoldTime)); }
-                // Spawn ghost at TV area (assume index 1)
                 if (ghostSpawner) ghostSpawner.SpawnAtIndex(1);
-                // Optional hint
                 ShowHint("เสียงทีวีซ่า...", 2.5f);
                 return;
             }
