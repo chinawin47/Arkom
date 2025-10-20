@@ -205,8 +205,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 342645430}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.0013103263, y: 0.9902256, z: -0.13903809, w: -0.010954673}
-  m_LocalPosition: {x: 0.035848975, y: 1.5938859, z: -1.6864281}
+  m_LocalRotation: {x: -0.015122789, y: 0.96113104, z: -0.056995813, w: -0.26972204}
+  m_LocalPosition: {x: 0.5087841, y: 1.3021581, z: 2.2645779}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -429,6 +429,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: TewCharacter
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 0af04e3a31cf9e8449b117cf40404545, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: dc9643d6547f9824f9c2961b5ebc9c88, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
