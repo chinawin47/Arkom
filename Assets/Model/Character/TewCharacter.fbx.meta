@@ -3,7 +3,22 @@ guid: 0af04e3a31cf9e8449b117cf40404545
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HairMatTew
+    second: {fileID: 2100000, guid: 578b71fd636f50245a7886637a733f5c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HeadPores
+    second: {fileID: 2100000, guid: 3ee6dfcd5ed5e5a4fbee0a3cb8de6cad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TewMat
+    second: {fileID: 2100000, guid: fbed5afc6ca3fa04ba8c7ada5885b35a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
