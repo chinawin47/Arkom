@@ -21,17 +21,32 @@ public class RadioInteractable : Interactable
 
     protected override void OnInteract(object interactor)
     {
-        if (!source || !chantClip) return;
-        on = !on;
-        if (on)
+        Toggle();
+    }
+
+    public void StartRadio()
+    {
+        if (on) return;
+        on = true;
+        if (source && chantClip)
         {
             source.clip = chantClip;
             source.loop = loop;
             source.Play();
         }
-        else
-        {
-            source.Stop();
-        }
+        EventBus.Publish(new ARKOM.Story.RadioToggledEvent(on));
+    }
+
+    public void StopRadio()
+    {
+        if (!on) return;
+        on = false;
+        if (source) source.Stop();
+        EventBus.Publish(new ARKOM.Story.RadioToggledEvent(on));
+    }
+
+    public void Toggle()
+    {
+        if (on) StopRadio(); else StartRadio();
     }
 }

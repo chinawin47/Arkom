@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using ARKOM.Player;
+using ARKOM.Core;
 
 namespace ARKOM.Enemy
 {
@@ -20,7 +21,7 @@ namespace ARKOM.Enemy
         [Tooltip("โหมด 2D (ใช้พารามิเตอร์ X/Y) – เหมาะกับ BlendTree Idle/Walk/Strafe")] public bool use2DLocomotionParams = false;
         [Tooltip("ชื่อพารามิเตอร์แกน X (เช่น X หรือ Idle ถ้าตั้งตามโปรเจกต์)")] public string xParam2D = "X";
         [Tooltip("ชื่อพารามิเตอร์แกน Y (เช่น Y หรือ walk ถ้าตั้งตามโปรเจกต์)")] public string yParam2D = "Y";
-        [Tooltip("ใช้พารามิเตอร์แบบ Float (เช่น Speed) เพื่อคุม BlendTree Idle/Walk")] public bool useFloatSpeedParam = true;
+        [Tooltip("ใช้พารามิเตอร์แบบ Float (เช่น Speed) เพื่อคุุม BlendTree Idle/Walk")] public bool useFloatSpeedParam = true;
         [Tooltip("ชื่อพารามิเตอร์ Float สำหรับความเร็วเดิน/วิ่ง")] public string speedParam = "Speed";
         [Tooltip("ชื่อพารามิเตอร์ Bool ถ้าไม่ได้ใช้แบบ Float")] public string walkBoolParam = "IsWalking";
         [Tooltip("ความเร็วขั้นต่ำที่ถือว่าเริ่มเดิน (ใช้กับ Bool)")] public float walkStartThreshold = 0.1f;
@@ -50,11 +51,15 @@ namespace ARKOM.Enemy
         [Tooltip("รอคอยย์พอยต์กี่วินาที")] public float patrolWaitAtPoint = 0.5f;
         [Tooltip("ระยะที่ถือว่าไปถึงเวย์พอยต์แล้ว")] public float waypointArriveDistance = 0.5f;
 
+        [Header("Search Settings")] public bool onlyInvestigateWhenChasing = true;
+        [Tooltip("เวลายืนตรวจหน้าตู้ก่อนกลับลาดตระเวน")] public float searchHoldTime =2.5f;
+
         private NavMeshAgent agent; private PlayerController player;
         private float lastRepath; private float seenAccum;
         private Vector3 lastKnownPos; private Vector3 spawnPos;
         private GhostState state;
         private int wpIndex; private float wpWaitTimer; private float lastSeenTime;
+        private bool atSearchPoint; private float searchArriveTime;
 
         void Awake()
         {
@@ -179,18 +184,59 @@ namespace ARKOM.Enemy
                 { state = GhostState.Chase; SetSpeed(runSpeed); return; }
             }
 
-            // go to last known and wait briefly
+            // ไปยังจุดค้นหา แล้วหยุดยืนรอช่วงหนึ่ง จากนั้นกลับไปแพทรอล
             if (Time.time - lastRepath >= repathInterval)
             {
                 lastRepath = Time.time;
                 MoveTo(lastKnownPos);
             }
 
-            // if close enough to last known and still no sight -> return
-            if (Vector3.Distance(transform.position, lastKnownPos) <= waypointArriveDistance * 1.5f)
+            float distToSearch = Vector3.Distance(transform.position, lastKnownPos);
+            if (!atSearchPoint && distToSearch <= waypointArriveDistance *1.5f)
             {
-                state = GhostState.Return; SetSpeed(walkSpeed);
+                atSearchPoint = true;
+                searchArriveTime = Time.time;
+                if (agent) agent.ResetPath(); // หยุดเล็กน้อย
             }
+
+            if (atSearchPoint)
+            {
+                if (Time.time - searchArriveTime >= searchHoldTime)
+                {
+                    ResumePatrolFromNearest();
+                }
+            }
+        }
+
+        private void ResumePatrolFromNearest()
+        {
+            SetSpeed(walkSpeed);
+            if (patrolWaypoints != null && patrolWaypoints.Length >0)
+            {
+                int nearest = FindNearestWaypointIndex(transform.position);
+                if (nearest >=0)
+                {
+                    wpIndex = nearest;
+                    state = GhostState.Patrol;
+                    MoveTo(patrolWaypoints[wpIndex].position);
+                    return;
+                }
+            }
+            // ถ้าไม่มีเวย์พอยต์ ให้กลับฐานตามเดิม
+            state = GhostState.Return;
+        }
+
+        private int FindNearestWaypointIndex(Vector3 pos)
+        {
+            if (patrolWaypoints == null || patrolWaypoints.Length ==0) return -1;
+            int best = -1; float bestDist = float.MaxValue;
+            for (int i =0; i < patrolWaypoints.Length; i++)
+            {
+                var p = patrolWaypoints[i]; if (!p) continue;
+                float d = Vector3.Distance(pos, p.position);
+                if (d < bestDist) { bestDist = d; best = i; }
+            }
+            return best;
         }
 
         private void TickChase()
@@ -218,7 +264,7 @@ namespace ARKOM.Enemy
             }
 
             float d = Vector3.Distance(transform.position, target.position);
-            if (d <= catchDistance)
+            if (d <= catchDistance && !PlayerStealth.IsHidden)
                 OnCatchPlayer();
         }
 
@@ -272,6 +318,17 @@ namespace ARKOM.Enemy
         private bool SeeTarget()
         {
             if (!target) return false;
+            // ถ้าผู้เล่นซ่อนและบานตู้ปิด ให้มองไม่เห็น
+            if (PlayerStealth.IsHidden)
+            {
+                // ลองหาตู้จาก CurrentHideSpot ถ้ามี DoorInteractable และปิดอยู่
+                var spot = PlayerStealth.CurrentHideSpot;
+                if (spot)
+                {
+                    var door = spot.GetComponentInChildren<DoorInteractable>();
+                    if (door && !door.isOpen) return false;
+                }
+            }
             Vector3 to = (target.position - transform.position);
             float dist = to.magnitude;
             if (dist > detectionRadius) return false;
@@ -308,6 +365,25 @@ namespace ARKOM.Enemy
             agent.isStopped = true;
             Debug.Log("ChasingGhost: Caught player");
             // TODO: publish event / call game over
+        }
+
+        private void OnEnable()
+        {
+            EventBus.Subscribe<ARKOM.Story.InvestigatePointEvent>(OnInvestigatePoint);
+        }
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<ARKOM.Story.InvestigatePointEvent>(OnInvestigatePoint);
+        }
+        private void OnInvestigatePoint(ARKOM.Story.InvestigatePointEvent e)
+        {
+            // เข้ามาค้นเฉพาะตอนกำลังไล่ (ตามดีไซน์ผู้ใช้)
+            if (onlyInvestigateWhenChasing && state != GhostState.Chase) return;
+            lastKnownPos = e.Position;
+            state = GhostState.Search;
+            SetSpeed(walkSpeed);
+            atSearchPoint = false; searchArriveTime =0f;
+            MoveTo(lastKnownPos);
         }
 
 #if UNITY_EDITOR
