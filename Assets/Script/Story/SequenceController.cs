@@ -3,6 +3,7 @@ using UnityEngine;
 using ARKOM.Player;
 using ARKOM.Core;
 using ARKOM.UI;
+using ARKOM.Enemy;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -41,6 +42,10 @@ namespace ARKOM.Story
  public HouseSweepManager sweepManager; // optional
  public FinalBedTrigger finalBedTrigger; // optional
 
+ [Header("Chase (Hierarchy Option A)")]
+ [Tooltip("ถ้ามี ให้ลาก ChasingGhost ที่วางไว้ในซีนเข้ามา จะใช้ตัวนี้แทนการ spawn")] public ChasingGhost sceneChasingGhost;
+ [Tooltip("ปิดผีไล่เมื่อเปิดกล่อง4 หลักสำเร็จ")] public bool deactivateChaseGhostOnBoxOpen = true;
+
  [Header("Auto Anomaly After Sweep")] public bool autoAnomalyAfterSweep = true; public float anomalyAutoDelay =6f; public bool spawnGhostDirectOnAuto = true;
 
  [Header("Hint System")] public bool useProgressiveHints = true;
@@ -75,9 +80,14 @@ namespace ARKOM.Story
 
  [Header("Upstairs Objects (Optional)")]
  [Tooltip("RadioInteractable ที่อยู่ในห้องพระ เพื่อสั่งเล่นอัตโนมัติหลังขึ้นชั้นสองได้")] public RadioInteractable upstairsRadio;
- [Tooltip("Collider ของไดอารี่ ถ้าต้องการบังคับให้อ่านก่อนอนุญาตให้ไปหาออย")] public Collider diaryInteractCollider;
+ [Tooltip("Collider ของไดอารี่อย่างบังคับให้อ่านก่อนอนุญาตให้ไปหาออย")] public Collider diaryInteractCollider;
  [Tooltip("ต้องอ่านไดอารี่ก่อนหรือไม่ (ถ้ามี collider)")] public bool requireDiaryBeforeOoy = false;
  private bool diaryRead;
+
+ [Header("Post-Second Blackout Flow")]
+ [Tooltip("ฮินต์หลังดับไฟรอบสองให้ไปเช็คคัตเอ้าท์")] public string checkBreakerHint = "ไปตรวจคัตเอ้าท์";
+ [Tooltip("ฮินต์เริ่มหาโน้ต3 แผ่น")] public string findNotesHint = "หากระดาษโน้ต3 แผ่น";
+ [Tooltip("ฮินต์ไปที่กล่อง4 หลักหลังหาโน้ตครบ")] public string openBoxHint = "หาและเปิดกล่อง4 หลัก";
 
  [Header("Sleep End Options")] public bool blackScreenOnSleepEnd = true; public float sleepEndFadeTime =1f; public string sleepEndHintText = "";
  [Header("Sleep End Display")] public string sleepEndDisplayText = "TO BE CONTINUED"; public float sleepEndTextDelay =0.6f; public bool useHintPresenterForSleepEndText = true; public float sleepEndTextDuration =9999f; public AudioClip sleepEndBackgroundClip; [Range(0f,1f)] public float sleepEndBackgroundVolume =1f; public bool sleepEndBackgroundLoop = true; private AudioSource sleepEndBgSource;
@@ -94,7 +104,9 @@ namespace ARKOM.Story
  {
  IntroSeated, FindFlashlight, RestorePower, ReturnToSeat, TimeSkipCutscene, Finished,
  PlateCrashStart, InvestigateKitchen, CleanPlates, FridgeSequence, CheckOoy, HouseSweep, AnomalyFound, GhostSpawn, RunToBed, PraySequence, SleepEnd,
- InvestigateUpstairs, FindOoy
+ InvestigateUpstairs, FindOoy,
+ // NEW post blackout
+ BreakerFail, FindNotes, OpenMysteryBox
  }
 
  private StoryState state;
@@ -136,6 +148,10 @@ namespace ARKOM.Story
  EventBus.Subscribe<UpstairsDoorUnlockedEvent>(OnUpstairsDoorUnlocked);
  EventBus.Subscribe<KeyPickedEvent>(OnKeyPickedGeneric);
  EventBus.Subscribe<RadioToggledEvent>(OnRadioToggled);
+ // NEW events
+ EventBus.Subscribe<BreakerFailedEvent>(OnBreakerFailed);
+ EventBus.Subscribe<AllNotesFoundEvent>(OnAllNotesFound);
+ EventBus.Subscribe<BoxUnlockedEvent>(OnBoxUnlocked);
  }
  void OnDisable()
  {
@@ -150,6 +166,10 @@ namespace ARKOM.Story
  EventBus.Unsubscribe<UpstairsDoorUnlockedEvent>(OnUpstairsDoorUnlocked);
  EventBus.Unsubscribe<KeyPickedEvent>(OnKeyPickedGeneric);
  EventBus.Unsubscribe<RadioToggledEvent>(OnRadioToggled);
+ // NEW events
+ EventBus.Unsubscribe<BreakerFailedEvent>(OnBreakerFailed);
+ EventBus.Unsubscribe<AllNotesFoundEvent>(OnAllNotesFound);
+ EventBus.Unsubscribe<BoxUnlockedEvent>(OnBoxUnlocked);
  }
 
  private void SetupInitial()
@@ -295,55 +315,46 @@ namespace ARKOM.Story
  float wait =0f; if (ooyNotFoundVoice) wait = Mathf.Max(wait, ooyNotFoundVoice.length); if (blackoutAgainDelay >0f) wait += blackoutAgainDelay; if (wait >0f) yield return new WaitForSeconds(wait);
  if (tv) tv.PowerOff(); if (powerManager) powerManager.SetPower(false);
  EventBus.Publish(new BlackoutStartedEvent());
- if (ghostSpawner) ghostSpawner.SpawnRandom(GhostSpawner.GhostKind.Chasing);
+ // NEW: do not spawn ghost yet, force player to check breaker
+ SetState(StoryState.BreakerFail);
+ if (!string.IsNullOrEmpty(checkBreakerHint)) ShowHint(checkBreakerHint,4f);
  }
 
- private void OnUpstairsDoorUnlocked(UpstairsDoorUnlockedEvent _)
+ // NEW: breaker fail -> start chase and find notes
+ private void OnBreakerFailed(BreakerFailedEvent _)
  {
- DLog("OnUpstairsDoorUnlocked -> auto start radio if assigned");
- if (!string.IsNullOrEmpty(needUpstairsKeyHint)) ShowHint(needUpstairsKeyHint,3.5f);
- // เล่นวิทยุอัตโนมัติเมื่อขึ้นชั้นสอง (ถ้ามี)
- if (upstairsRadio) upstairsRadio.StartRadio();
+ if (state != StoryState.BreakerFail) return;
+ // Option A: enable pre-placed chasing ghost if assigned
+ if (sceneChasingGhost)
+ {
+ sceneChasingGhost.gameObject.SetActive(true);
+ }
+ else if (ghostSpawner)
+ {
+ ghostSpawner.SpawnRandom(GhostSpawner.GhostKind.Chasing);
+ }
+ SetState(StoryState.FindNotes);
+ if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint,4f);
  }
 
- private void OnKeyPickedGeneric(KeyPickedEvent e)
+ // NEW: collected all notes -> go to open box
+ private void OnAllNotesFound(AllNotesFoundEvent _)
  {
- if (e.KeyId == "UpstairsDoorKey")
- {
- if (!string.IsNullOrEmpty(goTurnOffRadioHint)) ShowHint(goTurnOffRadioHint,4f);
- }
- }
-
- private void OnRadioToggled(RadioToggledEvent e)
- {
- if (!e.On)
- {
- if (!string.IsNullOrEmpty(readDiaryHint)) ShowHint(readDiaryHint,3.5f);
- // ถ้าไม่บังคับอ่านไดอารี่ หรือไม่มี collider ให้ไปหาออยต่อได้เลย
- if (!requireDiaryBeforeOoy || !diaryInteractCollider)
- {
- SetState(StoryState.FindOoy);
- if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint,4f);
- }
- }
+ if (state != StoryState.FindNotes) return;
+ SetState(StoryState.OpenMysteryBox);
+ if (!string.IsNullOrEmpty(openBoxHint)) ShowHint(openBoxHint,4f);
  }
 
- private void OnFuseFound(FuseFoundEvent e)
+ // NEW: box opened -> you can decide next step later
+ private void OnBoxUnlocked(BoxUnlockedEvent _)
  {
- if (e.Location == FuseLocation.Upstairs)
+ // Stop chase ghost if configured
+ if (deactivateChaseGhostOnBoxOpen && sceneChasingGhost)
  {
- // trigger plate crash flow
- StartCoroutine(PlateCrashSequence());
- return;
+ sceneChasingGhost.gameObject.SetActive(false);
  }
- if (e.Location == FuseLocation.StorageRoom)
- {
- if (storageFuseTriggered) return; storageFuseTriggered = true;
- if (tv) { tv.PlayStatic(); }
- if (ghostSpawner) ghostSpawner.SpawnAtIndex(1, GhostSpawner.GhostKind.NonChasing);
- ShowHint("เสียงทีวีซ่า...",2.5f);
- return;
- }
+ // placeholder: show a temp hint
+ ShowTempHint("เปิดกล่องสำเร็จ",2f);
  }
 
  private void EnterSleepEnd()
@@ -410,6 +421,54 @@ namespace ARKOM.Story
  {
  SetState(StoryState.FindOoy);
  if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint,4f);
+ }
+ }
+
+ private void OnUpstairsDoorUnlocked(UpstairsDoorUnlockedEvent _)
+ {
+ DLog("OnUpstairsDoorUnlocked -> auto start radio if assigned");
+ if (!string.IsNullOrEmpty(needUpstairsKeyHint)) ShowHint(needUpstairsKeyHint,3.5f);
+ // เล่นวิทยุอัตโนมัติเมื่อขึ้นชั้นสอง (ถ้ามี)
+ if (upstairsRadio) upstairsRadio.StartRadio();
+ }
+
+ private void OnKeyPickedGeneric(KeyPickedEvent e)
+ {
+ if (e.KeyId == "UpstairsDoorKey")
+ {
+ if (!string.IsNullOrEmpty(goTurnOffRadioHint)) ShowHint(goTurnOffRadioHint,4f);
+ }
+ }
+
+ private void OnRadioToggled(RadioToggledEvent e)
+ {
+ if (!e.On)
+ {
+ if (!string.IsNullOrEmpty(readDiaryHint)) ShowHint(readDiaryHint,3.5f);
+ // ถ้าไม่บังคับอ่านไดอารี่ หรือไม่มี collider ให้ไปหาออยต่อได้เลย
+ if (!requireDiaryBeforeOoy || !diaryInteractCollider)
+ {
+ SetState(StoryState.FindOoy);
+ if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint,4f);
+ }
+ }
+ }
+
+ private void OnFuseFound(FuseFoundEvent e)
+ {
+ if (e.Location == FuseLocation.Upstairs)
+ {
+ // trigger plate crash flow
+ StartCoroutine(PlateCrashSequence());
+ return;
+ }
+ if (e.Location == FuseLocation.StorageRoom)
+ {
+ if (storageFuseTriggered) return; storageFuseTriggered = true;
+ if (tv) { tv.PlayStatic(); }
+ if (ghostSpawner) ghostSpawner.SpawnAtIndex(1, GhostSpawner.GhostKind.NonChasing);
+ ShowHint("เสียงทีวีซ่า...",2.5f);
+ return;
  }
  }
  }

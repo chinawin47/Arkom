@@ -11,7 +11,7 @@ public class PaperInteractable : Interactable
     public NoteViewerHUD viewer;
 
     [Header("Story Progression")]
-    [Tooltip("ติ๊กเพื่อแจ้งลำดับเรื่องว่าอ่านไดอารี่แล้ว (ใช้คู่กับ requireDiaryBeforeOoy)")]
+    [Tooltip("ติ๊กเพื่อแจ้งลำดับเรื่องว่าอ่านไดอารี่อแล้ว (ใช้คู่กับ requireDiaryBeforeOoy)")]
     public bool notifyDiaryRead = true;
 
     public override bool CanInteract(object interactor)
@@ -32,10 +32,16 @@ public class PaperInteractable : Interactable
 
         viewer.Show(note);
 
-        // แจ้ง SequenceController ว่าอ่านโน้ต/ไดอารี่แล้ว เพื่อปลดล็อคไป FindOoy ถ้าถูกตั้งค่าไว้
+        // แจ้ง SequenceController ว่าอ่านโน้ต/ไดอารี่อแล้ว เพื่อปลดล็อคไป FindOoy ถ้าถูกตั้งค่าไว้
         if (notifyDiaryRead && SequenceController.Instance)
         {
             SequenceController.Instance.NotifyDiaryRead();
+        }
+
+        // NEW: set story flag for note collection if defined
+        if (!string.IsNullOrEmpty(note.flagOnRead) && StoryFlags.Instance)
+        {
+            StoryFlags.Instance.Add(note.flagOnRead);
         }
     }
 }
