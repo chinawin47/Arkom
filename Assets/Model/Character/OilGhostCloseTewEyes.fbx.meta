@@ -1,0 +1,555 @@
+fileFormatVersion: 2
+guid: 123d349524c6b4241913b13f6cc51c51
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 0
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Armature.002|Armature.001Action
+      takeName: Armature.002|Armature.001Action
+      internalID: 6906267723572508546
+      firstFrame: 0
+      lastFrame: 1
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|Armature.001Action.001
+      takeName: Armature.002|Armature.001Action.001
+      internalID: 4264612480362930771
+      firstFrame: 0
+      lastFrame: 42
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|CameraAction
+      takeName: Armature.002|CameraAction
+      internalID: -3533366140633557193
+      firstFrame: 0
+      lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|Plane.012Action
+      takeName: Armature.002|Plane.012Action
+      internalID: 3290484352163527377
+      firstFrame: 0
+      lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|Plane.012Action.001
+      takeName: Armature.002|Plane.012Action.001
+      internalID: 4768224720890991017
+      firstFrame: 0
+      lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|Plane.012Action.004
+      takeName: Armature.002|Plane.012Action.004
+      internalID: -7860455630427795715
+      firstFrame: 0
+      lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature.002|Plane.012Action.005
+      takeName: Armature.002|Plane.012Action.005
+      internalID: 6809143189511995837
+      firstFrame: 0
+      lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton:
+    - name: OilGhostCloseTewEyes(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Armature.002
+      parentName: OilGhostCloseTewEyes(Clone)
+      position: {x: 0, y: -0.74198854, z: 0}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: LeftArm.001
+      parentName: Armature.002
+      position: {x: -0.0012089466, y: 0.00031723536, z: 0.013348925}
+      rotation: {x: 0.69898015, y: -0.10134171, z: -0.10023472, w: -0.70079213}
+      scale: {x: 1, y: 1.0000001, z: 0.9999999}
+    - name: LeftArm.002
+      parentName: LeftArm.001
+      position: {x: 2.2351741e-10, y: 0.0028224366, z: 6.3329936e-10}
+      rotation: {x: -0.038438763, y: -0.16831644, z: 0.00651702, w: 0.9849617}
+      scale: {x: 1.0000001, y: 1.0000001, z: 1.0000004}
+    - name: LeftHand.001
+      parentName: LeftArm.002
+      position: {x: 4.4703483e-10, y: 0.0024343408, z: 0}
+      rotation: {x: -0.14560282, y: -0.10482268, z: 0.15282036, w: 0.9718323}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LeftHandIndex1.001
+      parentName: LeftHand.001
+      position: {x: -0.00007307317, y: 0.00064225716, z: -0.0002492126}
+      rotation: {x: -0.010480696, y: 0.014572531, z: -0.062433712, w: 0.9978877}
+      scale: {x: 0.99999976, y: 1.0000005, z: 1.0000002}
+    - name: LeftHandIndex2.001
+      parentName: LeftHandIndex1.001
+      position: {x: -3.0035152e-10, y: 0.00032735354, z: -9.313226e-10}
+      rotation: {x: 0.011382779, y: 0.018127838, z: -0.09360526, w: 0.9953793}
+      scale: {x: 1, y: 0.9999998, z: 1}
+    - name: LeftHandIndex3.001
+      parentName: LeftHandIndex2.001
+      position: {x: -5.2154064e-10, y: 0.00018298422, z: -2.6077032e-10}
+      rotation: {x: 0.00000001117587, y: 0.000000199303, z: -0.0000006742047, w: 1}
+      scale: {x: 1.0000001, y: 1.0000001, z: 1.0000001}
+    - name: LeftHandIndex3.001_end
+      parentName: LeftHandIndex3.001
+      position: {x: -0, y: 0.00018298409, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LeftHandMiddle1.001
+      parentName: LeftHand.001
+      position: {x: -0.000112775226, y: 0.00067409035, z: -0.000076539065}
+      rotation: {x: 0.023141004, y: 0.015041783, z: -0.08016639, w: 0.99639934}
+      scale: {x: 0.99999976, y: 1.0000002, z: 0.99999994}
+    - name: LeftHandMiddle2.001
+      parentName: LeftHandMiddle1.001
+      position: {x: -4.4703483e-10, y: 0.0003348714, z: -0.0000000010430813}
+      rotation: {x: 0.043870214, y: 0.014194641, z: -0.15819049, w: 0.9863315}
+      scale: {x: 1.0000002, y: 1.0000004, z: 1.0000006}
+    - name: LeftHandMiddle3.001
+      parentName: LeftHandMiddle2.001
+      position: {x: -5.9604643e-10, y: 0.00019326567, z: -0.0000000013597309}
+      rotation: {x: -0.011763081, y: -0.003091313, z: 0.054254003, w: 0.99845314}
+      scale: {x: 0.99999994, y: 1.0000002, z: 1.0000001}
+    - name: LeftHandMiddle3.001_end
+      parentName: LeftHandMiddle3.001
+      position: {x: -0, y: 0.00020610906, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LeftHandRing1.001
+      parentName: LeftHand.001
+      position: {x: -0.000079366975, y: 0.0006262844, z: 0.000112042646}
+      rotation: {x: 0.05940091, y: 0.0092493165, z: -0.057931907, w: 0.9965089}
+      scale: {x: 0.99999976, y: 1.0000004, z: 1.0000001}
+    - name: LeftHandRing2.001
+      parentName: LeftHandRing1.001
+      position: {x: 1.3969838e-11, y: 0.00034618992, z: 7.8231094e-10}
+      rotation: {x: 0.0029202774, y: 0.00395648, z: -0.067090675, w: 0.99773484}
+      scale: {x: 1.0000001, y: 1.0000004, z: 1.0000006}
+    - name: LeftHandRing3.001
+      parentName: LeftHandRing2.001
+      position: {x: -5.9604643e-10, y: 0.00017066959, z: -3.7252902e-11}
+      rotation: {x: 0.000000027241182, y: -0.00000002235174, z: -0.0000008847254, w: 1}
+      scale: {x: 1, y: 1.0000002, z: 1.0000005}
+    - name: LeftHandRing3.001_end
+      parentName: LeftHandRing3.001
+      position: {x: -0, y: 0.00017067009, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LeftHandPinky1.001
+      parentName: LeftHand.001
+      position: {x: -0.000008380636, y: 0.000594912, z: 0.00026902749}
+      rotation: {x: 0.090790905, y: 0.0060988367, z: -0.04388481, w: 0.99488395}
+      scale: {x: 0.9999999, y: 1.0000001, z: 1.0000001}
+    - name: LeftHandPinky2.001
+      parentName: LeftHandPinky1.001
+      position: {x: -5.401671e-10, y: 0.0003070959, z: 5.9604643e-10}
+      rotation: {x: -0.003922753, y: 0.0003255517, z: -0.11822918, w: 0.9929785}
+      scale: {x: 0.9999998, y: 1.0000004, z: 1.0000002}
+    - name: LeftHandPinky3.001
+      parentName: LeftHandPinky2.001
+      position: {x: 3.72529e-10, y: 0.00013318814, z: -3.352761e-10}
+      rotation: {x: 0.00000013806856, y: -0.00000014243413, z: -0.000001338734, w: 1}
+      scale: {x: 0.99999976, y: 0.9999998, z: 1.0000001}
+    - name: LeftHandPinky3.001_end
+      parentName: LeftHandPinky3.001
+      position: {x: -0, y: 0.00013318914, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LeftHandThumb1.001
+      parentName: LeftHand.001
+      position: {x: 0.000060400776, y: 0.0000843174, z: -0.00017558566}
+      rotation: {x: -0.38727412, y: 0.047129095, z: -0.0340607, w: 0.92012906}
+      scale: {x: 0.99999994, y: 0.99999976, z: 0.9999998}
+    - name: LeftHandThum2.001
+      parentName: LeftHandThumb1.001
+      position: {x: -3.5855918e-10, y: 0.00027415596, z: -1.4901161e-10}
+      rotation: {x: 0.18883254, y: -0.07496871, z: 0.038743194, w: 0.97837675}
+      scale: {x: 0.99999976, y: 1.0000001, z: 1}
+    - name: LeftHandThum3.001
+      parentName: LeftHandThum2.001
+      position: {x: -2.2351741e-10, y: 0.00031094844, z: -7.45058e-10}
+      rotation: {x: 0.08837929, y: -0.0143013, z: 0.015526105, w: 0.9958632}
+      scale: {x: 1.0000004, y: 1.0000002, z: 1.0000001}
+    - name: LeftHandThum3.001_end
+      parentName: LeftHandThum3.001
+      position: {x: -0, y: 0.00021725395, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RightArm.001
+      parentName: Armature.002
+      position: {x: 0.0012089466, y: 0.00031723536, z: 0.013348925}
+      rotation: {x: 0.69898015, y: 0.10134171, z: 0.10023472, w: -0.70079213}
+      scale: {x: 1, y: 1.0000001, z: 0.9999999}
+    - name: RightArm.002
+      parentName: RightArm.001
+      position: {x: -2.2351741e-10, y: 0.0028224366, z: 6.3329936e-10}
+      rotation: {x: -0.03843877, y: 0.16831641, z: -0.0065170885, w: 0.98496175}
+      scale: {x: 1.0000001, y: 1.0000004, z: 1.0000002}
+    - name: RightHand.001
+      parentName: RightArm.002
+      position: {x: -7.45058e-10, y: 0.0024343412, z: 4.4703483e-10}
+      rotation: {x: -0.14560273, y: 0.10482242, z: -0.15282027, w: 0.97183233}
+      scale: {x: 1, y: 0.9999995, z: 0.9999997}
+    - name: RightHandIndex1.001
+      parentName: RightHand.001
+      position: {x: 0.00007307302, y: 0.00064225757, z: -0.00024921194}
+      rotation: {x: -0.010480633, y: -0.014572501, z: 0.06243368, w: 0.9978877}
+      scale: {x: 0.99999994, y: 1.0000004, z: 1.0000005}
+    - name: RightHandIndex2.001
+      parentName: RightHandIndex1.001
+      position: {x: -8.183997e-10, y: 0.0003273538, z: -0.0000000014156103}
+      rotation: {x: 0.011382679, y: -0.018127814, z: 0.093605265, w: 0.99537927}
+      scale: {x: 1.0000001, y: 0.99999994, z: 0.99999994}
+    - name: RightHandIndex3.001
+      parentName: RightHandIndex2.001
+      position: {x: 3.72529e-10, y: 0.00018298432, z: 5.587935e-10}
+      rotation: {x: -9.313227e-10, y: -0.00000025331977, z: 0.00000068769447, w: 1}
+      scale: {x: 1, y: 0.99999994, z: 1.0000001}
+    - name: RightHandIndex3.001_end
+      parentName: RightHandIndex3.001
+      position: {x: -0, y: 0.00018298409, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RightHandMiddle1.001
+      parentName: RightHand.001
+      position: {x: 0.0001127753, y: 0.0006740913, z: -0.00007654115}
+      rotation: {x: 0.02314101, y: -0.015041739, z: 0.08016639, w: 0.99639934}
+      scale: {x: 1.0000001, y: 1.0000002, z: 1.0000002}
+    - name: RightHandMiddle2.001
+      parentName: RightHandMiddle1.001
+      position: {x: 6.705522e-10, y: 0.00033487155, z: -2.9802322e-10}
+      rotation: {x: 0.043870218, y: -0.01419464, z: 0.15819049, w: 0.9863315}
+      scale: {x: 1, y: 1.0000002, z: 1.0000001}
+    - name: RightHandMiddle3.001
+      parentName: RightHandMiddle2.001
+      position: {x: 1.4901161e-10, y: 0.00019326482, z: 0.0000000017858109}
+      rotation: {x: -0.011763096, y: 0.0030913139, z: -0.054254018, w: 0.99845314}
+      scale: {x: 1, y: 1.0000001, z: 0.9999999}
+    - name: RightHandMiddle3.001_end
+      parentName: RightHandMiddle3.001
+      position: {x: -0, y: 0.00020610906, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RightHandRing1.001
+      parentName: RightHand.001
+      position: {x: 0.00007936731, y: 0.00062628527, z: 0.00011204153}
+      rotation: {x: 0.059400916, y: -0.009249271, z: 0.05793183, w: 0.9965089}
+      scale: {x: 0.99999994, y: 1.0000004, z: 1.0000004}
+    - name: RightHandRing2.001
+      parentName: RightHandRing1.001
+      position: {x: 4.1909514e-11, y: 0.00034618963, z: -0.0000000019371509}
+      rotation: {x: 0.0029202737, y: -0.003956505, z: 0.06709076, w: 0.9977348}
+      scale: {x: 1, y: 1.0000002, z: 1.0000004}
+    - name: RightHandRing3.001
+      parentName: RightHandRing2.001
+      position: {x: 8.9406965e-10, y: 0.00017067048, z: 7.4505804e-11}
+      rotation: {x: -0.000000053085387, y: 0.00000004703179, z: 0.000000892177, w: 1}
+      scale: {x: 0.9999999, y: 0.9999999, z: 1}
+    - name: RightHandRing3.001_end
+      parentName: RightHandRing3.001
+      position: {x: -0, y: 0.00017067009, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RightHandPinky1.001
+      parentName: RightHand.001
+      position: {x: 0.000008380115, y: 0.00059491274, z: 0.00026902772}
+      rotation: {x: 0.09079093, y: -0.006098807, z: 0.043884743, w: 0.9948839}
+      scale: {x: 1.0000001, y: 1, z: 1.0000002}
+    - name: RightHandPinky2.001
+      parentName: RightHandPinky1.001
+      position: {x: 1.4901161e-10, y: 0.0003070955, z: -0.0000000015646219}
+      rotation: {x: -0.0039227754, y: -0.00032552145, z: 0.11822928, w: 0.9929786}
+      scale: {x: 0.9999999, y: 1.0000002, z: 1}
+    - name: RightHandPinky3.001
+      parentName: RightHandPinky2.001
+      position: {x: 2.9802322e-10, y: 0.00013318792, z: 1.4901161e-10}
+      rotation: {x: 0.00000012060626, y: 0.00000012497183, z: 0.0000013015158, w: 1}
+      scale: {x: 1, y: 1, z: 1.0000002}
+    - name: RightHandPinky3.001_end
+      parentName: RightHandPinky3.001
+      position: {x: -0, y: 0.00013318914, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RightHandThumb1.001
+      parentName: RightHand.001
+      position: {x: -0.000060400365, y: 0.00008431833, z: -0.00017558507}
+      rotation: {x: -0.3872741, y: -0.047129054, z: 0.034060664, w: 0.9201291}
+      scale: {x: 0.99999994, y: 1.0000001, z: 1}
+    - name: RightHandThum2.001
+      parentName: RightHandThumb1.001
+      position: {x: -3.0733643e-10, y: 0.00027415488, z: -6.519258e-10}
+      rotation: {x: 0.1888324, y: 0.074968696, z: -0.038743157, w: 0.97837675}
+      scale: {x: 1.0000001, y: 0.9999998, z: 0.9999998}
+    - name: RightHandThum3.001
+      parentName: RightHandThum2.001
+      position: {x: 2.9802322e-10, y: 0.0003109479, z: -5.9604643e-10}
+      rotation: {x: 0.0883793, y: 0.014301316, z: -0.015526232, w: 0.9958632}
+      scale: {x: 1.0000002, y: 0.9999996, z: 1.0000001}
+    - name: RightHandThum3.001_end
+      parentName: RightHandThum3.001
+      position: {x: -0, y: 0.00021725395, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: OilCharacter.001
+      parentName: OilGhostCloseTewEyes(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 1
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
