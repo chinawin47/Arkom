@@ -3,7 +3,12 @@ guid: d180814e22b6e5a47add8e9eea819cd3
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ShrineMat
+    second: {fileID: 2100000, guid: 1fe2f60c53684da4b9ea16dc75403d43, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
