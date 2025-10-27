@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using ARKOM.Player;
 using ARKOM.Core;
+using ARKOM.Story;
 
 namespace ARKOM.Enemy
 {
@@ -14,6 +15,10 @@ namespace ARKOM.Enemy
         [Header("Refs")] public Transform target; // player
         public AudioSource sfxSource;
         [Tooltip("Animator ของโมเดลผี (ถ้าเว้นว่างจะหาในลูกหลาน)")] public Animator animator;
+        [Tooltip("จุดตั้งกล้องตอนจับหน้า (วางใกล้ใบหน้า/มือ)")] public Transform catchCamAnchor;
+        [Tooltip("จุดยืน/กอดของผู้เล่นเมื่อถูกจับ (วางไว้หน้าอก/แขนผี)")] public Transform holdAnchor;
+        [Header("Animation Triggers")]
+        [Tooltip("ชื่อ Trigger ใน Animator ที่ใช้สั่งเล่นท่าจับผู้เล่น (ปล่อยว่างเพื่อไม่ใช้)")] public string catchTriggerParam = "Catch";
 
         [Header("Speed")] public float walkSpeed = 2.8f; public float runSpeed = 4.2f;
 
@@ -362,9 +367,12 @@ namespace ARKOM.Enemy
 
         private void OnCatchPlayer()
         {
-            agent.isStopped = true;
-            Debug.Log("ChasingGhost: Caught player");
-            // TODO: publish event / call game over
+            if (agent) agent.isStopped = true;
+            if (animator && !string.IsNullOrEmpty(catchTriggerParam))
+            {
+                try { animator.SetTrigger(catchTriggerParam); } catch { }
+            }
+            EventBus.Publish(new PlayerCaughtEvent(transform, catchCamAnchor, holdAnchor));
         }
 
         private void OnEnable()
@@ -384,6 +392,25 @@ namespace ARKOM.Enemy
             SetSpeed(walkSpeed);
             atSearchPoint = false; searchArriveTime =0f;
             MoveTo(lastKnownPos);
+        }
+
+        // Call to reset animation out of catch pose to default/idle
+        public void ResetCatchPose()
+        {
+            if (animator)
+            {
+                if (!string.IsNullOrEmpty(catchTriggerParam))
+                {
+                    try { animator.ResetTrigger(catchTriggerParam); } catch { }
+                }
+                // Rebind to default to ensure pose resets
+                try { animator.Rebind(); animator.Update(0f); } catch { }
+            }
+            if (agent)
+            {
+                agent.isStopped = false;
+                agent.velocity = Vector3.zero;
+            }
         }
 
 #if UNITY_EDITOR

@@ -24,6 +24,10 @@ namespace ARKOM.Story
  public TVController tv; // optional
  public PowerManager powerManager; // optional
 
+ [Header("Checkpoint Spawns (Second Blackout)")]
+ [Tooltip("จุดเกิดของผู้เล่นเมื่อรีเซ็ตไปยังด่านเช็คไฟรอบ2 (หน้าตู้ไฟ)")] public Transform breakerSpawnPoint;
+ [Tooltip("จุดเกิดของผี (ถ้าต้องการกำหนดใหม่ตอนรีเซ็ต)")] public Transform ghostSpawnPoint;
+
  [Header("Config Timings")]
  public float introNewsDuration =4f;
  public float blackoutDelay =0.5f;
@@ -152,6 +156,8 @@ namespace ARKOM.Story
  EventBus.Subscribe<BreakerFailedEvent>(OnBreakerFailed);
  EventBus.Subscribe<AllNotesFoundEvent>(OnAllNotesFound);
  EventBus.Subscribe<BoxUnlockedEvent>(OnBoxUnlocked);
+ // Catch -> reset checkpoint
+ EventBus.Subscribe<PlayerCaughtEvent>(OnPlayerCaughtReset);
  }
  void OnDisable()
  {
@@ -170,6 +176,7 @@ namespace ARKOM.Story
  EventBus.Unsubscribe<BreakerFailedEvent>(OnBreakerFailed);
  EventBus.Unsubscribe<AllNotesFoundEvent>(OnAllNotesFound);
  EventBus.Unsubscribe<BoxUnlockedEvent>(OnBoxUnlocked);
+ EventBus.Unsubscribe<PlayerCaughtEvent>(OnPlayerCaughtReset);
  }
 
  private void SetupInitial()
@@ -469,6 +476,60 @@ namespace ARKOM.Story
  if (ghostSpawner) ghostSpawner.SpawnAtIndex(1, GhostSpawner.GhostKind.NonChasing);
  ShowHint("เสียงทีวีซ่า...",2.5f);
  return;
+ }
+ }
+
+ private Coroutine caughtRoutine;
+
+ [Header("Catch Reset Options")]
+ [Tooltip("เวลาค้างหน้าจับก่อนรีเซ็ต (วินาที)")] public float catchHoldSeconds =3.5f;
+ [Tooltip("ให้รอผู้เล่นกดที่ตู้ไฟก่อน แล้วค่อยปล่อยผี (ไม่ spawn อัตโนมัติ)")] public bool requireBreakerInteractToSpawnGhost = true;
+
+ private void OnPlayerCaughtReset(PlayerCaughtEvent _)
+ {
+ if (caughtRoutine != null) StopCoroutine(caughtRoutine);
+ caughtRoutine = StartCoroutine(CaughtResetFlow());
+ }
+
+ private IEnumerator CaughtResetFlow()
+ {
+ // Wait hold time to display catch
+ if (catchHoldSeconds >0f) yield return new WaitForSeconds(catchHoldSeconds);
+
+ // Restore camera/controls
+ var reaction = player ? player.GetComponent<PlayerCatchReaction>() : null;
+ if (reaction) reaction.RestoreToDefault();
+
+ // Move player to breaker spawn
+ if (player && breakerSpawnPoint)
+ {
+ player.transform.position = breakerSpawnPoint.position;
+ player.transform.rotation = breakerSpawnPoint.rotation;
+ }
+
+ // Reset environment to blackout + state to BreakerFail
+ if (powerManager) powerManager.SetPower(false);
+ EventBus.Publish(new BlackoutStartedEvent());
+ SetState(StoryState.BreakerFail);
+ if (!string.IsNullOrEmpty(checkBreakerHint)) ShowHint(checkBreakerHint,4f);
+
+ // Reset ghost pose and stop agent
+ if (sceneChasingGhost)
+ {
+ if (ghostSpawnPoint)
+ {
+ sceneChasingGhost.transform.position = ghostSpawnPoint.position;
+ sceneChasingGhost.transform.rotation = ghostSpawnPoint.rotation;
+ }
+ sceneChasingGhost.ResetCatchPose();
+ // Do NOT spawn/move yet if requiring breaker interact
+ sceneChasingGhost.gameObject.SetActive(requireBreakerInteractToSpawnGhost == false);
+ }
+
+ // If we don't require breaker press, auto-trigger spawn now
+ if (!requireBreakerInteractToSpawnGhost)
+ {
+ EventBus.Publish(new BreakerFailedEvent());
  }
  }
  }

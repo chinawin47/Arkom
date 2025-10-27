@@ -2,111 +2,151 @@ using UnityEngine;
 using ARKOM.Core;
 using ARKOM.Story;
 
-[AddComponentMenu("Interactable/Circuit Breaker")]
-public class BreakerInteractable : Interactable
+namespace ARKOM
 {
-    [Header("Breaker")]
-    public bool powerOn = false;
-    public bool singleUse = true; // ถ้า true เปิดครั้งเดียว (เปิดแล้ว)
-
-    [Header("Fuse Requirement")] // NEW
-    [Tooltip("จำนวนฟิวส์ที่ต้องใช้ (ค่า default =3 อิงจากระบบฟิวส์ปัจจุบัน)")] public int requiredFusesOverride = -1;
-    [Tooltip("เสียงเมื่อพยายามเปิดแต่ฟิวส์ไม่พอ")] public AudioClip notEnoughFuseSfx;
-    [Tooltip("เสียงใส่ฟิวส์สำเร็จ")] public AudioClip insertFuseSfx;
-
-    [Header("Audio")] 
-    [Tooltip("เสียงเปิดระบบ")] public AudioClip powerOnSfx;
-    [Tooltip("เสียงปิด (กรณี singleUse = false)")] public AudioClip powerOffSfx;
-    [Tooltip("เสียงกดแล้วไม่ติด (โหมด BreakerFail)")] public AudioClip failClickSfx;
-    [Range(0f,1f)] public float sfxVolume =1f;
-
-    private int insertedCount =0; // จำนวนฟิวส์ที่ใส่ไปแล้วในรอบนี้
-    private int Required => requiredFusesOverride >=0 ? requiredFusesOverride : FuseInventory.Required;
-
-    public override bool CanInteract(object interactor)
+    [AddComponentMenu("Interactable/Circuit Breaker")]
+    public class BreakerInteractable : Interactable
     {
-        var seq = SequenceController.Instance;
-        // Allow always in BreakerFail so player can "check" it even if already used earlier
-        if (seq && seq.CurrentState == SequenceController.StoryState.BreakerFail)
-            return base.CanInteract(interactor);
+        [Header("Breaker")]
+        public bool powerOn = false;
+        public bool singleUse = true; // ถ้า true เปิดครั้งเดียว (เปิดแล้ว)
 
-        if (singleUse && powerOn) return false;
-        if (seq && seq.RequireCleanPlatesBeforeFuse && !seq.PlatesCleaned)
-            return false;
-        return base.CanInteract(interactor);
-    }
+        [Header("Fuse Requirement")] // NEW
+        [Tooltip("จำนวนฟิวส์ที่ต้องใช้ (ค่า default =3 อิงจากระบบฟิวส์ปัจจุบัน)")] public int requiredFusesOverride = -1;
+        [Tooltip("เสียงเมื่อพยายามเปิดแต่ฟิวส์ไม่พอ")] public AudioClip notEnoughFuseSfx;
+        [Tooltip("เสียงใส่ฟิวส์สำเร็จ")] public AudioClip insertFuseSfx;
 
-    protected override void OnInteract(object interactor)
-    {
-        var seq = SequenceController.Instance;
-        if (seq && seq.RequireCleanPlatesBeforeFuse && !seq.PlatesCleaned)
+        [Header("Audio")] 
+        [Tooltip("เสียงเปิดระบบ")] public AudioClip powerOnSfx;
+        [Tooltip("เสียงปิด (กรณี singleUse = false)")] public AudioClip powerOffSfx;
+        [Tooltip("เสียงกดแล้วไม่ติด (โหมด BreakerFail)")] public AudioClip failClickSfx;
+        [Range(0f,1f)] public float sfxVolume =1f;
+
+        [Header("Story Gate")]
+        [Tooltip("เปิดใช้การล็อกด้วยเนื้อเรื่อง (ถึงสถานะนี้ก่อน จึงจะเริ่มใส่ฟิวส์/เปิดไฟได้)")] public bool requireStoryGate = false;
+        [Tooltip("สถานะเนื้อเรื่องขั้นต่ำที่ต้องถึงก่อน จึงจะใช้งานตู้ไฟได้")]
+        public SequenceController.StoryState requiredStoryState = SequenceController.StoryState.RestorePower;
+        [Tooltip("ข้อความเตือนเมื่อยังไม่ถึงขั้นเนื้อเรื่อง")]
+        public string notReadyHint = "ยังไม่ถึงเวลาซ่อมไฟ";
+
+        private int insertedCount =0; // จำนวนฟิวส์ที่ใส่ไปแล้วในรอบนี้
+        private int Required => requiredFusesOverride >=0 ? requiredFusesOverride : FuseInventory.Required;
+
+        private bool firedOnFail;
+
+        private void OnEnable()
         {
-            if (!string.IsNullOrEmpty(seq.needCleanPlatesHint))
-                seq.ShowTempHint(seq.needCleanPlatesHint,2f);
-            return;
+            EventBus.Subscribe<StoryStateChangedEvent>(OnStoryState);
         }
-
-        // NEW: If we are in BreakerFail state (post-second-blackout), breaker cannot restore power
-        if (seq && seq.CurrentState == SequenceController.StoryState.BreakerFail)
+        private void OnDisable()
         {
-            if (failClickSfx) AudioSource.PlayClipAtPoint(failClickSfx, transform.position, sfxVolume);
-            else if (notEnoughFuseSfx) AudioSource.PlayClipAtPoint(notEnoughFuseSfx, transform.position, sfxVolume);
-            seq?.ShowTempHint("คัตเอ้าท์ไม่ทำงาน...",2.5f);
-            EventBus.Publish(new BreakerFailedEvent());
-            return;
+            EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryState);
         }
-
-        if (!singleUse && powerOn)
+        private void OnStoryState(StoryStateChangedEvent e)
         {
-            powerOn = false;
-            if (powerOffSfx) AudioSource.PlayClipAtPoint(powerOffSfx, transform.position, sfxVolume);
-            EventBus.Publish(new BlackoutStartedEvent());
-            return;
-        }
-
-        if (insertedCount < Required)
-        {
-            // consume one fuse with origin
-            if (!FuseInventory.RemoveOne(out var origin))
+            if (e.Current == SequenceController.StoryState.BreakerFail)
             {
-                if (notEnoughFuseSfx) AudioSource.PlayClipAtPoint(notEnoughFuseSfx, transform.position, sfxVolume);
+                firedOnFail = false; // รีให้กดครั้งแรกแล้วปล่อยผีได้ทุกครั้งที่เข้า checkpoint นี้
+            }
+        }
+
+        public override bool CanInteract(object interactor)
+        {
+            var seq = SequenceController.Instance;
+            // อนุญาตให้กดเสมอในโหมด BreakerFail เพื่อทริกเกอร์ผี
+            if (seq && seq.CurrentState == SequenceController.StoryState.BreakerFail)
+                return base.CanInteract(interactor);
+
+            if (singleUse && powerOn) return false;
+            // อนุญาตให้กดเพื่อโชว์ฮินต์แม้ยังไม่ถึงสเตตัสเนื้อเรื่อง
+            return base.CanInteract(interactor);
+        }
+
+        protected override void OnInteract(object interactor)
+        {
+            var seq = SequenceController.Instance;
+
+            //1) โหมดรีเซ็ตครั้งที่สอง: ตู้ไฟพัง -> ให้ทริกเกอร์ผีเมื่อกดครั้งแรกเท่านั้น
+            if (seq && seq.CurrentState == SequenceController.StoryState.BreakerFail)
+            {
+                if (seq.requireBreakerInteractToSpawnGhost && !firedOnFail)
+                {
+                    if (failClickSfx) AudioSource.PlayClipAtPoint(failClickSfx, transform.position, sfxVolume);
+                    else if (notEnoughFuseSfx) AudioSource.PlayClipAtPoint(notEnoughFuseSfx, transform.position, sfxVolume);
+                    seq?.ShowTempHint("คัตเอ้าท์ไม่ทำงาน...",2.5f);
+                    firedOnFail = true;
+                    EventBus.Publish(new BreakerFailedEvent());
+                }
                 return;
             }
-            insertedCount++;
-            StoryDebug.Log($"Insert fuse {insertedCount}/{Required} (origin={origin})", this);
-            if (insertFuseSfx) AudioSource.PlayClipAtPoint(insertFuseSfx, transform.position, sfxVolume);
 
-            // แจ้ง UI/ระบบนับฟิวส์
-            EventBus.Publish(new FusesInsertedEvent(insertedCount, Required));
-
-            // เอฟเฟ็กต์พิเศษ: ถ้าฟิวส์จาก upstairs ให้ spawn ผี non-chasing point0
-            if (origin == FuseLocation.Upstairs && seq && seq.ghostSpawner)
+            //2) Gate ด้วยเนื้อเรื่องก่อน (สำหรับการใส่ฟิวส์/เปิดไฟ)
+            if (requireStoryGate && !IsStoryAllowed(seq))
             {
-                seq.ghostSpawner.SpawnAtIndex(0);
+                SequenceController.Instance?.ShowTempHint(notReadyHint,2.5f);
+                return;
             }
 
-            if (insertedCount >= Required)
+            //3) สลับปิดได้เมื่อไม่ singleUse และเปิดอยู่
+            if (!singleUse && powerOn)
+            {
+                powerOn = false;
+                if (powerOffSfx) AudioSource.PlayClipAtPoint(powerOffSfx, transform.position, sfxVolume);
+                EventBus.Publish(new BlackoutStartedEvent());
+                return;
+            }
+
+            //4) ขั้นตอนใส่ฟิวส์
+            if (insertedCount < Required)
+            {
+                // consume one fuse with origin
+                if (!FuseInventory.RemoveOne(out var origin))
+                {
+                    if (notEnoughFuseSfx) AudioSource.PlayClipAtPoint(notEnoughFuseSfx, transform.position, sfxVolume);
+                    return;
+                }
+                insertedCount++;
+                StoryDebug.Log($"Insert fuse {insertedCount}/{Required} (origin={origin})", this);
+                if (insertFuseSfx) AudioSource.PlayClipAtPoint(insertFuseSfx, transform.position, sfxVolume);
+                EventBus.Publish(new FusesInsertedEvent(insertedCount, Required));
+
+                // เอฟเฟ็กต์พิเศษเดิม: ฟิวส์จากชั้นบน -> spawn non-chasing
+                if (origin == FuseLocation.Upstairs && seq && seq.ghostSpawner)
+                {
+                    seq.ghostSpawner.SpawnAtIndex(0);
+                }
+
+                if (insertedCount >= Required)
+                {
+                    powerOn = true;
+                    if (powerOnSfx) AudioSource.PlayClipAtPoint(powerOnSfx, transform.position, sfxVolume);
+                    EventBus.Publish(new PowerRestoredEvent());
+                }
+                return;
+            }
+
+            //5) ถ้าฟิวส์ครบแล้วแต่ยังปิดอยู่ -> เปิดไฟ
+            if (!powerOn)
             {
                 powerOn = true;
                 if (powerOnSfx) AudioSource.PlayClipAtPoint(powerOnSfx, transform.position, sfxVolume);
                 EventBus.Publish(new PowerRestoredEvent());
+                return;
             }
-            return;
+
+            //6) ปิดได้ถ้าไม่ singleUse
+            if (!singleUse && powerOn)
+            {
+                powerOn = false;
+                if (powerOffSfx) AudioSource.PlayClipAtPoint(powerOffSfx, transform.position, sfxVolume);
+                EventBus.Publish(new BlackoutStartedEvent());
+            }
         }
 
-        if (!powerOn)
+        private bool IsStoryAllowed(SequenceController seq)
         {
-            powerOn = true;
-            if (powerOnSfx) AudioSource.PlayClipAtPoint(powerOnSfx, transform.position, sfxVolume);
-            EventBus.Publish(new PowerRestoredEvent());
-            return;
-        }
-
-        if (!singleUse && powerOn)
-        {
-            powerOn = false;
-            if (powerOffSfx) AudioSource.PlayClipAtPoint(powerOffSfx, transform.position, sfxVolume);
-            EventBus.Publish(new BlackoutStartedEvent());
+            if (!seq) return true;
+            return (int)seq.CurrentState >= (int)requiredStoryState;
         }
     }
 }

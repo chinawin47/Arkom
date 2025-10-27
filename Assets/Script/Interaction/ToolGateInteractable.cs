@@ -1,5 +1,6 @@
 using UnityEngine;
 using ARKOM.Core;
+using ARKOM.Story;
 
 [AddComponentMenu("Interactable/Tool Gate (Requires Tool)")]
 public class ToolGateInteractable : Interactable
@@ -8,31 +9,71 @@ public class ToolGateInteractable : Interactable
     [Tooltip("ข้อความเตือนเมื่อผู้เล่นยังไม่มีเครื่องมือ")] public string needToolHint = "ตามหาคีมเพื่อปลดโซ่";
 
     [Header("Requirement - Key")] public bool requiresKey = true;
-    [Tooltip("ID กุญแจสำหรับเปิดประตูหลังตัดโซ่แล้ว")] public string requiredKeyId = "UpstairsDoorKey";
+    [Tooltip("ID กุญแจสำหรับเปิดประตูหลังตัดโซ่แล้ว")]
+    public string requiredKeyId = "UpstairsDoorKey";
+    [Tooltip("ไอดีกุญแจที่ยอมรับเพิ่มเติม (ใช้ได้ควบคู่กัน)")]
+    public string[] additionalAcceptedKeyIds;
+    [Tooltip("ต้องการกุญแจครบทุกอันหรือไม่ (ถ้าไม่ ตรงกับอันใดอันหนึ่งก็พอ)")]
+    public bool requireAllKeys = false;
     [Tooltip("ข้อความเตือนเมื่อยังไม่มีกุญแจ")] public string needKeyHint = "ตามหากุญแจเพื่อไขขึ้นไปข้างบน";
+
+    [Header("Story Gate")]
+    [Tooltip("เปิดใช้การล็อกด้วยเนื้อเรื่อง (ถึงสถานะนี้ก่อน จึงจะเปิดได้)")] public bool requireStoryGate = false;
+    [Tooltip("สถานะเนื้อเรื่องขั้นต่ำที่ต้องถึงก่อน จึงจะใช้ประตูนี้ได้")]
+    public SequenceController.StoryState requiredStoryState = SequenceController.StoryState.BreakerFail;
+    [Tooltip("ข้อความเตือนเมื่อยังไม่ถึงขั้นเนื้อเรื่อง")]
+    public string notReadyHint = "ยังไม่ถึงเวลาไปชั้นสอง";
 
     [Header("Door Control")] public DoorInteractable doorToOpen;
     [Tooltip("เปิดประตูทันทีเมื่อปลดล็อคสำเร็จ")] public bool autoOpenDoorOnUnlock = true;
     [Tooltip("หลังปลดล็อคแล้ว เมื่อผู้เล่นกดที่เดิม ให้ส่งต่อไปยัง DoorInteractable")]
     public bool forwardToDoorWhenUnlocked = true;
 
-    [Header("Visual Swap")] 
+    [Header("Visual Swap")]
     [Tooltip("ชิ้นส่วนโซ่/กุญแจล่าม (จะถูกปิดเมื่อใช้คีม)")] public GameObject chainVisual;
     [Tooltip("สภาพประตูปิด (จะถูกปิดเมื่อเปิดสำเร็จ)")] public GameObject lockedVisual;
     [Tooltip("สภาพประตูเปิดแล้ว")] public GameObject unlockedVisual;
 
-    [Header("Audio")] public AudioClip unlockSfx; public float sfxVolume = 1f;
+    [Header("Audio")] public AudioClip unlockSfx; public float sfxVolume =1f;
 
     private bool chainRemoved; // ใช้คีมแล้ว
-    private bool unlocked;     // เปิดสำเร็จแล้ว
+    private bool unlocked; // เปิดสำเร็จแล้ว
 
     void OnEnable()
     {
-        EventBus.Subscribe<ARKOM.Story.KeyPickedEvent>(OnKeyPicked);
+        EventBus.Subscribe<KeyPickedEvent>(OnKeyPicked);
+        EventBus.Subscribe<StoryStateChangedEvent>(OnStoryState);
+        // รีเฟรชตามสถานะปัจจุบัน (เช่น กลับเข้าฉาก)
+        RefreshByStory();
     }
     void OnDisable()
     {
-        EventBus.Unsubscribe<ARKOM.Story.KeyPickedEvent>(OnKeyPicked);
+        EventBus.Unsubscribe<KeyPickedEvent>(OnKeyPicked);
+        EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryState);
+    }
+
+    private void OnStoryState(StoryStateChangedEvent e)
+    {
+        // ถ้าผ่านเกณฑ์เนื้อเรื่องแล้ว และมีของครบ ให้เปิดอัตโนมัติ (กรณีผู้เล่นเก็บไว้ก่อน)
+        RefreshByStory();
+    }
+
+    private void RefreshByStory()
+    {
+        if (unlocked) return;
+        if (!requireStoryGate || IsStoryAllowed())
+        {
+            // ถึงขั้นเนื้อเรื่องแล้ว ? ถ้าตัดโซ่แล้วและมีคีย์ครบ (หรือไม่ต้องใช้คีย์) ให้เปิดได้ทันทีเมื่อกด
+            // ถ้าต้องการเปิดอัตโนมัติเมื่อครบทุกอย่างแล้ว (กลับเข้าฉาก) ทำได้ดังนี้:
+            if (chainRemoved)
+            {
+                if (!requiresKey || HasRequiredKeys())
+                {
+                    // เปิดอัตโนมัติเมื่อทุกอย่างครบ (ไม่บังคับ ถ้าไม่ต้องการ auto เปิด ให้คอมเมนต์บรรทัดถัดไป)
+                    // OpenNow(null);
+                }
+            }
+        }
     }
 
     public override bool CanInteract(object interactor)
@@ -52,12 +93,19 @@ public class ToolGateInteractable : Interactable
             return;
         }
 
-        // ขั้นที่ 1: ต้องมีคีมเพื่อตัดโซ่
+        // Gate ด้วยเนื้อเรื่องก่อน
+        if (requireStoryGate && !IsStoryAllowed())
+        {
+            SequenceController.Instance?.ShowTempHint(notReadyHint,2.5f);
+            return;
+        }
+
+        // ขั้นที่1: ต้องมีคีมเพื่อตัดโซ่
         if (!chainRemoved)
         {
             if (!Keyring.Has(requiredToolId))
             {
-                ARKOM.Story.SequenceController.Instance?.ShowTempHint(needToolHint, 2.5f);
+                SequenceController.Instance?.ShowTempHint(needToolHint,2.5f);
                 return;
             }
             // ตัดโซ่
@@ -70,16 +118,16 @@ public class ToolGateInteractable : Interactable
                 return;
             }
             // ต้องใช้กุญแจต่อ
-            ARKOM.Story.SequenceController.Instance?.ShowTempHint(needKeyHint, 2.5f);
+            SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f);
             return;
         }
 
-        // ขั้นที่ 2: ต้องมีกุญแจ
+        // ขั้นที่2: ต้องมีกุญแจ
         if (requiresKey)
         {
-            if (!Keyring.Has(requiredKeyId))
+            if (!HasRequiredKeys())
             {
-                ARKOM.Story.SequenceController.Instance?.ShowTempHint(needKeyHint, 2.5f);
+                SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f);
                 return;
             }
             OpenNow(interactor);
@@ -90,14 +138,54 @@ public class ToolGateInteractable : Interactable
         OpenNow(interactor);
     }
 
-    private void OnKeyPicked(ARKOM.Story.KeyPickedEvent e)
+    private void OnKeyPicked(KeyPickedEvent e)
     {
         if (unlocked) return;
         if (!requiresKey) return;
         if (!chainRemoved) return; // ยังไม่ตัดโซ่ ไม่เปิดอัตโนมัติ
-        if (string.IsNullOrEmpty(requiredKeyId)) return;
-        if (e.KeyId != requiredKeyId) return;
-        OpenNow(null); // เปิดอัตโนมัติเมื่อได้กุญแจที่ถูกต้อง
+        if (requireStoryGate && !IsStoryAllowed()) return; // ยังไม่ถึงขั้นเนื้อเรื่อง
+        if (HasRequiredKeys())
+        {
+            OpenNow(null); // เปิดอัตโนมัติเมื่อมีครบตามเงื่อนไข
+        }
+    }
+
+    private bool IsStoryAllowed()
+    {
+        var seq = SequenceController.Instance;
+        if (!seq) return true; // ถ้าไม่มีคอนโทรลเลอร์ ให้ผ่าน
+        // อนุญาตเมื่อ CurrentState >= requiredStoryState (เปรียบเทียบตามค่า enum)
+        return (int)seq.CurrentState >= (int)requiredStoryState;
+    }
+
+    private bool HasRequiredKeys()
+    {
+        // รวมรายการ key ids ที่ยอมรับ
+        int countRequired =0;
+        int countOwned =0;
+        if (!string.IsNullOrEmpty(requiredKeyId)) { countRequired++; if (Keyring.Has(requiredKeyId)) countOwned++; }
+        if (additionalAcceptedKeyIds != null && additionalAcceptedKeyIds.Length >0)
+        {
+            foreach (var id in additionalAcceptedKeyIds)
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                countRequired++;
+                if (Keyring.Has(id)) countOwned++;
+            }
+        }
+        if (countRequired ==0)
+        {
+            // ถ้าไม่ได้กำหนด id ใดเลย ถือว่าไม่ต้องใช้กุญแจ
+            return true;
+        }
+        if (requireAllKeys)
+        {
+            return countOwned == countRequired;
+        }
+        else
+        {
+            return countOwned >0; // มีอันใดอันหนึ่งก็พอ
+        }
     }
 
     private void OpenNow(object interactor)
@@ -107,7 +195,7 @@ public class ToolGateInteractable : Interactable
         if (unlockSfx) AudioSource.PlayClipAtPoint(unlockSfx, transform.position, sfxVolume);
         if (lockedVisual) lockedVisual.SetActive(false);
         if (unlockedVisual) unlockedVisual.SetActive(true);
-        EventBus.Publish(new ARKOM.Story.UpstairsDoorUnlockedEvent());
+        EventBus.Publish(new UpstairsDoorUnlockedEvent());
 
         if (autoOpenDoorOnUnlock && doorToOpen)
         {

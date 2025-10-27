@@ -1,4 +1,5 @@
 using ARKOM.Player;
+using UnityEngine;
 
 namespace ARKOM.Core
 {
@@ -19,4 +20,18 @@ namespace ARKOM.Core
     public readonly struct PlayerInBedEvent { }
     public readonly struct PrayerFinishedEvent { }
     public readonly struct KitchenEnteredEvent { }
+
+    // Fired when a chasing ghost catches the player
+    public readonly struct PlayerCaughtEvent
+    {
+        public readonly Transform Ghost;
+        public readonly Transform CameraAnchor;
+        public readonly Transform HoldAnchor;
+        public PlayerCaughtEvent(Transform ghost, Transform cameraAnchor = null, Transform holdAnchor = null)
+        {
+            Ghost = ghost;
+            CameraAnchor = cameraAnchor;
+            HoldAnchor = holdAnchor;
+        }
+    }
 }
