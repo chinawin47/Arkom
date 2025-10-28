@@ -877,7 +877,7 @@ MonoBehaviour:
   switchDuration: 0.2
   isOn: 1
   toggleOnSfx: {fileID: 8300000, guid: c04d670e242892b4a8a397412923ab2f, type: 3}
-  toggleOffSfx: {fileID: 8300000, guid: c04d670e242892b4a8a397412923ab2f, type: 3}
+  toggleOffSfx: {fileID: 8300000, guid: 64e9c166299c6a0418c0c9f23da31568, type: 3}
   blockedSfx: {fileID: 0}
   sfxVolume: 1
   reactToGlobalPower: 1
@@ -8565,7 +8565,7 @@ MonoBehaviour:
   pickupId: 
   hideAfter: 1
   extraHide: []
-  pickupSfx: {fileID: 0}
+  pickupSfx: {fileID: 8300000, guid: 168d60a708cb2884eb951fa4c88b4907, type: 3}
   hideSfx: {fileID: 0}
   sfxVolume: 1
   amount: 1
@@ -9943,7 +9943,7 @@ MonoBehaviour:
   hideAfter: 1
   extraHide:
   - {fileID: 1810147778}
-  pickupSfx: {fileID: 0}
+  pickupSfx: {fileID: 8300000, guid: 168d60a708cb2884eb951fa4c88b4907, type: 3}
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: Pliers
@@ -11568,7 +11568,7 @@ MonoBehaviour:
   pickupId: 
   hideAfter: 1
   extraHide: []
-  pickupSfx: {fileID: 0}
+  pickupSfx: {fileID: 8300000, guid: 168d60a708cb2884eb951fa4c88b4907, type: 3}
   hideSfx: {fileID: 0}
   sfxVolume: 1
   amount: 1
@@ -13345,8 +13345,8 @@ MonoBehaviour:
   flashlightPrefabOrInstance: {fileID: 158394402}
   turnOnAfterPickup: 0
   forceInfinitePower: 1
-  pickupTurnOnSfx: {fileID: 0}
-  pickupTurnOffSfx: {fileID: 0}
+  pickupTurnOnSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
+  pickupTurnOffSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
   flashlightTogglePickupVolume: 1
 --- !u!64 &817740600
 MeshCollider:
@@ -15859,8 +15859,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: -90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!1001 &920879861
 PrefabInstance:
@@ -16670,8 +16670,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: 90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!114 &991366802
 MonoBehaviour:
@@ -19467,7 +19467,7 @@ MonoBehaviour:
   pickupId: 
   hideAfter: 1
   extraHide: []
-  pickupSfx: {fileID: 0}
+  pickupSfx: {fileID: 8300000, guid: 168d60a708cb2884eb951fa4c88b4907, type: 3}
   hideSfx: {fileID: 0}
   sfxVolume: 1
   amount: 1
@@ -19903,7 +19903,7 @@ MonoBehaviour:
   openCloseDuration: 0.7
   isOpen: 0
   openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
-  closeSfx: {fileID: 0}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!1 &1183258400
 GameObject:
@@ -21147,8 +21147,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: -90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!114 &1251923982
 MonoBehaviour:
@@ -22759,8 +22759,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: 0, z: -90}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 10d08f2a07a0bb44fb31eac47f67f3d8, type: 3}
+  closeSfx: {fileID: 8300000, guid: 2f1896a813d1f8449b72b0f9eeb1c051, type: 3}
   sfxVolume: 1
 --- !u!114 &1350797928
 MonoBehaviour:
@@ -22792,7 +22792,7 @@ MonoBehaviour:
   chainVisual: {fileID: 0}
   lockedVisual: {fileID: 0}
   unlockedVisual: {fileID: 0}
-  unlockSfx: {fileID: 0}
+  unlockSfx: {fileID: 8300000, guid: 2212d92f05daaf745bbdc312d07c5e7e, type: 3}
   sfxVolume: 1
 --- !u!1 &1351714745 stripped
 GameObject:
@@ -27034,7 +27034,7 @@ MonoBehaviour:
   pickupId: UpstairsDoorKey
   hideAfter: 1
   extraHide: []
-  pickupSfx: {fileID: 0}
+  pickupSfx: {fileID: 8300000, guid: 32ffb78bac18da441a87784ed5ec7070, type: 3}
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: UpstairsDoorKey
@@ -27666,8 +27666,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: -90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!114 &1697967738
 MonoBehaviour:
@@ -28108,8 +28108,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: 90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
-  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
+  openSfx: {fileID: 8300000, guid: e3c37454cff7a23429e20be915a19929, type: 3}
+  closeSfx: {fileID: 8300000, guid: 4498b443c9ccc9d4f9d0d690f0175353, type: 3}
   sfxVolume: 1
 --- !u!1 &1714930530
 GameObject:
@@ -34446,8 +34446,8 @@ MonoBehaviour:
   openRotation: {x: 0, y: -90, z: 0}
   openCloseDuration: 0.7
   isOpen: 0
-  openSfx: {fileID: 0}
-  closeSfx: {fileID: 0}
+  openSfx: {fileID: 8300000, guid: 86cf71d3323b9fa4b86f0e354d4471a7, type: 3}
+  closeSfx: {fileID: 8300000, guid: cf8662d1d46fc554997c18d6576b7fcd, type: 3}
   sfxVolume: 1
 --- !u!64 &2113851762
 MeshCollider:
