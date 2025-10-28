@@ -6,7 +6,7 @@ public class DoorInteractable : Interactable
     public Transform doorTransform;
     public Vector3 closedRotation = Vector3.zero;
     public Vector3 openRotation = new Vector3(0, 0, -90);
-    public float openCloseDuration = 0.7f;
+    public float openCloseDuration = 1.5f;
     public bool isOpen = false;
 
     [Header("Audio")]
