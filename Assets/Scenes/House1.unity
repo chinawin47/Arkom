@@ -15484,7 +15484,7 @@ MonoBehaviour:
   ghostPrefabs:
   - {fileID: 2827207400749087334, guid: b930650dfdc68034e8bdbdaa32b9a5e6, type: 3}
   - {fileID: 2827207400749087334, guid: b930650dfdc68034e8bdbdaa32b9a5e6, type: 3}
-  spawnSfx: {fileID: 8300000, guid: 25a493758f5d31e4eb1a4a90d05e8687, type: 3}
+  spawnSfx: {fileID: 8300000, guid: e362476a105c4f94bac44c41df257392, type: 3}
   lookDespawnTime: 5
   lookAngleThreshold: 18
   requireContinuousLook: 1
@@ -24855,7 +24855,7 @@ MonoBehaviour:
   tvStaticHoldTime: 4
   needCleanPlatesHint: "\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E28\u0E29\u0E08\u0E32\u0E19\u0E43\u0E19\u0E04\u0E23\u0E31\u0E27\u0E43\u0E2B\u0E49\u0E2B\u0E21\u0E14\u0E01\u0E48\u0E2D\u0E19"
   findOoyHint: "\u0E44\u0E1B\u0E2B\u0E32\u0E2D\u0E2D\u0E22"
-  ooyNotFoundVoice: {fileID: 0}
+  ooyNotFoundVoice: {fileID: 8300000, guid: 2de851a0a831d2946bc257d6af869e49, type: 3}
   ooyNotFoundVoiceVolume: 1
   ooyNotFoundText: "\u0E19\u0E35\u0E48\u0E21\u0E31\u0E19\u0E40\u0E01\u0E34\u0E14\u0E2D\u0E30\u0E44\u0E23\u0E02\u0E36\u0E49\u0E19\u0E27\u0E30
     \u0E25\u0E2D\u0E07\u0E44\u0E1B\u0E1B\u0E25\u0E38\u0E01\u0E2D\u0E2D\u0E22\u0E2B\u0E19\u0E48\u0E2D\u0E22\u0E14\u0E35\u0E01\u0E27\u0E48\u0E32"
