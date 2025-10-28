@@ -22,14 +22,14 @@ MonoBehaviour:
     volume: 1
     stingerDelay: 3
     loopDelay: 0
-  - state: 5
-    baseLoop: {fileID: 8300000, guid: 499d87e46c333ff4c8202753c96fdb0d, type: 3}
-    enterStinger: {fileID: 0}
+  - state: 7
+    baseLoop: {fileID: 0}
+    enterStinger: {fileID: 8300000, guid: 499d87e46c333ff4c8202753c96fdb0d, type: 3}
     fadeIn: 10
     fadeOut: 10
     loop: 0
     volume: 1
-    stingerDelay: 0
+    stingerDelay: 4
     loopDelay: 0
   - state: 3
     baseLoop: {fileID: 8300000, guid: 0d908e3e085a2044faf8ac57f6c86625, type: 3}
