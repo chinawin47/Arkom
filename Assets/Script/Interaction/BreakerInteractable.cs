@@ -29,6 +29,14 @@ namespace ARKOM
         [Tooltip("ข้อความเตือนเมื่อยังไม่ถึงขั้นเนื้อเรื่อง")]
         public string notReadyHint = "ยังไม่ถึงเวลาซ่อมไฟ";
 
+
+        [Header("Fuse Objects")]
+        [Tooltip("OBJ ที่ซ่อนในตู้ ใส่ฟิวส์บางส่วนก็เปิดได้")]
+        public GameObject hiddenFuseObj1;
+        public GameObject hiddenFuseObj2;
+        public GameObject hiddenFuseObj3;
+        public static SequenceController Instance { get; private set; }
+
         private int insertedCount =0; // จำนวนฟิวส์ที่ใส่ไปแล้วในรอบนี้
         private int Required => requiredFusesOverride >=0 ? requiredFusesOverride : FuseInventory.Required;
 
@@ -106,9 +114,21 @@ namespace ARKOM
                     return;
                 }
                 insertedCount++;
+
                 StoryDebug.Log($"Insert fuse {insertedCount}/{Required} (origin={origin})", this);
                 if (insertFuseSfx) AudioSource.PlayClipAtPoint(insertFuseSfx, transform.position, sfxVolume);
                 EventBus.Publish(new FusesInsertedEvent(insertedCount, Required));
+
+                // --- Progressive objects ---
+                if (insertedCount == 1 && hiddenFuseObj1) hiddenFuseObj1.SetActive(true);
+                if (insertedCount == 2 && hiddenFuseObj2) hiddenFuseObj2.SetActive(true);
+                if (insertedCount >= 3)
+                {
+                    if (hiddenFuseObj3) hiddenFuseObj3.SetActive(true); // ตัวนี้อาจเป็นไฟจริง
+                    powerOn = true;
+                    if (powerOnSfx) AudioSource.PlayClipAtPoint(powerOnSfx, transform.position, sfxVolume);
+                    EventBus.Publish(new PowerRestoredEvent());
+                }
 
                 // เอฟเฟ็กต์พิเศษเดิม: ฟิวส์จากชั้นบน -> spawn non-chasing
                 if (origin == FuseLocation.Upstairs && seq && seq.ghostSpawner)

@@ -3095,9 +3095,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f803de9074eb99b4b9db2e66cb6eb259, type: 3}
       insertIndex: -1
       addedObject: {fileID: 865107695}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f803de9074eb99b4b9db2e66cb6eb259, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 865107698}
   m_SourcePrefab: {fileID: 100100000, guid: f803de9074eb99b4b9db2e66cb6eb259, type: 3}
 --- !u!4 &191628398 stripped
 Transform:
@@ -14639,6 +14636,9 @@ MonoBehaviour:
   requireStoryGate: 0
   requiredStoryState: 2
   notReadyHint: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E36\u0E07\u0E40\u0E27\u0E25\u0E32\u0E0B\u0E48\u0E2D\u0E21\u0E44\u0E1F"
+  hiddenFuseObj1: {fileID: 1524716069}
+  hiddenFuseObj2: {fileID: 1007294397}
+  hiddenFuseObj3: {fileID: 458147930}
 --- !u!65 &865107696
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14665,28 +14665,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f803de9074eb99b4b9db2e66cb6eb259, type: 3}
   m_PrefabInstance: {fileID: 191628397}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &865107698
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 865107694}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 34f27010a415f2746858b87a6981b621, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &865318335 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2122767173849397492, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
@@ -23744,9 +23722,9 @@ MonoBehaviour:
   upstairsFootstepVoiceVolume: 1
   objectiveFindNoiseSource: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E15\u0E49\u0E19\u0E15\u0E2D\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07"
   upstairsDoor: {fileID: 623003598}
-  needUpstairsKeyHint: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E02\u0E02\u0E36\u0E49\u0E19\u0E44\u0E1B\u0E02\u0E49\u0E32\u0E07\u0E1A\u0E19"
+  needUpstairsKeyHint: 
   prayerRoom: {fileID: 1663275752}
-  goTurnOffRadioHint: "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E14\u0E31\u0E07\u0E21\u0E32\u0E08\u0E32\u0E01\u0E27\u0E34\u0E17\u0E22\u0E38\u0E43\u0E19\u0E2B\u0E49\u0E2D\u0E07\u0E1E\u0E23\u0E30"
+  goTurnOffRadioHint: "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E14\u0E31\u0E07\u0E21\u0E32\u0E08\u0E32\u0E01\u0E27\u0E34\u0E17\u0E22\u0E38\u0E43\u0E19\u0E2B\u0E49\u0E2D\u0E07"
   readDiaryHint: "\u0E21\u0E35\u0E44\u0E14\u0E2D\u0E32\u0E23\u0E35\u0E48\u0E02\u0E2D\u0E07\u0E2D\u0E2D\u0E22
     \u0E25\u0E2D\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E14\u0E39"
   upstairsRadio: {fileID: 906612676}

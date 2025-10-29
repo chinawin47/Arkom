@@ -13,6 +13,8 @@ namespace ARKOM.Story
  [AddComponentMenu("Story/Sequence Controller")]
  public class SequenceController : MonoBehaviour
  {
+
+
  public static SequenceController Instance { get; private set; }
 
  [Header("References")]
@@ -82,7 +84,7 @@ namespace ARKOM.Story
  public string pliersToolId = "Pliers"; public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่";
  public AudioClip upstairsFootstepVoice; [Range(0,1)] public float upstairsFootstepVoiceVolume =1f;
  public string objectiveFindNoiseSource = "ตามหาต้นตอของเสียง";
- public Transform upstairsDoor; public string needUpstairsKeyHint = "ตามหากุญแจเพื่อไขขึ้นไปข้างบน";
+ public Transform upstairsDoor; public string needUpstairsKeyHint = "";
  public Transform prayerRoom; public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุในห้องพระ"; public string readDiaryHint = "มีไดอารี่ของออย ลองอ่านดู";
 
  [Header("Upstairs Objects (Optional)")]
@@ -254,6 +256,15 @@ namespace ARKOM.Story
  if (upstairsFootstepVoice) AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
  if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource,4f);
  SetState(StoryState.InvestigateUpstairs);
+            if (upstairsRadio) upstairsRadio.StartRadio();
+            if (!requireDiaryBeforeOoy) SetState(StoryState.FindOoy);
+
+            if (upstairsFootstepVoice)
+                AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player.transform.position, upstairsFootstepVoiceVolume);
+
+            if (!string.IsNullOrEmpty(objectiveFindNoiseSource))
+                ShowHint(objectiveFindNoiseSource, 4f);
+        
  }
 
  private void OnPlayerSeated(PlayerSeatedEvent e)
@@ -540,7 +551,7 @@ namespace ARKOM.Story
  if (storageFuseTriggered) return; storageFuseTriggered = true;
  if (tv) { tv.PlayStatic(); }
  if (ghostSpawner) ghostSpawner.SpawnAtIndex(1, GhostSpawner.GhostKind.NonChasing);
- ShowHint("เสียงทีวีซ่า...",2.5f);
+ ShowHint("",2.5f);
  return;
  }
  }
