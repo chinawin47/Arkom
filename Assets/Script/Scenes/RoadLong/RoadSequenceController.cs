@@ -40,7 +40,7 @@ namespace ARKOM.Scenes.Road
  public float footstepPitchLerp =0.35f;
 
  [Header("Loop End Mode")]
- [Tooltip("Place a trigger at the end of the path and warp back to start each lap, triggering events in order")] public bool useEndLoopMode = true;
+ [Tooltip("Place a trigger at the end of the path and warp back to start each lap, triggering events in order")] public bool useEndLoopMode = false;
  [Tooltip("Player will be warped here when reaching the end trigger (only for Event1->2)")] public Transform warpStartPoint;
  [Tooltip("Small delay before warping player after hitting end trigger")] public float warpDelay =0.15f;
 
@@ -76,6 +76,19 @@ namespace ARKOM.Scenes.Road
  [Tooltip("Animator state name to crossfade to when caught (used if no trigger specified)")] public string catchStateName;
  [Tooltip("Crossfade duration when using state name")] public float catchCrossFadeDuration =0.1f;
 
+ // New: Car animation during Event2 on long road
+ [Header("Event2 - Car Animation")]
+ [Tooltip("Trigger a car animation when Event2 starts")] public bool triggerCarOnEvent2 = true;
+ [Tooltip("Animator on the car that will play its pass animation")] public Animator carAnimator;
+ [Tooltip("Animator trigger parameter on the car")] public string carTriggerParam = "PlayAnim";
+ [Tooltip("Delay before triggering the car animation (seconds)")] public float carStartDelay =0f;
+ [Tooltip("Optional point used to trigger street light surge near the car position")] public Transform carSurgePoint;
+ [Tooltip("Also trigger street lights surge around the car when it plays")] public bool surgeLightsOnCar = true;
+ 
+ [Header("Event2 - Car Visibility")]
+ [Tooltip("Root GameObject of the car to hide at start and show on Event2")] public GameObject carRoot;
+ [Tooltip("Hide car at start then show when Event2 begins")] public bool hideCarUntilEvent2 = true;
+ 
  [Header("Event3 - Shrine/Exit")] 
  [Tooltip("Call OnShrineReached from a trigger near the shrine to finish scene")] public bool requiresShrineTrigger = true;
  [Tooltip("Scene name to load after horn plays (leave empty to skip)")] public string nextSceneName;
@@ -113,6 +126,9 @@ namespace ARKOM.Scenes.Road
  if (sprintHintUI)
  sprintHintUI.SetActive(false);
  if (catchOverlay) catchOverlay.SetActive(false);
+ // Hide car at start if requested
+ if (hideCarUntilEvent2 && carRoot)
+ carRoot.SetActive(false);
  }
 
  private void Start()
@@ -210,6 +226,14 @@ namespace ARKOM.Scenes.Road
 
  private IEnumerator RunEvent2()
  {
+ // Show the car now if it was hidden until Event2
+ if (hideCarUntilEvent2 && carRoot && !carRoot.activeSelf)
+ carRoot.SetActive(true);
+
+ // Trigger car animation/effects for long road setup
+ if (triggerCarOnEvent2)
+ StartCoroutine(PlayCarAnimationAndEffects());
+
  // วาง/หมุนผีตามจุดกำหนด (ถ้ามี)
  if (ghostRoot)
  {
@@ -256,6 +280,29 @@ namespace ARKOM.Scenes.Road
  }
 
  yield break;
+ }
+
+ private IEnumerator PlayCarAnimationAndEffects()
+ {
+ if (carStartDelay >0f)
+ yield return new WaitForSeconds(carStartDelay);
+
+ if (carAnimator)
+ {
+ if (!string.IsNullOrEmpty(carTriggerParam))
+ carAnimator.SetTrigger(carTriggerParam);
+ }
+
+ if (surgeLightsOnCar)
+ {
+ var mgr = StreetLightingManager.Instance;
+ if (mgr == null) mgr = FindObjectOfType<StreetLightingManager>();
+ if (mgr)
+ {
+ Vector3 pos = carSurgePoint ? carSurgePoint.position : (ghostRoot ? ghostRoot.transform.position : (player ? player.transform.position : transform.position));
+ mgr.TriggerCarPass(pos);
+ }
+ }
  }
 
  private void StartEvent2CatchWatch()
@@ -360,7 +407,7 @@ namespace ARKOM.Scenes.Road
  originalCamParent = null;
  }
 
- private IEnumerator ResetSequenceToStart()
+ public IEnumerator ResetSequenceToStart()
  {
  // หยุด watch และโหมด Event2
  inEvent2 = false;
@@ -372,6 +419,10 @@ namespace ARKOM.Scenes.Road
  if (ghostChase) ghostChase.StopFollowing(hideGhost: true);
  else if (ghostRoot) ghostRoot.SetActive(false);
  if (streetLightFlicker) streetLightFlicker.StopFlickerLoop();
+
+ // Hide car again when resetting sequence
+ if (hideCarUntilEvent2 && carRoot)
+ carRoot.SetActive(false);
 
  // คืนกล้องและควบคุมผู้เล่น
  RestorePlayerCamera();
