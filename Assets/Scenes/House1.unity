@@ -2376,8 +2376,8 @@ MonoBehaviour:
   rechargePerSecondOff: 2
   minIntensityAtEmpty: 0.2
   lowBatteryThreshold: 0.15
-  toggleOnSfx: {fileID: 0}
-  toggleOffSfx: {fileID: 0}
+  toggleOnSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
+  toggleOffSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
   noPowerSfx: {fileID: 0}
   lowBatteryFlickerSpeed: 5
   lowBatteryFlickerAmount: 0.15
@@ -13573,8 +13573,8 @@ MonoBehaviour:
   flashlightPrefabOrInstance: {fileID: 158394402}
   turnOnAfterPickup: 0
   forceInfinitePower: 1
-  pickupTurnOnSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
-  pickupTurnOffSfx: {fileID: 8300000, guid: 46f988839945aae4da7cbb158824b35f, type: 3}
+  pickupTurnOnSfx: {fileID: 0}
+  pickupTurnOffSfx: {fileID: 0}
   flashlightTogglePickupVolume: 1
 --- !u!64 &817740600
 MeshCollider:
@@ -14630,11 +14630,11 @@ MonoBehaviour:
   powerOn: 0
   singleUse: 1
   requiredFusesOverride: -1
-  notEnoughFuseSfx: {fileID: 0}
-  insertFuseSfx: {fileID: 0}
-  powerOnSfx: {fileID: 0}
-  powerOffSfx: {fileID: 0}
-  failClickSfx: {fileID: 0}
+  notEnoughFuseSfx: {fileID: 8300000, guid: 6cbf3ae190526c942ba4b132198e19b7, type: 3}
+  insertFuseSfx: {fileID: 8300000, guid: 94dc6bdee7ecd71458081c84fc9433ad, type: 3}
+  powerOnSfx: {fileID: 8300000, guid: 7e55c1308dfd7b14283df2bebfb9dbe9, type: 3}
+  powerOffSfx: {fileID: 8300000, guid: 9ba87f893f441454f9bed900a3bd4530, type: 3}
+  failClickSfx: {fileID: 8300000, guid: 209d4b65d7ec6ac4b80af1987e344476, type: 3}
   sfxVolume: 1
   requireStoryGate: 0
   requiredStoryState: 2
