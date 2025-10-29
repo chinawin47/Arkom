@@ -13872,7 +13872,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   changeTime: 58.8
-  sceneName: House1
+  sceneName: GetInHouse
 --- !u!4 &1785100346
 Transform:
   m_ObjectHideFlags: 0

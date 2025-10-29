@@ -5236,7 +5236,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f38f64e89517f39489eff8647a59ffbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  changeTime: 7.4
+  changeTime: 6.92
   sceneName: House1
 --- !u!4 &1519948361
 Transform:
