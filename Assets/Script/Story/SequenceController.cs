@@ -204,7 +204,7 @@ namespace ARKOM.Story
  if (flashlightPickup) flashlightPickup.gameObject.SetActive(false);
  if (breakerInteractable) breakerInteractable.gameObject.SetActive(false);
  if (tv) tv.PlayIntro();
- ShowHint("ชมข่าว...", introNewsDuration);
+ ShowHint("", introNewsDuration);
  StartCoroutine(IntroRoutine());
  }
 
@@ -287,10 +287,10 @@ namespace ARKOM.Story
  private IEnumerator PlateCrashSequence()
  {
  SetState(StoryState.PlateCrashStart);
- ShowHint("เกิดเสียงดังจากครัว...",3f);
+ ShowHint("",3f);
  yield return new WaitForSeconds(2f);
  SetState(StoryState.InvestigateKitchen);
- ShowHint("ไปดูที่ครัว",4f);
+ ShowHint("",4f);
  if (autoTriggerKitchenEntered) EventBus.Publish(new KitchenEnteredEvent());
  }
 

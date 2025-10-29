@@ -29,7 +29,7 @@ MonoBehaviour:
     fadeOut: 10
     loop: 0
     volume: 1
-    stingerDelay: 4
+    stingerDelay: 0
     loopDelay: 0
   - state: 3
     baseLoop: {fileID: 8300000, guid: 0d908e3e085a2044faf8ac57f6c86625, type: 3}

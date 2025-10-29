@@ -15350,7 +15350,7 @@ MonoBehaviour:
   displayName: Interact
   oneTime: 0
   source: {fileID: 906612675}
-  chantClip: {fileID: 8300000, guid: ca9518880f8de124085e66db500ae5ba, type: 3}
+  chantClip: {fileID: 8300000, guid: d51ec70b9a627264a8f43825549b3d86, type: 3}
   loop: 1
 --- !u!65 &906612677
 BoxCollider:
