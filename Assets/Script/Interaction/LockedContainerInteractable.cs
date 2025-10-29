@@ -18,8 +18,19 @@ public class LockedContainerInteractable : Interactable
 
     [Header("SFX")] public AudioClip lockedSfx; public AudioClip openSfx; public float volume =1f;
 
+    [Header("Lid Opening (Optional)")]
+    [Tooltip("ตัว Transform ของฝากล่องที่จะหมุนเปิด (ทิศแกน = local)")]
+    public Transform lid;
+    [Tooltip("การหมุนเพิ่มจากมุมปิด (local euler) ตอนเปิดฝากล่อง")]
+    public Vector3 lidOpenOffsetEuler = new Vector3(-110f,0f,0f);
+    [Tooltip("เวลาเปิดฝากล่อง (วินาที)")]
+    public float lidOpenTime =0.7f;
+    public AnimationCurve lidOpenCurve = AnimationCurve.EaseInOut(0f,0f,1f,1f);
+
     private bool opened;
     private bool awaitingPin;
+    private Quaternion lidClosedLocalRot;
+    private bool lidCached;
 
     public override bool CanInteract(object interactor)
     {
@@ -72,5 +83,33 @@ public class LockedContainerInteractable : Interactable
         if (openedVisual) openedVisual.SetActive(true);
         if (openSfx) AudioSource.PlayClipAtPoint(openSfx, transform.position, volume);
         EventBus.Publish(new BoxUnlockedEvent());
+
+        // Animate lid if provided
+        if (lid)
+        {
+            if (!lidCached)
+            {
+                lidClosedLocalRot = lid.localRotation;
+                lidCached = true;
+            }
+            StartCoroutine(OpenLidRoutine());
+        }
+    }
+
+    private System.Collections.IEnumerator OpenLidRoutine()
+    {
+        float t =0f;
+        Quaternion from = lidClosedLocalRot;
+        Quaternion to = lidClosedLocalRot * Quaternion.Euler(lidOpenOffsetEuler);
+        float dur = Mathf.Max(0.01f, lidOpenTime);
+        while (t < dur)
+        {
+            t += Time.deltaTime;
+            float p = Mathf.Clamp01(t / dur);
+            float k = lidOpenCurve != null ? lidOpenCurve.Evaluate(p) : p;
+            lid.localRotation = Quaternion.Slerp(from, to, k);
+            yield return null;
+        }
+        lid.localRotation = to;
     }
 }

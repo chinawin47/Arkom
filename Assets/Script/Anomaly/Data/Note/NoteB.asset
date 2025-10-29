@@ -15,5 +15,5 @@ MonoBehaviour:
   noteId: NoteB
   title: XXX
   body: XXX
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 4e1200b834ef0cb47aec20902bf57c28, type: 3}
   flagOnRead: 

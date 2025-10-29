@@ -15,5 +15,5 @@ MonoBehaviour:
   noteId: NoteC
   title: XXX
   body: XXX
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 7ed44d66c0a50e6459dee1da6a9b119e, type: 3}
   flagOnRead: 

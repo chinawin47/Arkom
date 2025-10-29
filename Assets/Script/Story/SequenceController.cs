@@ -60,6 +60,7 @@ namespace ARKOM.Story
 
  // Internal flags
  private bool platesCleaned; private bool requireCleanPlatesBeforeFuse; private bool storageFuseTriggered; private bool started;
+ private bool secondBlackoutStarted;
 
  [Header("TV Scare (Storage Fuse)")]
  [Tooltip("เวลาถือ Static บนทีวีก่อนปิด (วินาที)")] public float tvStaticHoldTime =4f;
@@ -74,6 +75,8 @@ namespace ARKOM.Story
  public AudioClip ooyNotFoundVoice; [Range(0f,1f)] public float ooyNotFoundVoiceVolume =1f;
  public string ooyNotFoundText = "นี่มันเกิดอะไรขึ้นวะ ลองไปปลุกออยหน่อยดีกว่า";
  public float blackoutAgainDelay =0.25f;
+ [Tooltip("จำกัดเวลารอสูงสุดจากเสียง ooyNotFoundVoice ก่อนดับไฟรอบสอง (วินาที)")]
+ public float maxVoiceWaitSeconds =3f;
 
  [Header("Upstairs Unlock Flow")]
  public string pliersToolId = "Pliers"; public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่";
@@ -96,6 +99,13 @@ namespace ARKOM.Story
  [Header("Sleep End Options")] public bool blackScreenOnSleepEnd = true; public float sleepEndFadeTime =1f; public string sleepEndHintText = "";
  [Header("Sleep End Display")] public string sleepEndDisplayText = "TO BE CONTINUED"; public float sleepEndTextDelay =0.6f; public bool useHintPresenterForSleepEndText = true; public float sleepEndTextDuration =9999f; public AudioClip sleepEndBackgroundClip; [Range(0f,1f)] public float sleepEndBackgroundVolume =1f; public bool sleepEndBackgroundLoop = true; private AudioSource sleepEndBgSource;
 
+ [Header("Ending (After Box Unlock)")]
+ [Tooltip("Animator ที่ใช้เล่นท่ามือปิดหน้าเมื่อจบเกม")] public Animator handCoverAnimator;
+ [Tooltip("ชื่อ Trigger ใน Animator สำหรับเริ่มท่ามือปิดหน้า")] public string handCoverTrigger = "CoverFace";
+ [Tooltip("เวลาถือท่ามือปิดหน้าก่อนตัดจบ (วินาที)")] public float handCoverDuration =2.0f;
+ [Tooltip("ค้นหา Animator ใต้ Player อัตโนมัติเมื่อไม่ได้เซ็ตใน Inspector")] public bool autoFindHandAnimatorUnderPlayer = true;
+ [Tooltip("ค้นหาจากชื่อ GameObject/Animator ที่มีคำนี้ (ปล่อยว่างเพื่อหาทุกตัว)")] public string handAnimatorNameFilter = "Armature";
+
  [Header("Debug / Dev")] public bool debugSkipToSleepEndOnStart = false; public KeyCode debugSkipKey = KeyCode.F9;
 #if ENABLE_INPUT_SYSTEM
  public Key debugSkipKeyInputSystem = Key.None;
@@ -103,6 +113,10 @@ namespace ARKOM.Story
 
  private AudioSource persistentLoopSource; private bool cleanPlatesLoopStarted;
  [Header("Audio Loops")] public AudioClip cleanPlatesLoopClip; [Range(0f,1f)] public float cleanPlatesLoopVolume =0.7f; public bool cleanPlatesLoopPlayOnce = true;
+
+ // Catch reset options used by BreakerInteractable and others
+ private Coroutine caughtRoutine;
+ [Header("Catch Reset Options")] [Tooltip("เวลาค้างหน้าจับก่อนรีเซ็ต (วินาที)")] public float catchHoldSeconds =3.5f; [Tooltip("ให้รอผู้เล่นกดที่ตู้ไฟก่อน แล้วค่อยปล่อยผี (ไม่ spawn อัตโนมัติ)")] public bool requireBreakerInteractToSpawnGhost = true;
 
  public enum StoryState
  {
@@ -211,7 +225,7 @@ namespace ARKOM.Story
  {
  DLog("TriggerBlackout");
  if (tv) tv.PowerOff();
- if (powerManager) powerManager.SetPower(false);
+ if (powerManager) powerManager.SetPower(false); else FallbackBlackout();
  EventBus.Publish(new BlackoutStartedEvent());
  if (player && player.IsSeated) player.ExitSeat();
  if (flashlightPickup) flashlightPickup.gameObject.SetActive(true);
@@ -235,7 +249,7 @@ namespace ARKOM.Story
  DLog("Ignored PowerRestoredEvent because state != RestorePower");
  return;
  }
- if (powerManager) powerManager.SetPower(true);
+ if (powerManager) powerManager.SetPower(true); else FallbackRestore();
  if (tv) tv.PreparePostRestoreNews();
  if (upstairsFootstepVoice) AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
  if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource,4f);
@@ -312,26 +326,42 @@ namespace ARKOM.Story
  private void OnOoyChecked(OoyCheckedEvent _)
  {
  if (state != StoryState.CheckOoy && state != StoryState.FindOoy) return;
+ if (secondBlackoutStarted)
+ {
+ DLog("OnOoyChecked ignored (already running)");
+ return;
+ }
+ DLog("OnOoyChecked -> start SecondBlackoutRoutine");
  if (ooyNotFoundVoice) AudioSource.PlayClipAtPoint(ooyNotFoundVoice, player ? player.transform.position : transform.position, ooyNotFoundVoiceVolume);
  else if (!string.IsNullOrEmpty(ooyNotFoundText)) ShowHint(ooyNotFoundText,3.5f);
+ secondBlackoutStarted = true;
  StartCoroutine(SecondBlackoutRoutine());
  }
 
  private IEnumerator SecondBlackoutRoutine()
  {
- float wait =0f; if (ooyNotFoundVoice) wait = Mathf.Max(wait, ooyNotFoundVoice.length); if (blackoutAgainDelay >0f) wait += blackoutAgainDelay; if (wait >0f) yield return new WaitForSeconds(wait);
- if (tv) tv.PowerOff(); if (powerManager) powerManager.SetPower(false);
+ // รอแบบเวลาจริง: ยึดตามเสียง แต่จำกัดไม่เกิน maxVoiceWaitSeconds แล้วบวกดีเลย์เพิ่ม
+ float voiceLen = (ooyNotFoundVoice != null ? ooyNotFoundVoice.length :0f);
+ float wait = Mathf.Min(maxVoiceWaitSeconds, voiceLen) + Mathf.Max(0f, blackoutAgainDelay);
+ if (wait >0f)
+ {
+ DLog($"SecondBlackoutRoutine waiting (real) {wait:0.00}s");
+ yield return new WaitForSecondsRealtime(wait);
+ }
+ DLog("SecondBlackoutRoutine -> power off + blackout event");
+ if (tv) tv.PowerOff();
+ if (powerManager) powerManager.SetPower(false); else FallbackBlackout();
  EventBus.Publish(new BlackoutStartedEvent());
  // NEW: do not spawn ghost yet, force player to check breaker
  SetState(StoryState.BreakerFail);
+ DLog("State set to BreakerFail");
  if (!string.IsNullOrEmpty(checkBreakerHint)) ShowHint(checkBreakerHint,4f);
  }
 
- // NEW: breaker fail -> start chase and find notes
+ // Handlers that were referenced in subscriptions (restore if missing)
  private void OnBreakerFailed(BreakerFailedEvent _)
  {
  if (state != StoryState.BreakerFail) return;
- // Option A: enable pre-placed chasing ghost if assigned
  if (sceneChasingGhost)
  {
  sceneChasingGhost.gameObject.SetActive(true);
@@ -343,16 +373,12 @@ namespace ARKOM.Story
  SetState(StoryState.FindNotes);
  if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint,4f);
  }
-
- // NEW: collected all notes -> go to open box
  private void OnAllNotesFound(AllNotesFoundEvent _)
  {
  if (state != StoryState.FindNotes) return;
  SetState(StoryState.OpenMysteryBox);
  if (!string.IsNullOrEmpty(openBoxHint)) ShowHint(openBoxHint,4f);
  }
-
- // NEW: box opened -> you can decide next step later
  private void OnBoxUnlocked(BoxUnlockedEvent _)
  {
  // Stop chase ghost if configured
@@ -360,10 +386,61 @@ namespace ARKOM.Story
  {
  sceneChasingGhost.gameObject.SetActive(false);
  }
- // placeholder: show a temp hint
- ShowTempHint("เปิดกล่องสำเร็จ",2f);
+ // Lock player and play end animation -> end game
+ StartCoroutine(BoxUnlockEndingRoutine());
  }
 
+ private IEnumerator BoxUnlockEndingRoutine()
+ {
+ // หยุดการควบคุมผู้เล่นทันที
+ LockPlayer(true);
+
+ // เตรียมหา Animator ใต้ Player ถ้ายังไม่ได้อ้างอิง
+ if (!handCoverAnimator && autoFindHandAnimatorUnderPlayer && player)
+ {
+ var anims = player.GetComponentsInChildren<Animator>(true);
+ for (int i =0; i < anims.Length; i++)
+ {
+ var a = anims[i];
+ if (!a) continue;
+ if (string.IsNullOrEmpty(handAnimatorNameFilter) || a.gameObject.name.IndexOf(handAnimatorNameFilter, System.StringComparison.OrdinalIgnoreCase) >=0)
+ { handCoverAnimator = a; break; }
+ }
+ }
+
+ // เปิดและเล่นแอนิเมชันมือปิดหน้า (ไม่ปรับตำแหน่ง/พาเรนต์)
+ if (handCoverAnimator)
+ {
+ var handGO = handCoverAnimator.gameObject;
+ if (!handGO.activeSelf) handGO.SetActive(true);
+ if (!string.IsNullOrEmpty(handCoverTrigger))
+ handCoverAnimator.SetTrigger(handCoverTrigger);
+ }
+
+ // รอแบบเวลาจริง เพื่อไม่ติด timeScale
+ if (handCoverDuration >0f)
+ yield return new WaitForSecondsRealtime(handCoverDuration);
+
+ // เข้าสู่ฉากจบ: แสดง To Be Continued (ใช้ระบบ SleepEnd ที่มีอยู่)
+ if (state != StoryState.SleepEnd)
+ {
+ EnterSleepEnd();
+ }
+ }
+
+ // ===== Fallback (no PowerManager) =====
+ private void FallbackBlackout()
+ {
+ var lights = FindObjectsOfType<Light>();
+ for (int i =0; i < lights.Length; i++) if (lights[i]) lights[i].enabled = false;
+ }
+ private void FallbackRestore()
+ {
+ var lights = FindObjectsOfType<Light>();
+ for (int i =0; i < lights.Length; i++) if (lights[i]) lights[i].enabled = true;
+ }
+ 
+ // ===== Sleep end flow =====
  private void EnterSleepEnd()
  {
  SetState(StoryState.SleepEnd);
@@ -386,27 +463,22 @@ namespace ARKOM.Story
  }
  StartCoroutine(SleepEndTextRoutine());
  }
-
  private IEnumerator SleepEndTextRoutine()
  {
- if (!useHintPresenterForSleepEndText) yield break; if (string.IsNullOrEmpty(sleepEndDisplayText)) yield break; if (sleepEndTextDelay >0f) yield return new WaitForSeconds(sleepEndTextDelay); ShowHint(sleepEndDisplayText, sleepEndTextDuration);
+ if (!useProgressiveHints) yield break; if (!useHintPresenterForSleepEndText) yield break; if (string.IsNullOrEmpty(sleepEndDisplayText)) yield break; if (sleepEndTextDelay >0f) yield return new WaitForSeconds(sleepEndTextDelay); ShowHint(sleepEndDisplayText, sleepEndTextDuration);
  }
 
+ // ===== Helpers =====
  private void LockPlayer(bool locked)
  {
  if (!player) return; player.enabled = !locked;
  }
-
  public void ShowTempHint(string text, float duration =2f) => ShowHint(text, duration);
  private void ShowHint(string text, float duration) { if (hint) hint.Show(text, duration); }
-
  private void SetState(StoryState newState)
  {
- if (state == newState) return; var prev = state; state = newState;
- DLog($"State -> {newState} (from {prev})");
- EventBus.Publish(new StoryStateChangedEvent(prev, newState));
+ if (state == newState) return; var prev = state; state = newState; DLog($"State -> {newState} (from {prev})"); EventBus.Publish(new StoryStateChangedEvent(prev, newState));
  }
-
  void Update()
  {
 #if ENABLE_LEGACY_INPUT_MANAGER
@@ -435,10 +507,8 @@ namespace ARKOM.Story
  {
  DLog("OnUpstairsDoorUnlocked -> auto start radio if assigned");
  if (!string.IsNullOrEmpty(needUpstairsKeyHint)) ShowHint(needUpstairsKeyHint,3.5f);
- // เล่นวิทยุอัตโนมัติเมื่อขึ้นชั้นสอง (ถ้ามี)
  if (upstairsRadio) upstairsRadio.StartRadio();
  }
-
  private void OnKeyPickedGeneric(KeyPickedEvent e)
  {
  if (e.KeyId == "UpstairsDoorKey")
@@ -446,13 +516,11 @@ namespace ARKOM.Story
  if (!string.IsNullOrEmpty(goTurnOffRadioHint)) ShowHint(goTurnOffRadioHint,4f);
  }
  }
-
  private void OnRadioToggled(RadioToggledEvent e)
  {
  if (!e.On)
  {
  if (!string.IsNullOrEmpty(readDiaryHint)) ShowHint(readDiaryHint,3.5f);
- // ถ้าไม่บังคับอ่านไดอารี่ หรือไม่มี collider ให้ไปหาออยต่อได้เลย
  if (!requireDiaryBeforeOoy || !diaryInteractCollider)
  {
  SetState(StoryState.FindOoy);
@@ -460,12 +528,10 @@ namespace ARKOM.Story
  }
  }
  }
-
  private void OnFuseFound(FuseFoundEvent e)
  {
  if (e.Location == FuseLocation.Upstairs)
  {
- // trigger plate crash flow
  StartCoroutine(PlateCrashSequence());
  return;
  }
@@ -479,41 +545,24 @@ namespace ARKOM.Story
  }
  }
 
- private Coroutine caughtRoutine;
-
- [Header("Catch Reset Options")]
- [Tooltip("เวลาค้างหน้าจับก่อนรีเซ็ต (วินาที)")] public float catchHoldSeconds =3.5f;
- [Tooltip("ให้รอผู้เล่นกดที่ตู้ไฟก่อน แล้วค่อยปล่อยผี (ไม่ spawn อัตโนมัติ)")] public bool requireBreakerInteractToSpawnGhost = true;
-
  private void OnPlayerCaughtReset(PlayerCaughtEvent _)
  {
  if (caughtRoutine != null) StopCoroutine(caughtRoutine);
  caughtRoutine = StartCoroutine(CaughtResetFlow());
  }
-
  private IEnumerator CaughtResetFlow()
  {
- // Wait hold time to display catch
  if (catchHoldSeconds >0f) yield return new WaitForSeconds(catchHoldSeconds);
-
- // Restore camera/controls
- var reaction = player ? player.GetComponent<PlayerCatchReaction>() : null;
- if (reaction) reaction.RestoreToDefault();
-
- // Move player to breaker spawn
+ var reaction = player ? player.GetComponent<PlayerCatchReaction>() : null; if (reaction) reaction.RestoreToDefault();
  if (player && breakerSpawnPoint)
  {
  player.transform.position = breakerSpawnPoint.position;
  player.transform.rotation = breakerSpawnPoint.rotation;
  }
-
- // Reset environment to blackout + state to BreakerFail
- if (powerManager) powerManager.SetPower(false);
+ if (powerManager) powerManager.SetPower(false); else FallbackBlackout();
  EventBus.Publish(new BlackoutStartedEvent());
  SetState(StoryState.BreakerFail);
  if (!string.IsNullOrEmpty(checkBreakerHint)) ShowHint(checkBreakerHint,4f);
-
- // Reset ghost pose and stop agent
  if (sceneChasingGhost)
  {
  if (ghostSpawnPoint)
@@ -522,11 +571,8 @@ namespace ARKOM.Story
  sceneChasingGhost.transform.rotation = ghostSpawnPoint.rotation;
  }
  sceneChasingGhost.ResetCatchPose();
- // Do NOT spawn/move yet if requiring breaker interact
  sceneChasingGhost.gameObject.SetActive(requireBreakerInteractToSpawnGhost == false);
  }
-
- // If we don't require breaker press, auto-trigger spawn now
  if (!requireBreakerInteractToSpawnGhost)
  {
  EventBus.Publish(new BreakerFailedEvent());
