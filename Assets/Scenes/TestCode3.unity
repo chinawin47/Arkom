@@ -10859,8 +10859,8 @@ MonoBehaviour:
   ghostRoot: {fileID: 1822871861}
   ghostChase: {fileID: 1822871863}
   streetLightFlicker: {fileID: 239903218}
-  crySfx: {fileID: 0}
-  crashSfx: {fileID: 0}
+  crySfx: {fileID: 1822871862}
+  crashSfx: {fileID: 512970646}
   ghostFootstepsLoop: {fileID: 0}
   catchSfx: {fileID: 0}
   carHornSfx: {fileID: 0}
@@ -16328,11 +16328,11 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: a07a0b636235b454bab083e68ba611a7, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
