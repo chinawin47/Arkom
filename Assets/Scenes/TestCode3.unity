@@ -4851,7 +4851,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Shift + W
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 262b92876b4c6dc41ac91854f7f37a5e, type: 2}
   m_sharedMaterial: {fileID: 8856587757647405569, guid: 262b92876b4c6dc41ac91854f7f37a5e, type: 2}
@@ -11030,7 +11030,7 @@ MonoBehaviour:
   carRoot: {fileID: 512970636}
   hideCarUntilEvent2: 1
   requiresShrineTrigger: 1
-  nextSceneName: 
+  nextSceneName: RoadAnalogue
   afterHornDelay: 1
 --- !u!4 &1261028595
 Transform:
