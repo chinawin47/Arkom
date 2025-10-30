@@ -24140,6 +24140,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2591301353591608121, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
   m_PrefabInstance: {fileID: 1659099856}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &1461938030 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+  m_PrefabInstance: {fileID: 1659099856}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1474232269
 GameObject:
   m_ObjectHideFlags: 0
@@ -26505,6 +26510,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: m_Resource
+      value: 
+      objectReference: {fileID: 8300000, guid: 25a493758f5d31e4eb1a4a90d05e8687, type: 3}
+    - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: sfxSource
+      value: 
+      objectReference: {fileID: 1461938030}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: holdAnchor
       value: 
