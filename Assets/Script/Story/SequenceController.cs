@@ -200,6 +200,10 @@ namespace ARKOM.Story
  if (started) return; started = true;
  state = StoryState.IntroSeated;
  EventBus.Publish(new StoryStateChangedEvent(StoryState.IntroSeated, StoryState.IntroSeated));
+    if (tv && tv.videoPlayer)
+    {
+        tv.videoPlayer.Play();
+    }
  if (!globalLoopStarted && globalLoopSource && !startGlobalLoopOnAwake && startGlobalLoopOnIntro)
  { globalLoopSource.volume = globalLoopVolume; globalLoopSource.Play(); globalLoopStarted = true; }
  if (introSeat && player && !player.IsSeated) player.EnterSeat(introSeat.seatAnchor, introSeat.cameraPoint);
@@ -226,8 +230,13 @@ namespace ARKOM.Story
  private void TriggerBlackout()
  {
  DLog("TriggerBlackout");
- if (tv) tv.PowerOff();
- if (powerManager) powerManager.SetPower(false); else FallbackBlackout();
+            if (tv)
+            {
+                tv.PowerOff();   // ปิดเสียง/คลิปเก่า
+                tv.StopVideo();              // หยุด VideoPlayer
+                tv.SetScreen(tv.staticTexture); // แสดงภาพ static
+            }
+            if (powerManager) powerManager.SetPower(false); else FallbackBlackout();
  EventBus.Publish(new BlackoutStartedEvent());
  if (player && player.IsSeated) player.ExitSeat();
  if (flashlightPickup) flashlightPickup.gameObject.SetActive(true);

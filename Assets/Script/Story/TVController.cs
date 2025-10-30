@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Video; 
 
 namespace ARKOM.Story
 {
@@ -8,11 +9,18 @@ namespace ARKOM.Story
         [Header("Screen / Visual")] public Renderer screenRenderer; // optional
         public Texture2D introTexture;   // ภาพ/คลิปตอนเปิดข่าว
         public Texture2D staticTexture;  // ภาพซ่า
+     
 
         [Header("Audio")] public AudioSource speaker; // แปะบน TV
         public AudioClip newsClip;       // ข่าวเปิดต้น
         public AudioClip staticClip;     // เสียงซ่า
         public float volume = 1f;
+
+        [Header("Video")]
+        public VideoPlayer videoPlayer;// 
+        
+
+
 
         private void Awake()
         {
@@ -26,8 +34,9 @@ namespace ARKOM.Story
         }
         public void PowerOff()
         {
-            SetScreen(null);
-            Stop();
+            StopVideo();                       // หยุด VideoPlayer
+            SetScreen(staticTexture);           // แสดงจอ static/ดำ
+            Stop();                             // หยุดเสียง TV ถ้ามี
         }
         public void PreparePostRestoreNews()
         {
@@ -49,7 +58,7 @@ namespace ARKOM.Story
             SetScreen(null);
         }
 
-        private void SetScreen(Texture2D tex)
+        public void SetScreen(Texture2D tex)
         {
             if (!screenRenderer) return;
             if (screenRenderer.material && screenRenderer.material.HasProperty("_MainTex"))
@@ -67,5 +76,24 @@ namespace ARKOM.Story
             speaker.Play();
         }
         private void Stop(){ if (speaker) speaker.Stop(); }
+
+
+        public void StopVideo()
+        {
+            if (videoPlayer && videoPlayer.isPlaying)
+                videoPlayer.Stop();
+
+            // ล้างภาพค้างจาก RenderTexture
+            if (videoPlayer && videoPlayer.targetTexture)
+            {
+                RenderTexture rt = videoPlayer.targetTexture;
+                RenderTexture.active = rt;
+                GL.Clear(true, true, Color.black); // จอดำ
+                RenderTexture.active = null;
+            }
+
+            // ถ้ามี screenRenderer ก็อัปเดตจอเป็นภาพ static ด้วย
+            SetScreen(staticTexture);
+        }
     }
 }
