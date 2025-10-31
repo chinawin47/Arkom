@@ -95,7 +95,7 @@ namespace ARKOM.Story
 
         [Header("Post-Second Blackout Flow")]
         [Tooltip("ฮินต์หลังดับไฟรอบสองให้ไปเช็คคัตเอ้าท์")] public string checkBreakerHint = "ไปตรวจคัตเอ้าท์";
-        [Tooltip("ฮินต์เริ่มหาโน้ต3 แผ่น")] public string findNotesHint = "อ่านโน้ต 3 แผ่น → หาเลข 4 ปลดล็อคกล่อง";
+        [Tooltip("ฮินต์เริ่มหาโน้ต3 แผ่น")] public string findNotesHint = "อ่านโน้ต 3 แผ่น → หาเลข 4 หลักปลดล็อคกล่อง";
         [Tooltip("ฮินต์ไปที่กล่อง4 หลักหลังหาโน้ตครบ")] public string openBoxHint = "หาและเปิดกล่อง4 หลัก";
 
         [Header("Sleep End Options")] public bool blackScreenOnSleepEnd = true; public float sleepEndFadeTime = 1f; public string sleepEndHintText = "";

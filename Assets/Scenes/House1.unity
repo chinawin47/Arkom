@@ -15331,7 +15331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   displayName: Interact
-  oneTime: 0
+  oneTime: 1
   source: {fileID: 906612675}
   chantClip: {fileID: 8300000, guid: d51ec70b9a627264a8f43825549b3d86, type: 3}
   loop: 1
@@ -23887,7 +23887,7 @@ MonoBehaviour:
   requireDiaryBeforeOoy: 1
   checkBreakerHint: "\u0E44\u0E1B\u0E15\u0E23\u0E27\u0E08\u0E04\u0E31\u0E15\u0E40\u0E2D\u0E49\u0E32\u0E17\u0E4C"
   findNotesHint: "\u0E2D\u0E48\u0E32\u0E19\u0E42\u0E19\u0E49\u0E15 3 \u0E41\u0E1C\u0E48\u0E19
-    \u2192 \u0E2B\u0E32\u0E40\u0E25\u0E02 4 \u0E1B\u0E25\u0E14\u0E25\u0E47\u0E2D\u0E04\u0E01\u0E25\u0E48\u0E2D\u0E07"
+    \u2192 \u0E2B\u0E32\u0E40\u0E25\u0E02 4 \u0E2B\u0E25\u0E31\u0E01\u0E1B\u0E25\u0E14\u0E25\u0E47\u0E2D\u0E04\u0E01\u0E25\u0E48\u0E2D\u0E07"
   openBoxHint: "\u0E2B\u0E32\u0E41\u0E25\u0E30\u0E40\u0E1B\u0E34\u0E14\u0E01\u0E25\u0E48\u0E2D\u0E074
     \u0E2B\u0E25\u0E31\u0E01"
   blackScreenOnSleepEnd: 1
