@@ -41,6 +41,24 @@ public class SettingsManager : MonoBehaviour
         resolutions = Screen.resolutions;
         resolutionDropdown.ClearOptions();
 
+        // หาค่า default16:9
+        int default16_9Index = -1;
+        for (int i =0; i < resolutions.Length; i++)
+        {
+            float aspect = (float)resolutions[i].width / resolutions[i].height;
+            if (Mathf.Abs(aspect - (16f /9f)) <0.01f)
+            {
+                default16_9Index = i;
+                break;
+            }
+        }
+        // ถ้ายังไม่เคยบันทึก resolution ให้ใช้16:9 เป็นค่าเริ่มต้น
+        if (!PlayerPrefs.HasKey(KEY_RESOLUTION) && default16_9Index != -1)
+        {
+            PlayerPrefs.SetInt(KEY_RESOLUTION, default16_9Index);
+            PlayerPrefs.Save();
+        }
+
         // กรองเฉพาะขนาดที่ไม่ซ้ำ (เลือก refresh rate สูงสุด)
         var uniqueRes = new System.Collections.Generic.Dictionary<string, Resolution>();
         for (int i =0; i < resolutions.Length; i++)
@@ -60,6 +78,7 @@ public class SettingsManager : MonoBehaviour
         });
         // สร้าง options string หลังจาก sort
         var options = new System.Collections.Generic.List<string>();
+        int currentResolutionIndex =0;
         foreach (var res in filteredRes)
         {
             string option = res.width + " x " + res.height + " @ " + res.refreshRate + "Hz";
@@ -89,6 +108,9 @@ public class SettingsManager : MonoBehaviour
         fullscreenToggle.onValueChanged.AddListener(SetFullScreen);
 
         // ---------- LOAD SETTINGS ----------
+        masterSlider.value = PlayerPrefs.GetFloat("MasterVolume",1f);
+        sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume",1f);
+        sensitivitySlider.value = PlayerPrefs.GetFloat("MouseSensitivity",1f);
         masterSlider.value = PlayerPrefs.GetFloat("MasterVolume",1f);
         sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume",1f);
         sensitivitySlider.value = PlayerPrefs.GetFloat("MouseSensitivity",1f);
