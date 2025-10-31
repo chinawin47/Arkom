@@ -32,13 +32,20 @@ public class PaperInteractable : Interactable
 
         viewer.Show(note);
 
-        // แจ้ง SequenceController ว่าอ่านโน้ต/ไดอารี่อแล้ว เพื่อปลดล็อคไป FindOoy ถ้าถูกตั้งค่าไว้
+        // ปลดล็อก player เมื่อปิดโน้ต
+        viewer.OnClose += () =>
+        {
+            if (SequenceController.Instance.player != null)
+                SequenceController.Instance.player.enabled = true;
+        };
+
+        // แจ้ง SequenceController ว่าอ่านโน้ตแล้ว
         if (notifyDiaryRead && SequenceController.Instance)
         {
             SequenceController.Instance.NotifyDiaryRead();
         }
 
-        // NEW: set story flag for note collection if defined
+        // อัปเดต story flag
         if (!string.IsNullOrEmpty(note.flagOnRead) && StoryFlags.Instance)
         {
             StoryFlags.Instance.Add(note.flagOnRead);

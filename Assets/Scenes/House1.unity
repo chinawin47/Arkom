@@ -1010,6 +1010,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Door
       objectReference: {fileID: 0}
+    - target: {fileID: 8513859187771203891, guid: bc6ca575c3ccce645ab427f1e980ae6a, type: 3}
+      propertyPath: m_TagString
+      value: Door
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1200,7 +1204,7 @@ GameObject:
   - component: {fileID: 94829305}
   m_Layer: 0
   m_Name: NoteB
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9950,6 +9954,7 @@ MonoBehaviour:
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: Pliers
+  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
 --- !u!1 &625825234
 GameObject:
   m_ObjectHideFlags: 0
@@ -15196,7 +15201,7 @@ GameObject:
   - component: {fileID: 906612675}
   m_Layer: 0
   m_Name: "\u0E27\u0E34\u0E17\u0E22\u0E38\u0E2B\u0E49\u0E2D\u0E07\u0E1E\u0E23\u0E30"
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15446,6 +15451,7 @@ MonoBehaviour:
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: Pliers
+  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
 --- !u!65 &908206476
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -17322,6 +17328,7 @@ MonoBehaviour:
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: UpstairsDoorKey
+  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
 --- !u!65 &1039599048
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -19345,13 +19352,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1136298134}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0.016457787, y: -0.01779, z: 0.01617}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 393187241}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &1144561078 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4248073863674194902, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
@@ -23866,11 +23873,11 @@ MonoBehaviour:
   maxVoiceWaitSeconds: 3
   pliersToolId: Pliers
   needPliersHint: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E04\u0E35\u0E21\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E25\u0E14\u0E42\u0E0B\u0E48"
-  upstairsFootstepVoice: {fileID: 8300000, guid: d51ec70b9a627264a8f43825549b3d86, type: 3}
+  upstairsFootstepVoice: {fileID: 0}
   upstairsFootstepVoiceVolume: 1
   objectiveFindNoiseSource: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E15\u0E49\u0E19\u0E15\u0E2D\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07"
   upstairsDoor: {fileID: 623003598}
-  needUpstairsKeyHint: 
+  needUpstairsKeyHint: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E27\u0E34\u0E17\u0E22\u0E38\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14"
   prayerRoom: {fileID: 1663275752}
   goTurnOffRadioHint: "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E14\u0E31\u0E07\u0E21\u0E32\u0E08\u0E32\u0E01\u0E27\u0E34\u0E17\u0E22\u0E38\u0E43\u0E19\u0E2B\u0E49\u0E2D\u0E07"
   readDiaryHint: "\u0E21\u0E35\u0E44\u0E14\u0E2D\u0E32\u0E23\u0E35\u0E48\u0E02\u0E2D\u0E07\u0E2D\u0E2D\u0E22
@@ -23879,8 +23886,8 @@ MonoBehaviour:
   diaryInteractCollider: {fileID: 0}
   requireDiaryBeforeOoy: 1
   checkBreakerHint: "\u0E44\u0E1B\u0E15\u0E23\u0E27\u0E08\u0E04\u0E31\u0E15\u0E40\u0E2D\u0E49\u0E32\u0E17\u0E4C"
-  findNotesHint: "\u0E2B\u0E32\u0E01\u0E23\u0E30\u0E14\u0E32\u0E29\u0E42\u0E19\u0E49\u0E153
-    \u0E41\u0E1C\u0E48\u0E19"
+  findNotesHint: "\u0E2D\u0E48\u0E32\u0E19\u0E42\u0E19\u0E49\u0E15 3 \u0E41\u0E1C\u0E48\u0E19
+    \u2192 \u0E2B\u0E32\u0E40\u0E25\u0E02 4 \u0E1B\u0E25\u0E14\u0E25\u0E47\u0E2D\u0E04\u0E01\u0E25\u0E48\u0E2D\u0E07"
   openBoxHint: "\u0E2B\u0E32\u0E41\u0E25\u0E30\u0E40\u0E1B\u0E34\u0E14\u0E01\u0E25\u0E48\u0E2D\u0E074
     \u0E2B\u0E25\u0E31\u0E01"
   blackScreenOnSleepEnd: 1
@@ -24444,7 +24451,7 @@ GameObject:
   - component: {fileID: 1475234843}
   m_Layer: 0
   m_Name: Note1
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -25898,7 +25905,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 356}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1573446258
@@ -25955,8 +25962,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 512
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -26986,6 +26993,7 @@ MonoBehaviour:
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: UpstairsDoorKey
+  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
 --- !u!4 &1663280414 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
@@ -28594,7 +28602,7 @@ GameObject:
   - component: {fileID: 1766478438}
   m_Layer: 0
   m_Name: NoteC
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32144,7 +32152,7 @@ GameObject:
   - component: {fileID: 2062055181}
   m_Layer: 0
   m_Name: NoteA
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

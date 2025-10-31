@@ -6,6 +6,8 @@ using TMPro; // add
 
 public class NoteViewerHUD : MonoBehaviour
 {
+    public event System.Action OnClose;
+
     [Header("Panel")]
     public GameObject panel;
     public TMP_Text titleText;  // Text -> TMP_Text
@@ -94,5 +96,7 @@ public class NoteViewerHUD : MonoBehaviour
 
         isOpen = false;
         currentNote = null;
+
+        OnClose?.Invoke();
     }
 }
