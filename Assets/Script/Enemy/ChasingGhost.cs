@@ -57,7 +57,7 @@ namespace ARKOM.Enemy
         [Tooltip("ระยะที่ถือว่าไปถึงเวย์พอยต์แล้ว")] public float waypointArriveDistance = 0.5f;
 
         [Header("Search Settings")] public bool onlyInvestigateWhenChasing = true;
-        [Tooltip("เวลายืนตรวจหน้าตู้ก่อนกลับลาดตระเวน")] public float searchHoldTime =2.5f;
+        [Tooltip("เวลายืนตรวจหน้าตู้ก่อนกลับลาดตระเวน")] public float searchHoldTime = 3.0f;
 
         private NavMeshAgent agent; private PlayerController player;
         private float lastRepath; private float seenAccum;
@@ -323,16 +323,10 @@ namespace ARKOM.Enemy
         private bool SeeTarget()
         {
             if (!target) return false;
-            // ถ้าผู้เล่นซ่อนและบานตู้ปิด ให้มองไม่เห็น
+            // ถ้าผู้เล่นซ่อน ให้ผีมองไม่เห็นเสมอ (ดีไซน์: เข้าตู้แล้วปลอดภัยจากสายตา)
             if (PlayerStealth.IsHidden)
             {
-                // ลองหาตู้จาก CurrentHideSpot ถ้ามี DoorInteractable และปิดอยู่
-                var spot = PlayerStealth.CurrentHideSpot;
-                if (spot)
-                {
-                    var door = spot.GetComponentInChildren<DoorInteractable>();
-                    if (door && !door.isOpen) return false;
-                }
+                return false;
             }
             Vector3 to = (target.position - transform.position);
             float dist = to.magnitude;

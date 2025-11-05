@@ -23,6 +23,15 @@ public class ToolGateInteractable : Interactable
     public SequenceController.StoryState requiredStoryState = SequenceController.StoryState.BreakerFail;
     [Tooltip("ข้อความเตือนเมื่อยังไม่ถึงขั้นเนื้อเรื่อง")]
     public string notReadyHint = "ยังไม่ถึงเวลาไปชั้นสอง";
+    [Tooltip("เวลาที่แสดงข้อความ 'ยังไม่ถึงเวลาไปชั้นสอง' (วินาที)")] public float notReadyHintDuration =2.5f;
+
+    [Header("Fuse Gate")]
+    [Tooltip("เช็คว่าต้องใส่ฟิวส์ให้ครบก่อนถึงจะเริ่มขั้นตอนปลดโซ่")]
+    public bool checkFusesBeforeUnlock = true;
+    [Tooltip("ข้อความเตือนเมื่อฟิวส์ยังไม่ครบ")]
+    public string needFusesHint = "ไปใส่ฟิวก่อน";
+    [Tooltip("เวลาที่แสดงข้อความเตือนฟิวส์ (วินาที)")]
+    public float fuseHintDuration =2.5f;
 
     [Header("Door Control")] public DoorInteractable doorToOpen;
     [Tooltip("เปิดประตูทันทีเมื่อปลดล็อคสำเร็จ")] public bool autoOpenDoorOnUnlock = true;
@@ -34,7 +43,9 @@ public class ToolGateInteractable : Interactable
     [Tooltip("สภาพประตูปิด (จะถูกปิดเมื่อเปิดสำเร็จ)")] public GameObject lockedVisual;
     [Tooltip("สภาพประตูเปิดแล้ว")] public GameObject unlockedVisual;
 
-    [Header("Audio")] public AudioClip unlockSfx; public float sfxVolume =1f;
+    [Header("Audio")]
+    [Tooltip("เสียงตอนปลดล็อคสำเร็จ (ประตูเปิด)")] public AudioClip unlockSfx; public float sfxVolume =1f;
+    [Tooltip("เสียงตอนใช้คีมตัดโซ่")] public AudioClip chainCutSfx; [Range(0f,1f)] public float chainCutVolume =1f;
 
     private bool chainRemoved; // ใช้คีมแล้ว
     private bool unlocked; // เปิดสำเร็จแล้ว
@@ -43,7 +54,7 @@ public class ToolGateInteractable : Interactable
     {
         EventBus.Subscribe<KeyPickedEvent>(OnKeyPicked);
         EventBus.Subscribe<StoryStateChangedEvent>(OnStoryState);
-        // รีเฟรชตามสถานะปัจจุบัน (เช่น กลับเข้าฉาก)
+        // รีเฟรชชาตามสถานะปัจจุบัน (เช่น กลับเข้าฉาก)
         RefreshByStory();
     }
     void OnDisable()
@@ -96,7 +107,14 @@ public class ToolGateInteractable : Interactable
         // Gate ด้วยเนื้อเรื่องก่อน
         if (requireStoryGate && !IsStoryAllowed())
         {
-            SequenceController.Instance?.ShowTempHint(notReadyHint,2.5f);
+            SequenceController.Instance?.ShowTempHint(notReadyHint, notReadyHintDuration);
+            return;
+        }
+
+        // เพิ่ม: ถ้ายังใส่ฟิวส์ไม่ครบ ให้เตือนและไม่ไปต่อขั้นคีม
+        if (checkFusesBeforeUnlock && !FuseInventory.HasEnough)
+        {
+            SequenceController.Instance?.ShowTempHint(needFusesHint, fuseHintDuration);
             return;
         }
 
@@ -111,6 +129,8 @@ public class ToolGateInteractable : Interactable
             // ตัดโซ่
             chainRemoved = true;
             if (chainVisual) chainVisual.SetActive(false);
+            if (chainCutSfx) AudioSource.PlayClipAtPoint(chainCutSfx, transform.position, chainCutVolume);
+
             // หลังตัดโซ่เสร็จ ถ้าไม่ต้องใช้กุญแจ -> เปิดเลย
             if (!requiresKey)
             {
@@ -144,6 +164,7 @@ public class ToolGateInteractable : Interactable
         if (!requiresKey) return;
         if (!chainRemoved) return; // ยังไม่ตัดโซ่ ไม่เปิดอัตโนมัติ
         if (requireStoryGate && !IsStoryAllowed()) return; // ยังไม่ถึงขั้นเนื้อเรื่อง
+        if (checkFusesBeforeUnlock && !FuseInventory.HasEnough) return; // ฟิวส์ยังไม่ครบ
         if (HasRequiredKeys())
         {
             OpenNow(null); // เปิดอัตโนมัติเมื่อมีครบตามเงื่อนไข

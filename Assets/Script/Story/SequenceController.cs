@@ -602,7 +602,11 @@ namespace ARKOM.Story
             platesCleaned = true;  // ถือว่าเก็บครบแล้ว
             SetState(StoryState.RestorePower);  // ไปขั้นตอนใส่ฟิวส์ต่อ
             if (breakerInteractable) breakerInteractable.gameObject.SetActive(true);
-           
+
+            // ถ้ามีระบบ hint ให้แสดงข้อความขั้นต่อไป
+            if (!useProgressiveHints)
+                ShowHint("ไปใส่ฟิวส์ที่คัตเอ้าท์", 4f);
+
         }
     }
 }

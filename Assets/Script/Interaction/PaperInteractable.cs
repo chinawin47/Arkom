@@ -30,12 +30,16 @@ public class PaperInteractable : Interactable
             return;
         }
 
+        // »Ô´¡ÒÃ¤Çº¤ØÁ¼ÙéàÅè¹ÃÐËÇèÒ§ÍèÒ¹â¹éµ
+        if (SequenceController.Instance && SequenceController.Instance.player)
+            SequenceController.Instance.player.enabled = false;
+
         viewer.Show(note);
 
-        // »Å´ÅçÍ¡ player àÁ×èÍ»Ô´â¹éµ
+        // »Å´ÅçÍ¡ player áÅÐÃÕÅçÍ¡àÁÒÊìàÁ×èÍ»Ô´â¹éµ (NoteViewerHUD ¨ÐÅçÍ¡ cursor ãËéÍÂÙèáÅéÇ)
         viewer.OnClose += () =>
         {
-            if (SequenceController.Instance.player != null)
+            if (SequenceController.Instance && SequenceController.Instance.player)
                 SequenceController.Instance.player.enabled = true;
         };
 

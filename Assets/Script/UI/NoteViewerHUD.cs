@@ -18,6 +18,8 @@ public class NoteViewerHUD : MonoBehaviour
     [Header("Behavior")]
     public bool pauseGameOnOpen = true;
     public bool unlockCursorOnOpen = true;
+    [Tooltip("Force lock/hide cursor on close regardless of previous state")]
+    public bool forceLockCursorOnClose = true;
 
     private float prevTimeScale = 1f;
     private bool prevCursorVisible;
@@ -90,8 +92,14 @@ public class NoteViewerHUD : MonoBehaviour
 
         if (unlockCursorOnOpen)
         {
+            // restore to previous first
             Cursor.lockState = prevLockState;
             Cursor.visible = prevCursorVisible;
+        }
+        if (forceLockCursorOnClose)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
 
         isOpen = false;

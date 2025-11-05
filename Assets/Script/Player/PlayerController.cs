@@ -43,6 +43,24 @@ namespace ARKOM.Player
         public bool lockPitchWhileSeated = true; // ล็อกมุมก้ม/เงยตอนนั่ง
         public float seatedPitch = 0f;          // มุมคงที่ถ้าล็อก
 
+        [Header("Footsteps")]
+        public bool enableFootsteps = true;
+        public AudioSource footstepSource;
+        public AudioClip[] footstepClips;
+        [Range(0f, 1f)] public float footstepVolume = 0.85f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (เดิน)")] public float stepIntervalWalk = 0.5f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (วิ่ง)")] public float stepIntervalSprint = 0.35f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (ย่อง)")] public float stepIntervalCrouch = 0.7f;
+
+        [Header("Head Bob")]
+        public bool enableHeadBob = true;
+        [Tooltip("ความสูงส่ายกล้องตอนเดิน")] public float bobAmountWalk = 0.03f;
+        [Tooltip("ความสูงส่ายกล้องตอนวิ่ง")] public float bobAmountSprint = 0.05f;
+        [Tooltip("ความสูงส่ายกล้องตอนย่อง")] public float bobAmountCrouch = 0.02f;
+        [Tooltip("ความถี่ส่ายกล้องตอนเดิน")] public float bobFrequencyWalk = 10f;
+        [Tooltip("ความถี่ส่ายกล้องตอนวิ่ง")] public float bobFrequencySprint = 14f;
+        [Tooltip("ความถี่ส่ายกล้องตอนย่อง")] public float bobFrequencyCrouch = 8f;
+
         private PlayerInputActions inputActions;
         private CharacterController controller;
         private Vector2 moveInput;
@@ -66,6 +84,11 @@ namespace ARKOM.Player
         private bool storedCameraDefault;
         private bool usingCameraOverride;
 
+        // Head bob helpers
+        private Vector3 camLocalPosBase;
+        private float bobTimer;
+        private float stepTimer;
+
         private IInteractable focus;
         public IInteractable CurrentFocus => focus;
         public event Action<IInteractable> FocusChanged;
@@ -82,6 +105,17 @@ namespace ARKOM.Player
             {
                 hasFlashlight = true;
                 AttachFlashlightParent();
+            }
+
+            if (enableFootsteps)
+            {
+                if (!footstepSource)
+                {
+                    footstepSource = gameObject.AddComponent<AudioSource>();
+                    footstepSource.playOnAwake = false;
+                    footstepSource.loop = false;
+                    footstepSource.spatialBlend = 1f;
+                }
             }
         }
 
@@ -103,6 +137,8 @@ namespace ARKOM.Player
         {
             Cursor.lockState = CursorLockMode.Locked;
             xRotation = cameraRoot ? cameraRoot.localEulerAngles.x : 0f;
+            if (cameraRoot)
+                camLocalPosBase = cameraRoot.localPosition;
         }
 
         private void OnGameState(GameStateChangedEvent e)
@@ -130,6 +166,8 @@ namespace ARKOM.Player
             UpdateFocus();
             HandleMovement();
             HandleCamera();
+            HandleHeadBob();
+            HandleFootsteps();
         }
 
         private void HandleSeatToggleInput()
@@ -212,6 +250,13 @@ namespace ARKOM.Player
                 cameraRoot.localRotation = cameraLocalRotDefault;
             }
             usingCameraOverride = false;
+
+            // Ensure leaving any seat clears stealth/hide flags (e.g., closet)
+            PlayerStealth.Clear();
+
+            // reset headbob back to base
+            if (cameraRoot)
+                camLocalPosBase = cameraRoot.localPosition;
         }
 
         private void UpdateFocus()
@@ -282,6 +327,57 @@ namespace ARKOM.Player
                 cameraRoot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
             transform.Rotate(Vector3.up * mouseX);
+        }
+
+        private void HandleHeadBob()
+        {
+            if (!enableHeadBob || isSeated || cameraRoot == null)
+                return;
+
+            Vector3 horizVel = controller ? new Vector3(controller.velocity.x, 0f, controller.velocity.z) : Vector3.zero;
+            bool moving = horizVel.magnitude > 0.1f && controller.isGrounded;
+            float amp = isCrouching ? bobAmountCrouch : (isSprinting && moveInput.y > 0.1f ? bobAmountSprint : bobAmountWalk);
+            float freq = isCrouching ? bobFrequencyCrouch : (isSprinting && moveInput.y > 0.1f ? bobFrequencySprint : bobFrequencyWalk);
+
+            if (moving)
+            {
+                bobTimer += Time.deltaTime * freq;
+                float y = Mathf.Sin(bobTimer) * amp;
+                float x = Mathf.Cos(bobTimer * 0.5f) * amp * 0.5f;
+                cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, camLocalPosBase + new Vector3(x, y, 0f), Time.deltaTime * 10f);
+            }
+            else
+            {
+                bobTimer = 0f;
+                cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, camLocalPosBase, Time.deltaTime * 8f);
+            }
+        }
+
+        private void HandleFootsteps()
+        {
+            if (!enableFootsteps || isSeated || footstepClips == null || footstepClips.Length == 0 || footstepSource == null)
+                return;
+
+            Vector3 horizVel = controller ? new Vector3(controller.velocity.x, 0f, controller.velocity.z) : Vector3.zero;
+            bool moving = horizVel.magnitude > 0.2f && controller.isGrounded;
+            if (!moving)
+            {
+                stepTimer = 0f;
+                return;
+            }
+
+            float interval = isCrouching ? stepIntervalCrouch : (isSprinting && moveInput.y > 0.1f ? stepIntervalSprint : stepIntervalWalk);
+            stepTimer -= Time.deltaTime;
+            if (stepTimer <= 0f)
+            {
+                var clip = footstepClips[UnityEngine.Random.Range(0, footstepClips.Length)];
+                if (clip)
+                {
+                    footstepSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
+                    footstepSource.PlayOneShot(clip, footstepVolume);
+                }
+                stepTimer = interval;
+            }
         }
 
         private void ToggleCrouch()

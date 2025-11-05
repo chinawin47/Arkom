@@ -10,6 +10,7 @@ public class KeyPickup : PickupInteractable
     [Header("Key Settings")]
     public string keyId = "UpstairsBoxKey";
     public string needPowerHint = "ไฟยังไม่มา อย่าเพิ่งเก็บกุญแจตอนนี้";
+    [Tooltip("ข้อความที่แสดงเมื่อเก็บสำเร็จ")] public string pickupHint = "ได้กุญแจมาแล้ว";
 
     private bool canPickup = false;
 
@@ -37,7 +38,7 @@ public class KeyPickup : PickupInteractable
         {
             Debug.Log("❌ ยังเก็บกุญแจไม่ได้ ต้องเปิดไฟก่อน!");
             // ถ้ามีระบบ UIHint:
-            // SequenceController.Instance?.ShowTempHint("ไฟยังไม่มา เก็บไม่ได้", 2.5f);
+            // SequenceController.Instance?.ShowTempHint("ไฟยังไม่มา เก็บไม่ได้",2.5f);
             return;
         }
 
@@ -46,19 +47,17 @@ public class KeyPickup : PickupInteractable
 
     protected override void ApplyPickup(PlayerController player)
     {
-        // ✅ เช็กว่าไฟเปิดครบ 3 ฟิวส์หรือยังจาก SequenceController
+        // ✅ เช็กว่าไฟเปิดครบ3 ฟิวส์หรือยังจาก SequenceController
         if (SequenceController.Instance != null && !SequenceController.Instance.PlatesCleaned)
         {
-            SequenceController.Instance.ShowTempHint(needPowerHint, 2.5f);
+            SequenceController.Instance.ShowTempHint(needPowerHint,2.5f);
             return; // ❌ หยุด ไม่ให้เก็บกุญแจ
         }
 
         // ✅ เก็บกุญแจปกติ
         Keyring.Add(keyId);
-        SequenceController.Instance?.ShowTempHint("ได้กุญแจมาแล้ว", 2.5f);
+        if (!string.IsNullOrEmpty(pickupHint))
+            SequenceController.Instance?.ShowTempHint(pickupHint,2.5f);
     }
-
-
-
 }
 
