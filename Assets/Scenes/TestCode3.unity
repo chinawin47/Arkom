@@ -1681,6 +1681,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!65 &227180724
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227180716}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.020662742, y: 0.052961253, z: 0.018184645}
+  m_Center: {x: 0, y: 0.0034507753, z: 0.013006545}
 --- !u!1 &239903217
 GameObject:
   m_ObjectHideFlags: 0
@@ -4382,6 +4403,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4134099532631708740, guid: 280191a778d321140b9ab0574c52d979, type: 3}
       insertIndex: -1
       addedObject: {fileID: 227180720}
+    - targetCorrespondingSourceObject: {fileID: -4134099532631708740, guid: 280191a778d321140b9ab0574c52d979, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 227180724}
   m_SourcePrefab: {fileID: 100100000, guid: 280191a778d321140b9ab0574c52d979, type: 3}
 --- !u!1 &512970636 stripped
 GameObject:
@@ -4568,6 +4592,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 1261028594}
+  forceTriggerOn: 1
+  reapplyEveryFrame: 1
 --- !u!1001 &517088651
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4708,6 +4734,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 512970637}
+  animStateName: CarForGame
+  startCheckDelay: 0.05
+  completeThreshold: 0.99
+  autoWatchAnimation: 1
 --- !u!1 &526694733
 GameObject:
   m_ObjectHideFlags: 0
@@ -11514,6 +11544,20 @@ MonoBehaviour:
   seatToggleKey: 20
   lockPitchWhileSeated: 1
   seatedPitch: 0
+  enableFootsteps: 1
+  footstepSource: {fileID: 0}
+  footstepClips: []
+  footstepVolume: 0.85
+  stepIntervalWalk: 0.5
+  stepIntervalSprint: 0.35
+  stepIntervalCrouch: 0.7
+  enableHeadBob: 1
+  bobAmountWalk: 0.03
+  bobAmountSprint: 0.05
+  bobAmountCrouch: 0.02
+  bobFrequencyWalk: 10
+  bobFrequencySprint: 14
+  bobFrequencyCrouch: 8
 --- !u!143 &1359231074
 CharacterController:
   m_ObjectHideFlags: 0
