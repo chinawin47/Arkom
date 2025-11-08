@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 5597656}
   m_Layer: 0
   m_Name: Plane.002 (26)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -940,7 +940,7 @@ GameObject:
   - component: {fileID: 134875457}
   m_Layer: 0
   m_Name: Plane.002 (15)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1740,6 +1740,18 @@ MonoBehaviour:
   autoStartLoopOnStart: 1
   loopBurstDuration: 3
   loopCooldownRange: {x: 3, y: 6}
+  enableAudio: 1
+  flickerStartClip: {fileID: 0}
+  flickerStartVolume: 1
+  flickerEndClip: {fileID: 0}
+  flickerEndVolume: 1
+  hardBlinkClip: {fileID: 0}
+  hardBlinkClipProbability: 0.25
+  hardBlinkClipCooldown: 0.15
+  audioPlayPoint: {fileID: 0}
+  useGlobalAudioManager: 1
+  createLocalAudioSource: 1
+  pitchJitter: {x: 0.95, y: 1.05}
 --- !u!4 &239903219
 Transform:
   m_ObjectHideFlags: 0
@@ -2198,7 +2210,7 @@ GameObject:
   - component: {fileID: 332730659}
   m_Layer: 0
   m_Name: Plane.002 (9)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2306,7 +2318,7 @@ GameObject:
   - component: {fileID: 335681264}
   m_Layer: 0
   m_Name: Plane.002 (17)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2516,7 +2528,7 @@ GameObject:
   - component: {fileID: 376667616}
   m_Layer: 0
   m_Name: Plane.002 (23)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2624,7 +2636,7 @@ GameObject:
   - component: {fileID: 377144167}
   m_Layer: 0
   m_Name: Plane.002 (21)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5674,6 +5686,18 @@ MonoBehaviour:
   autoStartLoopOnStart: 1
   loopBurstDuration: 3
   loopCooldownRange: {x: 3, y: 6}
+  enableAudio: 1
+  flickerStartClip: {fileID: 0}
+  flickerStartVolume: 1
+  flickerEndClip: {fileID: 0}
+  flickerEndVolume: 1
+  hardBlinkClip: {fileID: 0}
+  hardBlinkClipProbability: 0.25
+  hardBlinkClipCooldown: 0.15
+  audioPlayPoint: {fileID: 0}
+  useGlobalAudioManager: 1
+  createLocalAudioSource: 1
+  pitchJitter: {x: 0.95, y: 1.05}
 --- !u!4 &655370444
 Transform:
   m_ObjectHideFlags: 0
@@ -6341,7 +6365,7 @@ GameObject:
   - component: {fileID: 709818146}
   m_Layer: 0
   m_Name: Plane.002 (16)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6449,7 +6473,7 @@ GameObject:
   - component: {fileID: 721557219}
   m_Layer: 0
   m_Name: Plane.002 (11)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6667,6 +6691,18 @@ MonoBehaviour:
   autoStartLoopOnStart: 1
   loopBurstDuration: 3
   loopCooldownRange: {x: 3, y: 6}
+  enableAudio: 1
+  flickerStartClip: {fileID: 0}
+  flickerStartVolume: 1
+  flickerEndClip: {fileID: 0}
+  flickerEndVolume: 1
+  hardBlinkClip: {fileID: 0}
+  hardBlinkClipProbability: 0.25
+  hardBlinkClipCooldown: 0.15
+  audioPlayPoint: {fileID: 0}
+  useGlobalAudioManager: 1
+  createLocalAudioSource: 1
+  pitchJitter: {x: 0.95, y: 1.05}
 --- !u!4 &739573744
 Transform:
   m_ObjectHideFlags: 0
@@ -8183,7 +8219,7 @@ GameObject:
   - component: {fileID: 953671537}
   m_Layer: 0
   m_Name: Terrain
-  m_TagString: Untagged
+  m_TagString: Grass
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9268,7 +9304,7 @@ GameObject:
   - component: {fileID: 1027845409}
   m_Layer: 0
   m_Name: Plane.002 (22)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9665,7 +9701,7 @@ GameObject:
   - component: {fileID: 1116827887}
   m_Layer: 0
   m_Name: Plane.002 (14)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11547,10 +11583,111 @@ MonoBehaviour:
   enableFootsteps: 1
   footstepSource: {fileID: 0}
   footstepClips: []
+  sprintFootstepClips: []
+  crouchFootstepClips: []
   footstepVolume: 0.85
   stepIntervalWalk: 0.5
   stepIntervalSprint: 0.35
   stepIntervalCrouch: 0.7
+  useSurfaceFootsteps: 1
+  groundRayDistance: 2
+  groundRayMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  footstepSets:
+  - tag: Wood
+    walkClips:
+    - {fileID: 8300000, guid: 9ea11a2d13d536e4e8441a0f5895995c, type: 3}
+    - {fileID: 8300000, guid: 203ac8b6f07070e4f93f1c1a6fff06c3, type: 3}
+    - {fileID: 8300000, guid: ac6649006dbee9e4685752e124111da7, type: 3}
+    - {fileID: 8300000, guid: f42914d98b070f741b2feee96a2988ee, type: 3}
+    - {fileID: 8300000, guid: feb62160ad1f8334ab037017b843d162, type: 3}
+    - {fileID: 8300000, guid: 001f691d110d55648871a03f446ffa08, type: 3}
+    - {fileID: 8300000, guid: 6478d7fb30f301b4fa8f74d5d1dad094, type: 3}
+    - {fileID: 8300000, guid: f1547ad8fbfa4f24d83e5a445aee860d, type: 3}
+    - {fileID: 8300000, guid: 47832b56ccba5bc408b1d5aac1871746, type: 3}
+    - {fileID: 8300000, guid: 3d132da7af60f1145a3deb6a8bc42a08, type: 3}
+    sprintClips:
+    - {fileID: 8300000, guid: 9e68ea1ebd76aa44c8cfa5beb9850830, type: 3}
+    - {fileID: 8300000, guid: 1deb201b8bf8f89479323a74e421150b, type: 3}
+    - {fileID: 8300000, guid: 7c518e8469a403b4c981664ecb28a79a, type: 3}
+    - {fileID: 8300000, guid: 1f2844efbf7abf647ba3d75d510f823a, type: 3}
+    - {fileID: 8300000, guid: fa95ebee958fb0e41a42a832aab767eb, type: 3}
+    - {fileID: 8300000, guid: 0cfeb72dea261a54cb7672590d2d1656, type: 3}
+    - {fileID: 8300000, guid: 924e3e09c67130946a6d7b666e8b8b68, type: 3}
+    - {fileID: 8300000, guid: 6da235e2573048249bcbe608f984ff48, type: 3}
+    - {fileID: 8300000, guid: fdc05ea2699023143ba7e93533cc5a0b, type: 3}
+    - {fileID: 8300000, guid: f26cf9ded47cf0140957490a16f85acc, type: 3}
+    crouchClips: []
+  - tag: Grass
+    walkClips:
+    - {fileID: 8300000, guid: 551d550ab98e3cc4bb7793e752fe8628, type: 3}
+    - {fileID: 8300000, guid: 18e761ff5ef14fd4588d9283fcc9b829, type: 3}
+    - {fileID: 8300000, guid: 9c0c1f9411026f749bcb3746cd557bec, type: 3}
+    - {fileID: 8300000, guid: 38cb68a2a49e89c46bea091d75b27976, type: 3}
+    - {fileID: 8300000, guid: a62172e6f7275ff4f94c17edc8dfdd0d, type: 3}
+    - {fileID: 8300000, guid: 6a0b4267ac8ee8448b619bc9a3bca6d9, type: 3}
+    - {fileID: 8300000, guid: fc32c6fd07980144996b811e5d1f2971, type: 3}
+    - {fileID: 8300000, guid: 030e6a43a7d08bd4581668d53a9808f4, type: 3}
+    - {fileID: 8300000, guid: 56ea356e65429294f9098ef523fdb70b, type: 3}
+    - {fileID: 8300000, guid: 5799109e817d3704889f0499d06a23be, type: 3}
+    - {fileID: 8300000, guid: d3f3cc8ad058cad408e97b1875afec82, type: 3}
+    - {fileID: 8300000, guid: ed546d9af9b4e884cbe8d8047fa8c80a, type: 3}
+    - {fileID: 8300000, guid: ba6466c0db2d12649a51ba73749902d3, type: 3}
+    - {fileID: 8300000, guid: cee5e6c416359ef4cbb722f0cd3a5a14, type: 3}
+    - {fileID: 8300000, guid: be378a7ab9654eb41ab1e85da1701672, type: 3}
+    - {fileID: 8300000, guid: f3a60c89c8456614895e7e11520a19d5, type: 3}
+    - {fileID: 8300000, guid: 6f344c93a9337684995c262534fa85f1, type: 3}
+    - {fileID: 8300000, guid: e4f1c11a5b7fd27468ea8b131669f3a5, type: 3}
+    - {fileID: 8300000, guid: 33d23eef6cc170546a3c9ce3c9bef1f4, type: 3}
+    - {fileID: 8300000, guid: 3ba5fb80a58d03741b65a691dc434897, type: 3}
+    - {fileID: 8300000, guid: adf6356301a9fc14aaa03c2cfac83816, type: 3}
+    - {fileID: 8300000, guid: 5ad92c54c3f49654db8d62382e5f559b, type: 3}
+    - {fileID: 8300000, guid: c73956075c85d384a891d9da3762e5c9, type: 3}
+    - {fileID: 8300000, guid: a9e685e1af34121498a651c484426703, type: 3}
+    - {fileID: 8300000, guid: 09305e4eb78a4cf4ebee70c4b976fa18, type: 3}
+    - {fileID: 8300000, guid: a1d0e2d83ca2030428f1c772f47b9087, type: 3}
+    - {fileID: 8300000, guid: ff032cb5e57bd114ea87189c2ed8b3c9, type: 3}
+    - {fileID: 8300000, guid: ba6029ca248ff2247a1a9ca238be48ff, type: 3}
+    - {fileID: 8300000, guid: 3642dbceb97dc5d419752955421aca54, type: 3}
+    - {fileID: 8300000, guid: b4b126977b28e1d499d8f7f7c580d488, type: 3}
+    - {fileID: 8300000, guid: c79fa9a699dd93647a0729d726adb632, type: 3}
+    - {fileID: 8300000, guid: e41709e0fc1f25449a1e6290e3da9b87, type: 3}
+    - {fileID: 8300000, guid: eb9d0826f01bad94293a3ca6fa1f8427, type: 3}
+    - {fileID: 8300000, guid: a6801ed1ae1ed5648ba823232d0fcdf4, type: 3}
+    - {fileID: 8300000, guid: c98c6b4375d0b1e4193f9e678966559a, type: 3}
+    - {fileID: 8300000, guid: dd26e9057c37e2943993f701a764fc3e, type: 3}
+    - {fileID: 8300000, guid: 326f222e206f8d84bbced6f9d6a0f08e, type: 3}
+    - {fileID: 8300000, guid: fbb8ee09f6d45f54d84383b81ca5a5cd, type: 3}
+    - {fileID: 8300000, guid: 3fb042d8273dfd141955633820660a4f, type: 3}
+    - {fileID: 8300000, guid: eb73ae3e299f426418476df5f1fb0f53, type: 3}
+    - {fileID: 8300000, guid: 553615e2b22e2db44b1e1057668753ab, type: 3}
+    - {fileID: 8300000, guid: 837b2ac0dee4b2e49b7c4229129a2cd2, type: 3}
+    - {fileID: 8300000, guid: 55a810a67df804d4487e8f990523255b, type: 3}
+    - {fileID: 8300000, guid: dffb2ef44d2dd254aa89c2546475cf3c, type: 3}
+    - {fileID: 8300000, guid: 74a0ecc6d5d37bf4f8fe4544dfcd9e8b, type: 3}
+    - {fileID: 8300000, guid: 9133d407969ea654a9589b2169db5382, type: 3}
+    - {fileID: 8300000, guid: 6d1a50aa1ed16a645bfc3a480d77712c, type: 3}
+    - {fileID: 8300000, guid: 9cd93e6b4948e0c4abc089546af87c38, type: 3}
+    - {fileID: 8300000, guid: 97b97fae0b55ce141bff2005c510492e, type: 3}
+    - {fileID: 8300000, guid: 96860d4e7cdc1f746906da7b7bc7a388, type: 3}
+    sprintClips:
+    - {fileID: 8300000, guid: 9a30499e47789df48aa9bdb1ec7b0982, type: 3}
+    - {fileID: 8300000, guid: 1d7e7e6569aab5a45a837f470eaddc8b, type: 3}
+    - {fileID: 8300000, guid: 31be579b280d0bc459635877e8c45aee, type: 3}
+    - {fileID: 8300000, guid: c3f3efc1106f84643a38bd21f6826aaf, type: 3}
+    - {fileID: 8300000, guid: 2de8329adc6f9b944a5ab0875fb59924, type: 3}
+    - {fileID: 8300000, guid: f39f1d43c5b9fbf449e7b39d056e5aad, type: 3}
+    - {fileID: 8300000, guid: d3ea0567dbe95714eb0ca07f43a37a96, type: 3}
+    - {fileID: 8300000, guid: 161d5a427e88d594f9906708ccdc5663, type: 3}
+    - {fileID: 8300000, guid: 7a5ff4a806216b14ab9dba35a4fb258c, type: 3}
+    - {fileID: 8300000, guid: bd5653e52c4636e4aa3b0ced8f49a18d, type: 3}
+    - {fileID: 8300000, guid: 6c8508d96905ea749ae50b49916fde55, type: 3}
+    - {fileID: 8300000, guid: 35bda0c39b1fbe64196a669bfb99757d, type: 3}
+    - {fileID: 8300000, guid: 6259119f201fafa4ca80646eff6b4b1f, type: 3}
+    - {fileID: 8300000, guid: b04914b5801123b4dafba88cbcb5bc74, type: 3}
+    - {fileID: 8300000, guid: 3ec9ef3892d02044a9d62e412eb45ffb, type: 3}
+    crouchClips: []
   enableHeadBob: 1
   bobAmountWalk: 0.03
   bobAmountSprint: 0.05
@@ -11738,7 +11875,7 @@ GameObject:
   - component: {fileID: 1420003062}
   m_Layer: 0
   m_Name: Plane.002 (18)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -14173,7 +14310,7 @@ GameObject:
   - component: {fileID: 1602618738}
   m_Layer: 0
   m_Name: Plane.002 (24)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -14539,7 +14676,7 @@ GameObject:
   - component: {fileID: 1650269558}
   m_Layer: 0
   m_Name: Plane.002 (10)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15821,7 +15958,7 @@ GameObject:
   - component: {fileID: 1743001089}
   m_Layer: 0
   m_Name: Plane.002 (13)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -16761,7 +16898,7 @@ GameObject:
   - component: {fileID: 1862584083}
   m_Layer: 0
   m_Name: Plane.002 (27)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17077,7 +17214,7 @@ GameObject:
   - component: {fileID: 1921721147}
   m_Layer: 0
   m_Name: Plane.002 (25)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17461,7 +17598,7 @@ GameObject:
   - component: {fileID: 1939454558}
   m_Layer: 0
   m_Name: Plane.002 (12)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17741,7 +17878,7 @@ GameObject:
   - component: {fileID: 1948841533}
   m_Layer: 0
   m_Name: Plane.002 (19)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -18717,7 +18854,7 @@ GameObject:
   - component: {fileID: 2042161505}
   m_Layer: 0
   m_Name: Plane.002 (20)
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

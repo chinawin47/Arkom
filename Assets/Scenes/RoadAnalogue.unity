@@ -2783,6 +2783,62 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 255479266}
   m_Mesh: {fileID: 2935084934594742884, guid: 52225bc4b63db684d8578fa518a1631e, type: 3}
+--- !u!1 &273365200
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 273365202}
+  - component: {fileID: 273365201}
+  m_Layer: 0
+  m_Name: SubtitleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &273365201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 273365200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff2725041f3360640b9f9665930abbc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rootCanvas: {fileID: 0}
+  canvasGroup: {fileID: 0}
+  subtitleText: {fileID: 0}
+  fadeDuration: 0.2
+  hideBetweenLines: 0
+  autoCreateIfMissing: 0
+  cueLibrary:
+  - {fileID: 11400000, guid: 548d931557f138140bbbfd142f60e114, type: 2}
+  namedCues: []
+  autoPlayOnStart: 0
+  autoPlayStartDelay: 0
+  autoSequence: []
+--- !u!4 &273365202
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 273365200}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 960, y: 540, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &296579807
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15605,3 +15661,4 @@ SceneRoots:
   - {fileID: 883598546}
   - {fileID: 1098798973}
   - {fileID: 1785100346}
+  - {fileID: 273365202}

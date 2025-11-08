@@ -59,6 +59,10 @@ namespace ARKOM.Enemy
         [Header("Search Settings")] public bool onlyInvestigateWhenChasing = true;
         [Tooltip("เวลายืนตรวจหน้าตู้ก่อนกลับลาดตระเวน")] public float searchHoldTime = 3.0f;
 
+        [Header("Audio")]
+        [Tooltip("เสียงตอนจับผู้เล่นสำเร็จ")] public AudioClip catchSfx;
+        [Range(0f,1f)] public float catchSfxVolume = 1f;
+
         private NavMeshAgent agent; private PlayerController player;
         private float lastRepath; private float seenAccum;
         private Vector3 lastKnownPos; private Vector3 spawnPos;
@@ -365,6 +369,12 @@ namespace ARKOM.Enemy
             if (animator && !string.IsNullOrEmpty(catchTriggerParam))
             {
                 try { animator.SetTrigger(catchTriggerParam); } catch { }
+            }
+            // play catch sfx
+            if (catchSfx)
+            {
+                if (sfxSource) sfxSource.PlayOneShot(catchSfx, catchSfxVolume);
+                else AudioSource.PlayClipAtPoint(catchSfx, transform.position, catchSfxVolume);
             }
             EventBus.Publish(new PlayerCaughtEvent(transform, catchCamAnchor, holdAnchor));
         }

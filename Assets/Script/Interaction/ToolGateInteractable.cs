@@ -26,9 +26,9 @@ public class ToolGateInteractable : Interactable
     [Tooltip("เวลาที่แสดงข้อความ 'ยังไม่ถึงเวลาไปชั้นสอง' (วินาที)")] public float notReadyHintDuration =2.5f;
 
     [Header("Fuse Gate")]
-    [Tooltip("เช็คว่าต้องใส่ฟิวส์ให้ครบก่อนถึงจะเริ่มขั้นตอนปลดโซ่")]
+    [Tooltip("เช็คว่าต้องใส่ฟิวส์ให้ครบ/ผ่านขั้น RestorePower ก่อนถึงจะเริ่มขั้นตอนปลดโซ่")]
     public bool checkFusesBeforeUnlock = true;
-    [Tooltip("ข้อความเตือนเมื่อฟิวส์ยังไม่ครบ")]
+    [Tooltip("ข้อความเตือนเมื่อฟิวส์/ไฟยังไม่พร้อม")]
     public string needFusesHint = "ไปใส่ฟิวก่อน";
     [Tooltip("เวลาที่แสดงข้อความเตือนฟิวส์ (วินาที)")]
     public float fuseHintDuration =2.5f;
@@ -111,8 +111,8 @@ public class ToolGateInteractable : Interactable
             return;
         }
 
-        // เพิ่ม: ถ้ายังใส่ฟิวส์ไม่ครบ ให้เตือนและไม่ไปต่อขั้นคีม
-        if (checkFusesBeforeUnlock && !FuseInventory.HasEnough)
+        // เช็คฟิวส์/สถานะไฟ: ใช้ StoryState หลัง PowerRestored (InvestigateUpstairs เป็นต้นไป)
+        if (checkFusesBeforeUnlock && !IsFuseGateSatisfied())
         {
             SequenceController.Instance?.ShowTempHint(needFusesHint, fuseHintDuration);
             return;
@@ -164,7 +164,7 @@ public class ToolGateInteractable : Interactable
         if (!requiresKey) return;
         if (!chainRemoved) return; // ยังไม่ตัดโซ่ ไม่เปิดอัตโนมัติ
         if (requireStoryGate && !IsStoryAllowed()) return; // ยังไม่ถึงขั้นเนื้อเรื่อง
-        if (checkFusesBeforeUnlock && !FuseInventory.HasEnough) return; // ฟิวส์ยังไม่ครบ
+        if (checkFusesBeforeUnlock && !IsFuseGateSatisfied()) return; // สถานะไฟยังไม่พร้อม
         if (HasRequiredKeys())
         {
             OpenNow(null); // เปิดอัตโนมัติเมื่อมีครบตามเงื่อนไข
@@ -177,6 +177,19 @@ public class ToolGateInteractable : Interactable
         if (!seq) return true; // ถ้าไม่มีคอนโทรลเลอร์ ให้ผ่าน
         // อนุญาตเมื่อ CurrentState >= requiredStoryState (เปรียบเทียบตามค่า enum)
         return (int)seq.CurrentState >= (int)requiredStoryState;
+    }
+
+    // ใช้แทนการเช็ค FuseInventory.HasEnough เพื่อหลีกเลี่ยงเคสที่ฟิวส์ถูกใส่ไปแล้ว (count จะเหลือ0)
+    private bool IsFuseGateSatisfied()
+    {
+        var seq = SequenceController.Instance;
+        if (seq)
+        {
+            // หลัง RestorePower จะเซ็ต state ไป InvestigateUpstairs -> ถือว่าไฟพร้อม
+            return (int)seq.CurrentState >= (int)SequenceController.StoryState.InvestigateUpstairs;
+        }
+        // fallback: ถ้าไม่มี SequenceController ให้ใช้สต็อกฟิวส์
+        return FuseInventory.HasEnough;
     }
 
     private bool HasRequiredKeys()

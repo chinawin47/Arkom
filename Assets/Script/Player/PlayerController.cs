@@ -46,11 +46,26 @@ namespace ARKOM.Player
         [Header("Footsteps")]
         public bool enableFootsteps = true;
         public AudioSource footstepSource;
-        public AudioClip[] footstepClips;
-        [Range(0f, 1f)] public float footstepVolume = 0.85f;
-        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (เดิน)")] public float stepIntervalWalk = 0.5f;
-        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (วิ่ง)")] public float stepIntervalSprint = 0.35f;
-        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (ย่อง)")] public float stepIntervalCrouch = 0.7f;
+        [Tooltip("คลิปเสียงเดิน (Default)")] public AudioClip[] footstepClips; // เดิน
+        [Tooltip("คลิปเสียงวิ่ง (Default)")] public AudioClip[] sprintFootstepClips; // วิ่ง
+        [Tooltip("คลิปเสียงย่อง (Default)")] public AudioClip[] crouchFootstepClips; // ย่อง (ถ้าเว้นว่างใช้เดิน)
+        [Range(0f,1f)] public float footstepVolume =0.85f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (เดิน)")] public float stepIntervalWalk =0.5f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (วิ่ง)")] public float stepIntervalSprint =0.35f;
+        [Tooltip("ช่วงเวลาเสียงก้าวเดิน (ย่อง)")] public float stepIntervalCrouch =0.7f;
+
+        [Header("Footstep Surfaces (Tag Based)")] public bool useSurfaceFootsteps = true;
+        [Tooltip("Raycast ลงพื้นเพื่ออ่าน Tag (เมตร)")] public float groundRayDistance =2f;
+        [Tooltip("เลเยอร์สำหรับตรวจพื้น")] public LayerMask groundRayMask = ~0;
+        [System.Serializable]
+        public class FootstepSet
+        {
+            [Tooltip("Tag ของ Collider พื้น")] public string tag;
+            [Tooltip("คลิปเดินสำหรับ Tag นี้")] public AudioClip[] walkClips;
+            [Tooltip("คลิปวิ่งสำหรับ Tag นี้ (เว้นว่างจะ fallback ไป walkClips)")] public AudioClip[] sprintClips;
+            [Tooltip("คลิปย่องสำหรับ Tag นี้ (เว้นว่างจะ fallback ไป walkClips)")] public AudioClip[] crouchClips;
+        }
+        [Tooltip("แมป Tag -> ชุดเสียง เช่น Floor_Ground, Floor_Upstairs, Outside")] public FootstepSet[] footstepSets;
 
         [Header("Head Bob")]
         public bool enableHeadBob = true;
@@ -353,31 +368,78 @@ namespace ARKOM.Player
             }
         }
 
+        // ===== Footsteps Handling =====
         private void HandleFootsteps()
         {
-            if (!enableFootsteps || isSeated || footstepClips == null || footstepClips.Length == 0 || footstepSource == null)
-                return;
+            if (!enableFootsteps || isSeated || footstepSource == null) return;
 
-            Vector3 horizVel = controller ? new Vector3(controller.velocity.x, 0f, controller.velocity.z) : Vector3.zero;
-            bool moving = horizVel.magnitude > 0.2f && controller.isGrounded;
+            var clips = ResolveFootstepClips(out var sprintClipsOut, out var crouchClipsOut);
+            // เลือกชุดตามสถานะเคลื่อนที่
+            AudioClip[] useClips;
+            if (isCrouching)
+                useClips = (crouchClipsOut != null && crouchClipsOut.Length >0) ? crouchClipsOut : ((clips != null && clips.Length >0) ? clips : crouchFootstepClips);
+            else if (isSprinting && moveInput.y >0.1f)
+                useClips = (sprintClipsOut != null && sprintClipsOut.Length >0) ? sprintClipsOut : ((clips != null && clips.Length >0) ? clips : sprintFootstepClips);
+            else
+                useClips = (clips != null && clips.Length >0) ? clips : footstepClips;
+
+            if (useClips == null || useClips.Length ==0) return;
+
+            Vector3 horizVel = controller ? new Vector3(controller.velocity.x,0f, controller.velocity.z) : Vector3.zero;
+            bool moving = horizVel.magnitude >0.2f && controller.isGrounded;
             if (!moving)
             {
-                stepTimer = 0f;
+                stepTimer =0f;
                 return;
             }
 
-            float interval = isCrouching ? stepIntervalCrouch : (isSprinting && moveInput.y > 0.1f ? stepIntervalSprint : stepIntervalWalk);
+            float interval = isCrouching ? stepIntervalCrouch : (isSprinting && moveInput.y >0.1f ? stepIntervalSprint : stepIntervalWalk);
             stepTimer -= Time.deltaTime;
-            if (stepTimer <= 0f)
+            if (stepTimer <=0f)
             {
-                var clip = footstepClips[UnityEngine.Random.Range(0, footstepClips.Length)];
+                var clip = useClips[UnityEngine.Random.Range(0, useClips.Length)];
                 if (clip)
                 {
-                    footstepSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
+                    footstepSource.pitch = UnityEngine.Random.Range(0.95f,1.05f);
                     footstepSource.PlayOneShot(clip, footstepVolume);
                 }
                 stepTimer = interval;
             }
+        }
+
+        // คืนชุด (walk), sprint, crouch แยกตาม Tag (หรือ default)
+        private AudioClip[] ResolveFootstepClips(out AudioClip[] sprintSet, out AudioClip[] crouchSet)
+        {
+            sprintSet = null; crouchSet = null;
+            if (!useSurfaceFootsteps)
+            {
+                sprintSet = sprintFootstepClips;
+                crouchSet = crouchFootstepClips;
+                return footstepClips;
+            }
+
+            Vector3 origin = transform.position + Vector3.up *0.1f;
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundRayDistance, groundRayMask, QueryTriggerInteraction.Ignore))
+            {
+                string groundTag = hit.collider.gameObject.tag;
+                if (!string.IsNullOrEmpty(groundTag) && footstepSets != null)
+                {
+                    for (int i =0; i < footstepSets.Length; i++)
+                    {
+                        var set = footstepSets[i];
+                        if (set != null && !string.IsNullOrEmpty(set.tag) && set.tag == groundTag)
+                        {
+                            sprintSet = (set.sprintClips != null && set.sprintClips.Length >0) ? set.sprintClips : set.walkClips;
+                            crouchSet = (set.crouchClips != null && set.crouchClips.Length >0) ? set.crouchClips : set.walkClips;
+                            return set.walkClips;
+                        }
+                    }
+                }
+            }
+            // fallback default
+            sprintSet = sprintFootstepClips;
+            crouchSet = crouchFootstepClips;
+            return footstepClips;
         }
 
         private void ToggleCrouch()
