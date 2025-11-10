@@ -15592,7 +15592,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.448
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -23506,7 +23506,7 @@ MonoBehaviour:
   unlockedVisual: {fileID: 0}
   unlockSfx: {fileID: 8300000, guid: 2212d92f05daaf745bbdc312d07c5e7e, type: 3}
   sfxVolume: 1
-  chainCutSfx: {fileID: 0}
+  chainCutSfx: {fileID: 8300000, guid: 2212d92f05daaf745bbdc312d07c5e7e, type: 3}
   chainCutVolume: 1
 --- !u!1 &1351714745 stripped
 GameObject:
