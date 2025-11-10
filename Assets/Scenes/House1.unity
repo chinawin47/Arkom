@@ -337,7 +337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   states:
-  - state: 0
+  - state: 2
     enableEmitters:
     - {fileID: 1527859461}
     disableEmitters: []
@@ -26250,8 +26250,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   clips:
-  - clip: {fileID: 8300000, guid: 4194c2eb16657c24f824ccbd8d584b2e, type: 3}
-    weight: 0.1
+  - clip: {fileID: 8300000, guid: a07a0b636235b454bab083e68ba611a7, type: 3}
+    weight: 0.101
     volume: 0.5
     pitchRange: {x: 0.95, y: 1.05}
   intervalRange: {x: 6, y: 14}
@@ -26263,7 +26263,7 @@ MonoBehaviour:
   use3D: 1
   minDistance: 1
   maxDistance: 25
-  spawnMode: 2
+  spawnMode: 3
   spawnPoints:
   - point: {fileID: 1527859462}
     weight: 0.106
@@ -27281,7 +27281,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2935773521271409027, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: m_Enabled
