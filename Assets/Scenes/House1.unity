@@ -337,8 +337,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   states:
-  - state: 0
-    enableEmitters: []
+  - state: 2
+    enableEmitters:
+    - {fileID: 1527859461}
     disableEmitters: []
     onEnterSfx: {fileID: 0}
     sfx3D: 0
@@ -6095,39 +6096,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b913cd4a8807784abf1aec662632a4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mic: {fileID: 0}
-  loudnessBar: {fileID: 1451734415}
-  colorGradient:
-    serializedVersion: 2
-    key0: {r: 0, g: 1, b: 0.19503093, a: 1}
-    key1: {r: 1, g: 0, b: 0, a: 1}
-    key2: {r: 0, g: 0, b: 0, a: 0}
-    key3: {r: 0, g: 0, b: 0, a: 0}
-    key4: {r: 0, g: 0, b: 0, a: 0}
-    key5: {r: 0, g: 0, b: 0, a: 0}
-    key6: {r: 0, g: 0, b: 0, a: 0}
-    key7: {r: 0, g: 0, b: 0, a: 0}
-    ctime0: 0
-    ctime1: 65535
-    ctime2: 0
-    ctime3: 0
-    ctime4: 0
-    ctime5: 0
-    ctime6: 0
-    ctime7: 0
-    atime0: 0
-    atime1: 65535
-    atime2: 0
-    atime3: 0
-    atime4: 0
-    atime5: 0
-    atime6: 0
-    atime7: 0
-    m_Mode: 0
-    m_ColorSpace: -1
-    m_NumColorKeys: 2
-    m_NumAlphaKeys: 2
-  hideWhenInactive: 1
 --- !u!1 &336512917 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -4089714144998020464, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
@@ -15624,7 +15592,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.448
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -23538,7 +23506,7 @@ MonoBehaviour:
   unlockedVisual: {fileID: 0}
   unlockSfx: {fileID: 8300000, guid: 2212d92f05daaf745bbdc312d07c5e7e, type: 3}
   sfxVolume: 1
-  chainCutSfx: {fileID: 0}
+  chainCutSfx: {fileID: 8300000, guid: 2212d92f05daaf745bbdc312d07c5e7e, type: 3}
   chainCutVolume: 1
 --- !u!1 &1351714745 stripped
 GameObject:
@@ -26268,7 +26236,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1527859461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26282,14 +26250,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   clips:
-  - clip: {fileID: 8300000, guid: ca9518880f8de124085e66db500ae5ba, type: 3}
-    weight: 0.1
+  - clip: {fileID: 8300000, guid: a07a0b636235b454bab083e68ba611a7, type: 3}
+    weight: 0.101
     volume: 0.5
     pitchRange: {x: 0.95, y: 1.05}
-  - clip: {fileID: 8300000, guid: aac95b7332dab8040b494ee463c340e1, type: 3}
-    weight: 0.1
-    volume: 0.5
-    pitchRange: {x: 0.85, y: 1.15}
   intervalRange: {x: 6, y: 14}
   playOnEnable: 1
   playProbability: 0.5
@@ -26299,10 +26263,10 @@ MonoBehaviour:
   use3D: 1
   minDistance: 1
   maxDistance: 25
-  spawnMode: 0
+  spawnMode: 3
   spawnPoints:
   - point: {fileID: 1527859462}
-    weight: 0.1
+    weight: 0.106
   areaSize: {x: 1, y: 1, z: 1}
   randomInsideArea: 1
   useAroundPlayer: 0
@@ -27334,7 +27298,7 @@ PrefabInstance:
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: catchSfx
       value: 
-      objectReference: {fileID: 8300000, guid: 25a493758f5d31e4eb1a4a90d05e8687, type: 3}
+      objectReference: {fileID: 8300000, guid: ac19565f8a0939d44abe72e3614c2c8d, type: 3}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: sfxSource
       value: 
