@@ -18,7 +18,10 @@ namespace ARKOM.Scenes.Road
  public AudioSource crySfx; // Event2/3 (loop)
  public AudioSource crashSfx; // Event2 (optional)
  [Tooltip("Footstep/Chase loop on ghost")] public AudioSource ghostFootstepsLoop;
- [Tooltip("SFX when player is caught by the ghost (Event2)")] public AudioSource catchSfx;
+ [Tooltip("SFX when player is caught by the ghost (Event2)")] public AudioSource catchSfx; // can be empty; use clip fallback below
+ [Tooltip("If no AudioSource.clip or you prefer a one-shot clip, assign here")] public AudioClip catchSfxClip;
+ [Range(0f,1f)] public float catchSfxVolume = 1f;
+ [Tooltip("Use AudioManager for 3D one-shot if available when using clip fallback")] public bool catchUseGlobalAudioManager = true;
  [Tooltip("Car horn SFX to play near shrine at the end of Event3")] public AudioSource carHornSfx;
 
  [Header("VFX / Objects")]
@@ -338,7 +341,8 @@ namespace ARKOM.Scenes.Road
  AttachCatchCamera();
  // ปิดการควบคุมผู้เล่นชั่วคราว
  if (player) player.enabled = false;
- if (catchSfx) catchSfx.Play();
+ // play catch SFX robustly
+ PlayCatchSfx();
  if (catchOverlay) catchOverlay.SetActive(true);
  yield return new WaitForSeconds(catchResetDelay);
  if (catchOverlay) catchOverlay.SetActive(false);
@@ -346,6 +350,32 @@ namespace ARKOM.Scenes.Road
  yield break;
  }
  yield return null;
+ }
+ }
+
+ private void PlayCatchSfx()
+ {
+ // Prefer assigned AudioSource if it has a clip
+ if (catchSfx && catchSfx.clip)
+ {
+ // position 3D source near catch camera or ghost
+ Vector3 pos = catchCameraPoint ? catchCameraPoint.position : (ghostRoot ? ghostRoot.transform.position : transform.position);
+ catchSfx.transform.position = pos;
+ catchSfx.PlayOneShot(catchSfx.clip, 1f);
+ return;
+ }
+ // Fallback to clip one-shot
+ if (catchSfxClip)
+ {
+ Vector3 pos = catchCameraPoint ? catchCameraPoint.position : (ghostRoot ? ghostRoot.transform.position : transform.position);
+ if (catchUseGlobalAudioManager && ARKOM.Audio.AudioManager.Instance)
+ {
+ ARKOM.Audio.AudioManager.Instance.Play3D(catchSfxClip, pos, catchSfxVolume, 1f,1f, 2f, 18f);
+ }
+ else
+ {
+ AudioSource.PlayClipAtPoint(catchSfxClip, pos, catchSfxVolume);
+ }
  }
  }
 

@@ -28,9 +28,16 @@ namespace ARKOM.Audio
  [Header("Filters")] public bool requirePlayerNear = false; public float playerRadius =15f;
  [Tooltip("ชื่อ Tag ผู้เล่น (เว้นว่างจะค้น PlayerController เอง)")] public string playerTag;
 
- [Header("Occlusion (3D)")] public bool occlusion = true; [Range(0f,1f)] public float occludedVolumeFactor =0.6f; public LayerMask occlusionMask = ~0;
+ [Header("Occlusion (3D) ")] public bool occlusion = true; [Range(0f,1f)] public float occludedVolumeFactor =0.6f; public LayerMask occlusionMask = ~0;
 
- private float nextTime; private Transform player; private int lastClipIndex = -1; private float nextIntervalOverride;
+ [Header("Adaptive Frequency (AroundPlayer)")] [Tooltip("ลดความถี่อัตโนมัติเมื่อใช้ AroundPlayer เพื่อไม่ให้ถี่เกิน (แนะนำเปิดถ้ามีคลิปเดียว)")] public bool adaptiveAroundPlayer = true;
+ [Tooltip("ขั้นต่ำระหว่างการเล่น (วินาที) ในโหมด AroundPlayer")][Min(0f)] public float aroundPlayerMinInterval = 7f;
+ [Tooltip("สุ่มเวลานิ่งเพิ่มเติมหลังเล่น (วินาที) ในโหมด AroundPlayer")][Min(0f)] public Vector2 aroundPlayerExtraSilence = new Vector2(3f,10f);
+ [Tooltip("ถ้ามีหลายคลิป ให้คูณช่วงเวลาขั้นต่ำด้วยค่านี้ (ลดความจำเป็นต้องรอเมื่อมีความหลากหลาย)")] public float multiClipMinIntervalFactor = 0.5f;
+ [Tooltip("เพิ่มเวลาเงียบเมื่อผู้เล่นอยู่ใกล้มาก (ลดสแปมใกล้ตัว). 0 = ปิด, 1 = เพิ่มเต็มตามระยะใกล้.")] [Range(0f,1f)] public float nearPlayerSilenceBoost = 0.4f;
+ [Tooltip("ระยะที่ถือว่าใกล้มากเพื่อเพิ่ม silence boost (เมตร)")] public float nearPlayerThreshold = 4f;
+
+ private float nextTime; private Transform player; private int lastClipIndex = -1; private float nextIntervalOverride; private float lastPlayTime;
 
  void OnEnable()
  {
@@ -74,12 +81,17 @@ namespace ARKOM.Audio
  if (Vector3.Distance(transform.position, player.position) > playerRadius) return;
  }
 
- // probability gate
- if (playProbability <1f && Random.value > Mathf.Clamp01(playProbability))
+ // adaptive check for AroundPlayer
+ bool isAround = (spawnMode == SpawnMode.AroundPlayer) || (spawnMode == SpawnMode.SinglePoint && useAroundPlayer);
+ if (adaptiveAroundPlayer && isAround)
  {
- // skip this cycle but keep schedule based on intervalRange
- return;
+ float minInt = aroundPlayerMinInterval;
+ if (clips.Count >1) minInt *= Mathf.Clamp(multiClipMinIntervalFactor, 0.05f,1f);
+ if (Time.time - lastPlayTime < minInt) return; // too soon
  }
+
+ // probability gate
+ if (playProbability <1f && Random.value > Mathf.Clamp01(playProbability)) return;
 
  var entry = PickClip(); if (entry == null || !entry.clip) return;
 
@@ -93,8 +105,27 @@ namespace ARKOM.Audio
  else AudioManager.Instance.Play2D(entry.clip, vol, entry.pitchRange.x, entry.pitchRange.y);
  }
 
+ lastPlayTime = Time.time;
+
  // enforce post-play silence if configured
  if (postPlaySilence >0f) nextIntervalOverride = postPlaySilence;
+
+ // adaptive extra silence
+ if (adaptiveAroundPlayer && isAround)
+ {
+ float extra = Random.Range(aroundPlayerExtraSilence.x, aroundPlayerExtraSilence.y);
+ if (player && nearPlayerSilenceBoost >0f)
+ {
+ float d = Vector3.Distance(player.position, transform.position);
+ if (d <= nearPlayerThreshold)
+ {
+ float boost = Mathf.Lerp(nearPlayerSilenceBoost, 0f, d / Mathf.Max(0.01f, nearPlayerThreshold));
+ extra += extra * boost;
+ }
+ }
+ // override only if larger than existing nextIntervalOverride
+ if (extra > nextIntervalOverride) nextIntervalOverride = extra;
+ }
  }
 
  private void EnsurePlayerRef()
@@ -148,27 +179,21 @@ namespace ARKOM.Audio
  float r = Random.Range(Mathf.Min(aroundPlayerRadius.x, aroundPlayerRadius.y), Mathf.Max(aroundPlayerRadius.x, aroundPlayerRadius.y));
  Vector2 dir2 = Random.insideUnitCircle.normalized; Vector3 dir = new Vector3(dir2.x,0f, dir2.y);
  pos = player.position + dir * r;
- // align to ground if mask provided
  if (groundRayMask.value !=0)
  {
- if (Physics.Raycast(pos + Vector3.up *2f, Vector3.down, out var hit,5f, groundRayMask, QueryTriggerInteraction.Ignore))
- pos = hit.point;
+ if (Physics.Raycast(pos + Vector3.up *2f, Vector3.down, out var hit,5f, groundRayMask, QueryTriggerInteraction.Ignore)) pos = hit.point;
  }
  }
  break;
  }
 
- // simple occlusion -> reduce volume if blocked
  if (occlusion && use3D && player)
  {
  Vector3 origin = player.position + Vector3.up *1.6f;
  Vector3 to = pos - origin; float dist = to.magnitude;
  if (dist >0.1f)
  {
- if (Physics.Raycast(origin, to / dist, dist, occlusionMask, QueryTriggerInteraction.Ignore))
- {
- volumeMul *= occludedVolumeFactor;
- }
+ if (Physics.Raycast(origin, to / dist, dist, occlusionMask, QueryTriggerInteraction.Ignore)) volumeMul *= occludedVolumeFactor;
  }
  }
  return pos;
@@ -192,7 +217,6 @@ namespace ARKOM.Audio
  {
  Gizmos.color = Color.cyan;
  Gizmos.DrawWireSphere(transform.position,0.25f);
-
  if (spawnMode == SpawnMode.BoxVolume && areaSize != Vector3.zero)
  {
  Gizmos.color = new Color(0f,0.6f,1f,0.25f);

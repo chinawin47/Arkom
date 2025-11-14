@@ -10929,6 +10929,9 @@ MonoBehaviour:
   crashSfx: {fileID: 512970646}
   ghostFootstepsLoop: {fileID: 0}
   catchSfx: {fileID: 0}
+  catchSfxClip: {fileID: 8300000, guid: ac19565f8a0939d44abe72e3614c2c8d, type: 3}
+  catchSfxVolume: 1
+  catchUseGlobalAudioManager: 1
   carHornSfx: {fileID: 0}
   carCrashFx: {fileID: 0}
   catchOverlay: {fileID: 0}
@@ -16740,10 +16743,16 @@ MonoBehaviour:
   RunSpeed: 4.5
   followDistance: 3
   turnSpeed: 5
+  catchTriggerDistance: 1.2
   animSpeedParam: Speed
   animRunParam: Run
   animMoveXParam: X
   animMoveYParam: Y
+  catchClip: {fileID: 8300000, guid: ac19565f8a0939d44abe72e3614c2c8d, type: 3}
+  catchVolume: 1
+  catchPitchRange: {x: 0.95, y: 1.05}
+  useGlobalAudioManager: 1
+  createLocalSourceIfNeeded: 1
   animator: {fileID: 1822871864}
 --- !u!95 &1822871864 stripped
 Animator:
