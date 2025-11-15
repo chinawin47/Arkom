@@ -1314,6 +1314,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: c9f81fc3fd9581649bda3114b9099e6a, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &94829306
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25027,6 +25028,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: 8fb4ae70e0c9aa141a6e9a10cbfc660b, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &1475234844
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -27297,7 +27299,7 @@ PrefabInstance:
     - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: m_Resource
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 8300000, guid: 2de851a0a831d2946bc257d6af869e49, type: 3}
     - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
       value: 1
@@ -27305,7 +27307,7 @@ PrefabInstance:
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: catchSfx
       value: 
-      objectReference: {fileID: 8300000, guid: ac19565f8a0939d44abe72e3614c2c8d, type: 3}
+      objectReference: {fileID: 8300000, guid: 1d731a99f8e48754aa6da51da36b6141, type: 3}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: sfxSource
       value: 
@@ -29307,6 +29309,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: b8c1eee7544bc0f4485eca340bb75b7d, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &1766478439
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -33089,6 +33092,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: d29083a33e342ce438d5a49a73c64bf1, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &2062055182
 BoxCollider:
   m_ObjectHideFlags: 0
