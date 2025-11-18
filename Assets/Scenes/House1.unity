@@ -1292,7 +1292,7 @@ GameObject:
   - component: {fileID: 94829305}
   m_Layer: 0
   m_Name: NoteB
-  m_TagString: Door
+  m_TagString: Cube
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -19039,6 +19039,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Radio
       objectReference: {fileID: 0}
+    - target: {fileID: 974065211516077140, guid: e90ccc52c4a0d684cb0ec86c062cc003, type: 3}
+      propertyPath: m_TagString
+      value: Cube
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20079,13 +20083,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1159161503}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -40.941, y: 1.764, z: -10.571949}
+  m_LocalRotation: {x: -0.18354377, y: 0.18248294, z: -0.6828703, w: 0.6831544}
+  m_LocalPosition: {x: -40.941, y: 1.65, z: -10.571949}
   m_LocalScale: {x: 122.1185, y: 122.118454, z: 122.118454}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -0.089, y: 30, z: -90}
 --- !u!1 &1161916640 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7995841751105344342, guid: 61aa599d80d5f754ea5076e21bd2f1d7, type: 3}
@@ -24991,7 +24995,7 @@ GameObject:
   - component: {fileID: 1475234843}
   m_Layer: 0
   m_Name: Note1
-  m_TagString: Door
+  m_TagString: Cube
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -27588,6 +27592,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8ed4b309f2fb4084c889d56c97acd4b3, type: 3}
+      propertyPath: m_TagString
+      value: Cube
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29287,7 +29295,7 @@ GameObject:
   - component: {fileID: 1766478438}
   m_Layer: 0
   m_Name: NoteC
-  m_TagString: Door
+  m_TagString: Cube
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -33070,7 +33078,7 @@ GameObject:
   - component: {fileID: 2062055181}
   m_Layer: 0
   m_Name: NoteA
-  m_TagString: Door
+  m_TagString: Cube
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -35485,7 +35493,7 @@ GameObject:
   - component: {fileID: 2113851765}
   m_Layer: 0
   m_Name: FrontHouse_Door.007
-  m_TagString: Untagged
+  m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
