@@ -340,7 +340,8 @@ MonoBehaviour:
   - state: 2
     enableEmitters:
     - {fileID: 1527859461}
-    disableEmitters: []
+    disableEmitters:
+    - {fileID: 1527859461}
     onEnterSfx: {fileID: 0}
     sfx3D: 0
     sfxVolume: 0
@@ -1313,6 +1314,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: c9f81fc3fd9581649bda3114b9099e6a, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &94829306
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25002,13 +25004,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1475234841}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.497, y: -1.694, z: 3.574}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -4.334, y: -5.132, z: -5.338}
   m_LocalScale: {x: 0.00299664, y: 0.49618998, z: 0.49618998}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 460457360}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &1475234843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25026,6 +25028,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: 8fb4ae70e0c9aa141a6e9a10cbfc660b, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &1475234844
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25070,7 +25073,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ef91613f54998804ba49a55c56e53303, type: 2}
+  - {fileID: 2100000, guid: f946ff3fac7cc0543880e6cc6c689a48, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -26266,7 +26269,7 @@ MonoBehaviour:
   spawnMode: 3
   spawnPoints:
   - point: {fileID: 1527859462}
-    weight: 0.106
+    weight: 0.1
   areaSize: {x: 1, y: 1, z: 1}
   randomInsideArea: 1
   useAroundPlayer: 0
@@ -26282,6 +26285,12 @@ MonoBehaviour:
   occlusionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  adaptiveAroundPlayer: 1
+  aroundPlayerMinInterval: 20
+  aroundPlayerExtraSilence: {x: 3, y: 10}
+  multiClipMinIntervalFactor: 0.5
+  nearPlayerSilenceBoost: 0.4
+  nearPlayerThreshold: 4
 --- !u!4 &1527859462
 Transform:
   m_ObjectHideFlags: 0
@@ -27290,7 +27299,7 @@ PrefabInstance:
     - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: m_Resource
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 8300000, guid: 2de851a0a831d2946bc257d6af869e49, type: 3}
     - target: {fileID: 5035938683939819278, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
       value: 1
@@ -27298,7 +27307,7 @@ PrefabInstance:
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: catchSfx
       value: 
-      objectReference: {fileID: 8300000, guid: ac19565f8a0939d44abe72e3614c2c8d, type: 3}
+      objectReference: {fileID: 8300000, guid: 1d731a99f8e48754aa6da51da36b6141, type: 3}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: sfxSource
       value: 
@@ -29300,6 +29309,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: b8c1eee7544bc0f4485eca340bb75b7d, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &1766478439
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -33082,6 +33092,7 @@ MonoBehaviour:
   note: {fileID: 11400000, guid: d29083a33e342ce438d5a49a73c64bf1, type: 2}
   viewer: {fileID: 372459914}
   notifyDiaryRead: 0
+  closeKey: 19
 --- !u!65 &2062055182
 BoxCollider:
   m_ObjectHideFlags: 0
