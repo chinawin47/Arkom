@@ -20655,6 +20655,7 @@ GameObject:
   - component: {fileID: 1183258401}
   - component: {fileID: 1183258403}
   - component: {fileID: 1183258402}
+  - component: {fileID: 1183258404}
   m_Layer: 0
   m_Name: Cupboard_R_Door.006 (1)
   m_TagString: Untagged
@@ -20730,6 +20731,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1183258400}
   m_Mesh: {fileID: 6713021443670723598, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
+--- !u!65 &1183258404
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183258400}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.010643968, y: 0.0035992686, z: 0.02332304}
+  m_Center: {x: -0.005321921, y: 0.0013611487, z: 0.0000000035762788}
 --- !u!1 &1186967975
 GameObject:
   m_ObjectHideFlags: 0
@@ -24649,7 +24671,7 @@ MonoBehaviour:
   powerManager: {fileID: 278641366}
   breakerSpawnPoint: {fileID: 1654645996}
   ghostSpawnPoint: {fileID: 1186967976}
-  introNewsDuration: 4
+  introNewsDuration: 30
   blackoutDelay: 0.5
   timeSkipFadeOut: 1.2
   timeSkipBlackHold: 1.5
