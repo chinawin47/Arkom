@@ -81,11 +81,14 @@ namespace ARKOM.Story
         public float maxVoiceWaitSeconds = 3f;
 
         [Header("Upstairs Unlock Flow")]
-        public string pliersToolId = "Pliers"; public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่";
-        public AudioClip upstairsFootstepVoice; [Range(0, 1)] public float upstairsFootstepVoiceVolume = 1f;
+        public string pliersToolId = "Pliers"; public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่"; // original hint
+        [Tooltip("ข้อความแทน needPliersHint เมื่อต้องการบอกให้ผู้เล่นใส่ฟิวส์ให้ครบก่อนขึ้นชั้นบน")]
+        public string restorePowerBlockHint = "ยังใส่ฟิวส์ไม่ครบ ลงไปใส่ให้ครบก่อน";
+        private string originalNeedPliersHint; // backup
+        [Tooltip("เสียงเท้าบนชั้นบนเมื่อ RestorePower สำเร็จ เพื่อดึงความสนใจขึ้นไป")] public AudioClip upstairsFootstepVoice; [Range(0f,1f)] public float upstairsFootstepVoiceVolume = 1f;
         public string objectiveFindNoiseSource = "ตามหาต้นตอของเสียง";
         public Transform upstairsDoor; public string needUpstairsKeyHint = "ตามหาวิทยุเพื่อปิด";
-        public Transform prayerRoom; public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุ"; public string readDiaryHint = "มีไดอารี่ของออย ลองอ่านดู";
+        public Transform prayerRoom; public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุ"; public string readDiaryHint = "มีไดอารี่อ củaออย ลองอ่านดู";
 
         [Header("Upstairs Objects (Optional)")]
         [Tooltip("RadioInteractable ที่อยู่ในห้องพระ เพื่อสั่งเล่นอัตโนมัติหลังขึ้นชั้นสองได้")] public RadioInteractable upstairsRadio;
@@ -120,6 +123,8 @@ namespace ARKOM.Story
         private Coroutine caughtRoutine;
         [Header("Catch Reset Options")][Tooltip("เวลาค้างหน้าจับก่อนรีเซ็ต (วินาที)")] public float catchHoldSeconds = 3.5f; [Tooltip("ให้รอผู้เล่นกดที่ตู้ไฟก่อน แล้วค่อยปล่อยผี (ไม่ spawn อัตโนมัติ)")] public bool requireBreakerInteractToSpawnGhost = true;
 
+        [Header("Mystery Box Hint Options")] [Tooltip("ให้ขึ้น Hint หาโน้ตเมื่อผู้เล่นไปลองเปิดกล่องครั้งแรก (ไม่แสดงทันทีหลัง BreakerFail)")] public bool hintNotesOnBoxAttempt = true; private bool mysteryBoxAttempted;
+
         public enum StoryState
         {
             IntroSeated, FindFlashlight, RestorePower, ReturnToSeat, TimeSkipCutscene, Finished,
@@ -131,6 +136,8 @@ namespace ARKOM.Story
 
         private StoryState state;
         public StoryState CurrentState => state;
+        // Expose if box was attempted yet for external hint logic
+        public bool HasMysteryBoxAttempted => mysteryBoxAttempted;
 
         void Awake()
         {
@@ -145,6 +152,8 @@ namespace ARKOM.Story
             var loopGo = new GameObject("PersistentLoopAudio"); loopGo.transform.SetParent(transform);
             persistentLoopSource = loopGo.AddComponent<AudioSource>();
             persistentLoopSource.loop = true; persistentLoopSource.playOnAwake = false; persistentLoopSource.spatialBlend = 0f; persistentLoopSource.volume = cleanPlatesLoopVolume;
+
+            originalNeedPliersHint = needPliersHint;
         }
 
         void Start()
@@ -262,18 +271,16 @@ namespace ARKOM.Story
             }
             if (powerManager) powerManager.SetPower(true); else FallbackRestore();
             if (tv) tv.PreparePostRestoreNews();
-            if (upstairsFootstepVoice) AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
+            if (upstairsFootstepVoice)
+                AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
             if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource, 4f);
             SetState(StoryState.InvestigateUpstairs);
-            if (upstairsRadio) upstairsRadio.StartRadio();
-            if (!requireDiaryBeforeOoy) SetState(StoryState.FindOoy);
 
-            if (upstairsFootstepVoice)
-                AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player.transform.position, upstairsFootstepVoiceVolume);
+            if (startRadioOnPowerRestore)
+                TryStartUpstairsRadioDelayed();
 
-            if (!string.IsNullOrEmpty(objectiveFindNoiseSource))
-                ShowHint(objectiveFindNoiseSource, 4f);
-
+            if (!requireDiaryBeforeOoy)
+                SetState(StoryState.FindOoy);
         }
 
         private void OnPlayerSeated(PlayerSeatedEvent e)
@@ -354,6 +361,7 @@ namespace ARKOM.Story
             StartCoroutine(SecondBlackoutRoutine());
         }
 
+        [Header("Second Blackout Audio")] [Tooltip("เสียงเตือน/ช็อตไฟก่อนดับรอบสอง (Optional)")] public AudioClip secondBlackoutWarningClip; [Tooltip("ระยะเวลาล่วงหน้าที่จะเล่นเสียงเตือนก่อนดับไฟ (วินาที)")] public float secondBlackoutWarningLead = 0.7f; [Range(0f,1f)] public float secondBlackoutWarningVolume = 1f;
         private IEnumerator SecondBlackoutRoutine()
         {
             // รอแบบเวลาจริง: ยึดตามเสียง แต่จำกัดไม่เกิน maxVoiceWaitSeconds แล้วบวกดีเลย์เพิ่ม
@@ -362,7 +370,26 @@ namespace ARKOM.Story
             if (wait > 0f)
             {
                 DLog($"SecondBlackoutRoutine waiting (real) {wait:0.00}s");
-                yield return new WaitForSecondsRealtime(wait);
+                // ถ้ามีเสียงเตือนก่อนดับไฟ ให้แบ่งเวลารอก่อนเล่น
+                if (secondBlackoutWarningClip && secondBlackoutWarningLead > 0f && secondBlackoutWarningLead < wait)
+                {
+                    float preWait = wait - secondBlackoutWarningLead;
+                    if (preWait > 0f) yield return new WaitForSecondsRealtime(preWait);
+                    AudioSource.PlayClipAtPoint(secondBlackoutWarningClip, player ? player.transform.position : transform.position, secondBlackoutWarningVolume);
+                    yield return new WaitForSecondsRealtime(secondBlackoutWarningLead);
+                }
+                else
+                {
+                    // ไม่มีเสียงเตือนหรือ lead มากกว่ารอทั้งหมด -> รอเต็มแล้วค่อยเล่นก่อนดับ
+                    yield return new WaitForSecondsRealtime(wait);
+                    if (secondBlackoutWarningClip && secondBlackoutWarningLead > 0f)
+                    {
+                        AudioSource.PlayClipAtPoint(secondBlackoutWarningClip, player ? player.transform.position : transform.position, secondBlackoutWarningVolume);
+                        // ถ้า lead > wait ให้ดีเลย์เพิ่มเล็กน้อยก่อนดับ (ใช้ lead ที่เหลือ)
+                        float extra = secondBlackoutWarningLead - wait;
+                        if (extra > 0f) yield return new WaitForSecondsRealtime(extra);
+                    }
+                }
             }
             DLog("SecondBlackoutRoutine -> power off + blackout event");
             if (tv) tv.PowerOff();
@@ -378,16 +405,18 @@ namespace ARKOM.Story
         private void OnBreakerFailed(BreakerFailedEvent _)
         {
             if (state != StoryState.BreakerFail) return;
-            if (sceneChasingGhost)
+            if (sceneChasingGhost) sceneChasingGhost.gameObject.SetActive(true); else if (ghostSpawner) ghostSpawner.SpawnRandom(GhostSpawner.GhostKind.Chasing);
+            if (hintNotesOnBoxAttempt)
             {
-                sceneChasingGhost.gameObject.SetActive(true);
+                // รอให้ผู้เล่นลองกดที่กล่องก่อนค่อยบอกว่าให้หาโน้ต
+                SetState(StoryState.GhostSpawn);
             }
-            else if (ghostSpawner)
+            else
             {
-                ghostSpawner.SpawnRandom(GhostSpawner.GhostKind.Chasing);
+                // แบบเดิม: ขึ้น Hint โน้ตทันที
+                SetState(StoryState.FindNotes);
+                if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 5f);
             }
-            SetState(StoryState.FindNotes);
-            if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 4f);
         }
         private void OnAllNotesFound(AllNotesFoundEvent _)
         {
@@ -398,10 +427,7 @@ namespace ARKOM.Story
         private void OnBoxUnlocked(BoxUnlockedEvent _)
         {
             // Stop chase ghost if configured
-            if (deactivateChaseGhostOnBoxOpen && sceneChasingGhost)
-            {
-                sceneChasingGhost.gameObject.SetActive(false);
-            }
+            if (deactivateChaseGhostOnBoxOpen && sceneChasingGhost) sceneChasingGhost.gameObject.SetActive(false);
             // Lock player and play end animation -> end game
             StartCoroutine(BoxUnlockEndingRoutine());
         }
@@ -493,7 +519,20 @@ namespace ARKOM.Story
         private void ShowHint(string text, float duration) { if (hint) hint.Show(text, duration); }
         private void SetState(StoryState newState)
         {
-            if (state == newState) return; var prev = state; state = newState; DLog($"State -> {newState} (from {prev})"); EventBus.Publish(new StoryStateChangedEvent(prev, newState));
+            if (state == newState) return; var prev = state; state = newState;
+            // ปรับ needPliersHint ตามสถานะ
+            if (state == StoryState.RestorePower)
+            {
+                needPliersHint = restorePowerBlockHint; // override to block upstairs progression hint
+            }
+            else if (needPliersHint == restorePowerBlockHint && originalNeedPliersHint != null && state != StoryState.RestorePower)
+            {
+                needPliersHint = originalNeedPliersHint; // revert
+            }
+            DLog($"State -> {newState} (from {prev})"); EventBus.Publish(new StoryStateChangedEvent(prev, newState));
+            // NEW: ยิง event ขอเล่นเสียงผู้เล่นตามสถานะ (lineId รูปแบบ state_<ชื่อ>)
+            string voiceId = "state_" + newState.ToString();
+            EventBus.Publish(new PlayerVoiceRequestEvent(voiceId));
         }
         void Update()
         {
@@ -522,16 +561,38 @@ namespace ARKOM.Story
         private void OnUpstairsDoorUnlocked(UpstairsDoorUnlockedEvent _)
         {
             DLog("OnUpstairsDoorUnlocked -> auto start radio if assigned");
-            if (!string.IsNullOrEmpty(needUpstairsKeyHint)) ShowHint(needUpstairsKeyHint, 3.5f);
-            if (upstairsRadio) upstairsRadio.StartRadio();
+            // ถ้ายังอยู่ขั้น RestorePower ให้ย้ำฮินต์ไปใส่ฟิวส์ ไม่ให้ผู้เล่นสับสน
+            if (state == StoryState.RestorePower)
+            {
+                ShowContextualHintIfNeeded();
+            }
+            else if (!string.IsNullOrEmpty(needUpstairsKeyHint))
+            {
+                ShowHint(needUpstairsKeyHint, 3.5f);
+            }
+
+            if (upstairsRadio && !radioStarted && state != StoryState.RestorePower)
+            {
+                // เริ่มวิทยุเฉพาะเมื่อไม่ติดอยู่ในขั้น RestorePower (ยังไม่เสร็จฟิวส์)
+                TryStartUpstairsRadioDelayed(0f);
+            }
         }
+
         private void OnKeyPickedGeneric(KeyPickedEvent e)
         {
             if (e.KeyId == "UpstairsDoorKey")
             {
-                if (!string.IsNullOrEmpty(goTurnOffRadioHint)) ShowHint(goTurnOffRadioHint, 4f);
+                // ถ้ายังไม่ได้ RestorePower → ย้ำให้ไปใส่ฟิวส์
+                if (state == StoryState.RestorePower)
+                {
+                    ShowContextualHintIfNeeded();
+                    return;
+                }
+                if (!string.IsNullOrEmpty(goTurnOffRadioHint))
+                    ShowHint(goTurnOffRadioHint, 4f);
             }
         }
+
         private void OnRadioToggled(RadioToggledEvent e)
         {
             if (!e.On)
@@ -543,7 +604,16 @@ namespace ARKOM.Story
                     if (!string.IsNullOrEmpty(findOoyHint)) ShowHint(findOoyHint, 4f);
                 }
             }
+            else
+            {
+                // เปิดวิทยุ แต่ถ้ายังไม่ได้ RestorePower (เกิดผิดลำดับ) ให้เน้นกลับไปทำฟิวส์
+                if (state == StoryState.RestorePower)
+                {
+                    ShowContextualHintIfNeeded();
+                }
+            }
         }
+
         private void OnFuseFound(FuseFoundEvent e)
         {
             if (e.Location == FuseLocation.Upstairs)
@@ -607,6 +677,53 @@ namespace ARKOM.Story
             if (!useProgressiveHints)
                 ShowHint("ไปใส่ฟิวส์ที่คัตเอ้าท์", 4f);
 
+        }
+
+        [Header("Upstairs Radio Options")] [Tooltip("เล่นเสียงวิทยุทันทีหลัง RestorePower (ใส่ฟิวส์) โดยไม่ต้องรอปลดล็อคประตูชั้นบน")] public bool startRadioOnPowerRestore = true; [Tooltip("ดีเลย์ก่อนเริ่มวิทยุหลัง RestorePower (วินาที)")] public float radioStartDelay = 0.2f;
+        private bool radioStarted;
+
+        private void TryStartUpstairsRadioDelayed(float? overrideDelay = null)
+        {
+            if (!upstairsRadio || radioStarted) return;
+            float delay = overrideDelay.HasValue ? overrideDelay.Value : Mathf.Max(0f, radioStartDelay);
+            StartCoroutine(StartRadioRoutine(delay));
+        }
+        private IEnumerator StartRadioRoutine(float delay)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            if (!upstairsRadio) yield break;
+            if (!upstairsRadio.gameObject.activeSelf) upstairsRadio.gameObject.SetActive(true);
+            try { upstairsRadio.StartRadio(); radioStarted = true; DLog("Upstairs radio started"); } catch { }
+        }
+
+        // NEW: central method to show correct hint based on current state when player triggers unrelated flow
+        private void ShowContextualHintIfNeeded()
+        {
+            // ถ้าอยู่ในขั้น RestorePower ให้ย้ำฮินต์ฟิวส์ แม้ผู้เล่นขึ้นชั้นบนแล้ว
+            if (state == StoryState.RestorePower)
+            {
+                // ใช้ needPliersHint ที่ถูก override แล้วให้เป็นข้อความบล็อค
+                ShowHint(needPliersHint, 4f);
+                return;
+            }
+            // หลัง RestorePower แต่ก่อน FindOoy อาจต้องย้ำเป้าหมายเสียง
+            if (state == StoryState.InvestigateUpstairs && !string.IsNullOrEmpty(objectiveFindNoiseSource))
+            {
+                ShowHint(objectiveFindNoiseSource, 4f);
+                return;
+            }
+            // Default no action (progressive system จะจัดการเอง)
+        }
+
+        // ===== Mystery Box attempt trigger for note hint =====
+        public void NotifyMysteryBoxAttempt()
+        {
+            if (!hintNotesOnBoxAttempt) return; // using old flow
+            if (mysteryBoxAttempted) return; // show only once
+            if (state != StoryState.GhostSpawn && state != StoryState.BreakerFail) return; // only during chase phase before notes state
+            mysteryBoxAttempted = true;
+            SetState(StoryState.FindNotes);
+            if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 5f);
         }
     }
 }

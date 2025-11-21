@@ -42,7 +42,10 @@ public class LockedContainerInteractable : Interactable
     {
         if (opened && oneShot) return;
 
-        // If using PIN flow
+        // ???? SequenceController ??????? Hint ???? (????????????????) ???????????????????
+        if (SequenceController.Instance) SequenceController.Instance.NotifyMysteryBoxAttempt();
+
+        // ===== ????????? =====
         if (!string.IsNullOrEmpty(pinCode))
         {
             if (requireOpenMysteryBoxState && SequenceController.Instance && SequenceController.Instance.CurrentState != SequenceController.StoryState.OpenMysteryBox)
@@ -56,23 +59,16 @@ public class LockedContainerInteractable : Interactable
                 if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
                 return;
             }
-            if (awaitingPin) return; // already showing
+            if (awaitingPin) return;
             awaitingPin = true;
             pinUI.Show(pinCode, (ok) =>
             {
                 awaitingPin = false;
-                if (ok) OpenNow();
-                else if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
+                if (ok) OpenNow(); else if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
             });
             return;
         }
-
-        // Key fallback
-        if (!Keyring.Has(requiredKeyId))
-        {
-            if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
-            return; // still locked
-        }
+        if (!Keyring.Has(requiredKeyId)) { if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume); return; }
         OpenNow();
     }
 

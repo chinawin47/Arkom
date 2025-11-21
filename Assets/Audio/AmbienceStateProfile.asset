@@ -20,7 +20,7 @@ MonoBehaviour:
     fadeOut: 0
     loop: 0
     volume: 1
-    stingerDelay: 3
+    stingerDelay: 29
     loopDelay: 0
   - state: 7
     baseLoop: {fileID: 0}

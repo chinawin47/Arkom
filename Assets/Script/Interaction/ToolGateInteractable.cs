@@ -5,242 +5,87 @@ using ARKOM.Story;
 [AddComponentMenu("Interactable/Tool Gate (Requires Tool)")]
 public class ToolGateInteractable : Interactable
 {
-    [Header("Requirement - Tool")] public string requiredToolId = "Pliers"; // คีม
-    [Tooltip("ข้อความเตือนเมื่อผู้เล่นยังไม่มีเครื่องมือ")] public string needToolHint = "ตามหาคีมเพื่อปลดโซ่";
+    [Header("Requirement - Tool")] public string requiredToolId = "Pliers";
+    [Tooltip("?????????????????????????????? (???)")] public string needToolHint = "?????????????????????";
 
     [Header("Requirement - Key")] public bool requiresKey = true;
-    [Tooltip("ID กุญแจสำหรับเปิดประตูหลังตัดโซ่แล้ว")]
-    public string requiredKeyId = "UpstairsDoorKey";
-    [Tooltip("ไอดีกุญแจที่ยอมรับเพิ่มเติม (ใช้ได้ควบคู่กัน)")]
-    public string[] additionalAcceptedKeyIds;
-    [Tooltip("ต้องการกุญแจครบทุกอันหรือไม่ (ถ้าไม่ ตรงกับอันใดอันหนึ่งก็พอ)")]
-    public bool requireAllKeys = false;
-    [Tooltip("ข้อความเตือนเมื่อยังไม่มีกุญแจ")] public string needKeyHint = "ตามหากุญแจเพื่อไขขึ้นไปข้างบน";
+    [Tooltip("ID ??????????????????????????")] public string requiredKeyId = "UpstairsDoorKey";
+    [Tooltip("ID ???????????????????????? (??????)")] public string[] additionalAcceptedKeyIds;
+    [Tooltip("?????????????? (??? false = ???????????????????????)")] public bool requireAllKeys = false;
+    [Tooltip("?????????????????????????") ] public string needKeyHint = "?????????????????";
 
-    [Header("Story Gate")]
-    [Tooltip("เปิดใช้การล็อกด้วยเนื้อเรื่อง (ถึงสถานะนี้ก่อน จึงจะเปิดได้)")] public bool requireStoryGate = false;
-    [Tooltip("สถานะเนื้อเรื่องขั้นต่ำที่ต้องถึงก่อน จึงจะใช้ประตูนี้ได้")]
-    public SequenceController.StoryState requiredStoryState = SequenceController.StoryState.BreakerFail;
-    [Tooltip("ข้อความเตือนเมื่อยังไม่ถึงขั้นเนื้อเรื่อง")]
-    public string notReadyHint = "ยังไม่ถึงเวลาไปชั้นสอง";
-    [Tooltip("เวลาที่แสดงข้อความ 'ยังไม่ถึงเวลาไปชั้นสอง' (วินาที)")] public float notReadyHintDuration =2.5f;
+    [Header("Story Gate")] [Tooltip("??????????????????????????????????????????????????")]
+    public bool requireStoryGate = false;
+    [Tooltip("?????????????????????????????????")] public SequenceController.StoryState requiredStoryState = SequenceController.StoryState.BreakerFail;
+    [Tooltip("?????????????????????????????????????") ] public string notReadyHint = "???????????????????"; public float notReadyHintDuration = 2.5f;
 
-    [Header("Fuse Gate")]
-    [Tooltip("เช็คว่าต้องใส่ฟิวส์ให้ครบ/ผ่านขั้น RestorePower ก่อนถึงจะเริ่มขั้นตอนปลดโซ่")]
+    [Header("Fuse Gate")] [Tooltip("?????????????????? RestorePower (???????????) ?????????????????")]
     public bool checkFusesBeforeUnlock = true;
-    [Tooltip("ข้อความเตือนเมื่อฟิวส์/ไฟยังไม่พร้อม")]
-    public string needFusesHint = "ไปใส่ฟิวก่อน";
-    [Tooltip("เวลาที่แสดงข้อความเตือนฟิวส์ (วินาที)")]
-    public float fuseHintDuration =2.5f;
+    [Tooltip("????????????????????????????????") ] public string needFusesHint = "??????????????????"; public float fuseHintDuration = 2.5f;
 
     [Header("Door Control")] public DoorInteractable doorToOpen;
-    [Tooltip("เปิดประตูทันทีเมื่อปลดล็อคสำเร็จ")] public bool autoOpenDoorOnUnlock = true;
-    [Tooltip("หลังปลดล็อคแล้ว เมื่อผู้เล่นกดที่เดิม ให้ส่งต่อไปยัง DoorInteractable")]
-    public bool forwardToDoorWhenUnlocked = true;
+    [Tooltip("????????????????????????????????") ] public bool autoOpenDoorOnUnlock = true;
+    [Tooltip("?????????? Forward ???????????????????") ] public bool forwardToDoorWhenUnlocked = true;
 
-    [Header("Visual Swap")]
-    [Tooltip("ชิ้นส่วนโซ่/กุญแจล่าม (จะถูกปิดเมื่อใช้คีม)")] public GameObject chainVisual;
-    [Tooltip("สภาพประตูปิด (จะถูกปิดเมื่อเปิดสำเร็จ)")] public GameObject lockedVisual;
-    [Tooltip("สภาพประตูเปิดแล้ว")] public GameObject unlockedVisual;
+    [Header("Visual Swap")] public GameObject chainVisual; public GameObject lockedVisual; public GameObject unlockedVisual;
 
-    [Header("Audio")]
-    [Tooltip("เสียงตอนปลดล็อคสำเร็จ (ประตูเปิด)")] public AudioClip unlockSfx; public float sfxVolume =1f;
-    [Tooltip("เสียงตอนใช้คีมตัดโซ่")] public AudioClip chainCutSfx; [Range(0f,1f)] public float chainCutVolume =1f;
+    [Header("Audio")] public AudioClip unlockSfx; public float sfxVolume = 1f; public AudioClip chainCutSfx; [Range(0f,1f)] public float chainCutVolume = 1f;
 
-    private bool chainRemoved; // ใช้คีมแล้ว
-    private bool unlocked; // เปิดสำเร็จแล้ว
+    private bool chainRemoved; private bool unlocked;
 
-    void OnEnable()
-    {
-        EventBus.Subscribe<KeyPickedEvent>(OnKeyPicked);
-        EventBus.Subscribe<StoryStateChangedEvent>(OnStoryState);
-        // รีเฟรชชาตามสถานะปัจจุบัน (เช่น กลับเข้าฉาก)
-        RefreshByStory();
-    }
-    void OnDisable()
-    {
-        EventBus.Unsubscribe<KeyPickedEvent>(OnKeyPicked);
-        EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryState);
-    }
+    void OnEnable(){ EventBus.Subscribe<KeyPickedEvent>(OnKeyPicked); EventBus.Subscribe<StoryStateChangedEvent>(OnStoryState); RefreshByStory(); }
+    void OnDisable(){ EventBus.Unsubscribe<KeyPickedEvent>(OnKeyPicked); EventBus.Unsubscribe<StoryStateChangedEvent>(OnStoryState); }
 
-    private void OnStoryState(StoryStateChangedEvent e)
-    {
-        // ถ้าผ่านเกณฑ์เนื้อเรื่องแล้ว และมีของครบ ให้เปิดอัตโนมัติ (กรณีผู้เล่นเก็บไว้ก่อน)
-        RefreshByStory();
-    }
+    private void OnStoryState(StoryStateChangedEvent e){ RefreshByStory(); }
 
-    private void RefreshByStory()
-    {
-        if (unlocked) return;
-        if (!requireStoryGate || IsStoryAllowed())
-        {
-            // ถึงขั้นเนื้อเรื่องแล้ว ? ถ้าตัดโซ่แล้วและมีคีย์ครบ (หรือไม่ต้องใช้คีย์) ให้เปิดได้ทันทีเมื่อกด
-            // ถ้าต้องการเปิดอัตโนมัติเมื่อครบทุกอย่างแล้ว (กลับเข้าฉาก) ทำได้ดังนี้:
-            if (chainRemoved)
-            {
-                if (!requiresKey || HasRequiredKeys())
-                {
-                    // เปิดอัตโนมัติเมื่อทุกอย่างครบ (ไม่บังคับ ถ้าไม่ต้องการ auto เปิด ให้คอมเมนต์บรรทัดถัดไป)
-                    // OpenNow(null);
-                }
-            }
-        }
-    }
+    private void RefreshByStory(){ if (unlocked) return; if (!requireStoryGate || IsStoryAllowed()){ if (chainRemoved){ if (!requiresKey || HasRequiredKeys()){ /* keep waiting for player interact */ } } } }
 
-    public override bool CanInteract(object interactor)
-    {
-        if (oneTime && unlocked) return false;
-        return base.CanInteract(interactor);
-    }
+    public override bool CanInteract(object interactor){ if (oneTime && unlocked) return false; return base.CanInteract(interactor); }
 
     protected override void OnInteract(object interactor)
     {
+        // Block all hints if still in RestorePower (????????????????????????????????) -> ??? hint ??? SequenceController ?????
+        var seq = SequenceController.Instance;
+        if (seq && seq.CurrentState == SequenceController.StoryState.RestorePower)
+        {
+            // ??? restorePowerBlockHint ??? SequenceController ????? ??????? fallback needFusesHint
+            string block = !string.IsNullOrEmpty(seq.restorePowerBlockHint) ? seq.restorePowerBlockHint : needFusesHint;
+            seq.ShowTempHint(block, 3f);
+            return;
+        }
+
         if (unlocked)
         {
-            if (forwardToDoorWhenUnlocked && doorToOpen)
-            {
-                doorToOpen.Interact(interactor);
-            }
-            return;
+            if (forwardToDoorWhenUnlocked && doorToOpen) doorToOpen.Interact(interactor); return;
         }
 
-        // Gate ด้วยเนื้อเรื่องก่อน
-        if (requireStoryGate && !IsStoryAllowed())
-        {
-            SequenceController.Instance?.ShowTempHint(notReadyHint, notReadyHintDuration);
-            return;
-        }
+        if (requireStoryGate && !IsStoryAllowed()){ SequenceController.Instance?.ShowTempHint(notReadyHint, notReadyHintDuration); return; }
+        if (checkFusesBeforeUnlock && !IsFuseGateSatisfied()){ SequenceController.Instance?.ShowTempHint(needFusesHint, fuseHintDuration); return; }
 
-        // เช็คฟิวส์/สถานะไฟ: ใช้ StoryState หลัง PowerRestored (InvestigateUpstairs เป็นต้นไป)
-        if (checkFusesBeforeUnlock && !IsFuseGateSatisfied())
-        {
-            SequenceController.Instance?.ShowTempHint(needFusesHint, fuseHintDuration);
-            return;
-        }
-
-        // ขั้นที่1: ต้องมีคีมเพื่อตัดโซ่
+        // Phase 1: Require tool to cut chain
         if (!chainRemoved)
         {
-            if (!Keyring.Has(requiredToolId))
-            {
-                SequenceController.Instance?.ShowTempHint(needToolHint,2.5f);
-                return;
-            }
-            // ตัดโซ่
-            chainRemoved = true;
-            if (chainVisual) chainVisual.SetActive(false);
-            if (chainCutSfx) AudioSource.PlayClipAtPoint(chainCutSfx, transform.position, chainCutVolume);
-
-            // หลังตัดโซ่เสร็จ ถ้าไม่ต้องใช้กุญแจ -> เปิดเลย
-            if (!requiresKey)
-            {
-                OpenNow(interactor);
-                return;
-            }
-            // ต้องใช้กุญแจต่อ
-            SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f);
-            return;
+            if (!Keyring.Has(requiredToolId)){ SequenceController.Instance?.ShowTempHint(needToolHint,2.5f); return; }
+            chainRemoved = true; if (chainVisual) chainVisual.SetActive(false); if (chainCutSfx) AudioSource.PlayClipAtPoint(chainCutSfx, transform.position, chainCutVolume);
+            if (!requiresKey){ OpenNow(interactor); return; }
+            SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f); return;
         }
-
-        // ขั้นที่2: ต้องมีกุญแจ
-        if (requiresKey)
-        {
-            if (!HasRequiredKeys())
-            {
-                SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f);
-                return;
-            }
-            OpenNow(interactor);
-            return;
-        }
-
-        // เผื่อกรณีไม่ต้องใช้กุญแจและตัดโซ่ไปแล้ว แต่ยังไม่เปิด
+        // Phase 2: Now need key(s)
+        if (requiresKey){ if (!HasRequiredKeys()){ SequenceController.Instance?.ShowTempHint(needKeyHint,2.5f); return; } OpenNow(interactor); return; }
         OpenNow(interactor);
     }
 
-    private void OnKeyPicked(KeyPickedEvent e)
-    {
-        if (unlocked) return;
-        if (!requiresKey) return;
-        if (!chainRemoved) return; // ยังไม่ตัดโซ่ ไม่เปิดอัตโนมัติ
-        if (requireStoryGate && !IsStoryAllowed()) return; // ยังไม่ถึงขั้นเนื้อเรื่อง
-        if (checkFusesBeforeUnlock && !IsFuseGateSatisfied()) return; // สถานะไฟยังไม่พร้อม
-        if (HasRequiredKeys())
-        {
-            OpenNow(null); // เปิดอัตโนมัติเมื่อมีครบตามเงื่อนไข
-        }
-    }
+    private void OnKeyPicked(KeyPickedEvent e){ if (unlocked || !requiresKey || !chainRemoved) return; if (requireStoryGate && !IsStoryAllowed()) return; if (checkFusesBeforeUnlock && !IsFuseGateSatisfied()) return; if (HasRequiredKeys()) OpenNow(null); }
 
-    private bool IsStoryAllowed()
-    {
-        var seq = SequenceController.Instance;
-        if (!seq) return true; // ถ้าไม่มีคอนโทรลเลอร์ ให้ผ่าน
-        // อนุญาตเมื่อ CurrentState >= requiredStoryState (เปรียบเทียบตามค่า enum)
-        return (int)seq.CurrentState >= (int)requiredStoryState;
-    }
+    private bool IsStoryAllowed(){ var seq = SequenceController.Instance; if (!seq) return true; return (int)seq.CurrentState >= (int)requiredStoryState; }
+    private bool IsFuseGateSatisfied(){ var seq = SequenceController.Instance; if (seq) return (int)seq.CurrentState >= (int)SequenceController.StoryState.InvestigateUpstairs; return FuseInventory.HasEnough; }
 
-    // ใช้แทนการเช็ค FuseInventory.HasEnough เพื่อหลีกเลี่ยงเคสที่ฟิวส์ถูกใส่ไปแล้ว (count จะเหลือ0)
-    private bool IsFuseGateSatisfied()
-    {
-        var seq = SequenceController.Instance;
-        if (seq)
-        {
-            // หลัง RestorePower จะเซ็ต state ไป InvestigateUpstairs -> ถือว่าไฟพร้อม
-            return (int)seq.CurrentState >= (int)SequenceController.StoryState.InvestigateUpstairs;
-        }
-        // fallback: ถ้าไม่มี SequenceController ให้ใช้สต็อกฟิวส์
-        return FuseInventory.HasEnough;
-    }
-
-    private bool HasRequiredKeys()
-    {
-        // รวมรายการ key ids ที่ยอมรับ
-        int countRequired =0;
-        int countOwned =0;
-        if (!string.IsNullOrEmpty(requiredKeyId)) { countRequired++; if (Keyring.Has(requiredKeyId)) countOwned++; }
-        if (additionalAcceptedKeyIds != null && additionalAcceptedKeyIds.Length >0)
-        {
-            foreach (var id in additionalAcceptedKeyIds)
-            {
-                if (string.IsNullOrEmpty(id)) continue;
-                countRequired++;
-                if (Keyring.Has(id)) countOwned++;
-            }
-        }
-        if (countRequired ==0)
-        {
-            // ถ้าไม่ได้กำหนด id ใดเลย ถือว่าไม่ต้องใช้กุญแจ
-            return true;
-        }
-        if (requireAllKeys)
-        {
-            return countOwned == countRequired;
-        }
-        else
-        {
-            return countOwned >0; // มีอันใดอันหนึ่งก็พอ
-        }
-    }
+    private bool HasRequiredKeys(){ int countRequired=0, countOwned=0; if (!string.IsNullOrEmpty(requiredKeyId)){ countRequired++; if (Keyring.Has(requiredKeyId)) countOwned++; } if (additionalAcceptedKeyIds!=null){ foreach (var id in additionalAcceptedKeyIds){ if (string.IsNullOrEmpty(id)) continue; countRequired++; if (Keyring.Has(id)) countOwned++; } } if (countRequired==0) return true; return requireAllKeys ? countOwned==countRequired : countOwned>0; }
 
     private void OpenNow(object interactor)
     {
-        if (unlocked) return;
-        unlocked = true;
-        if (unlockSfx) AudioSource.PlayClipAtPoint(unlockSfx, transform.position, sfxVolume);
-        if (lockedVisual) lockedVisual.SetActive(false);
-        if (unlockedVisual) unlockedVisual.SetActive(true);
-        EventBus.Publish(new UpstairsDoorUnlockedEvent());
-
-        if (autoOpenDoorOnUnlock && doorToOpen)
-        {
-            if (!doorToOpen.isOpen)
-                doorToOpen.ToggleDoor();
-        }
-
-        // หลังจากนี้ส่งต่อการกดไปให้ DoorInteractable ได้ (ถ้าเลือกไว้)
-        if (forwardToDoorWhenUnlocked && doorToOpen && interactor != null)
-        {
-            doorToOpen.Interact(interactor);
-        }
+        if (unlocked) return; unlocked = true; if (unlockSfx) AudioSource.PlayClipAtPoint(unlockSfx, transform.position, sfxVolume); if (lockedVisual) lockedVisual.SetActive(false); if (unlockedVisual) unlockedVisual.SetActive(true); EventBus.Publish(new UpstairsDoorUnlockedEvent());
+        if (autoOpenDoorOnUnlock && doorToOpen){ if (!doorToOpen.isOpen) doorToOpen.ToggleDoor(); }
+        if (forwardToDoorWhenUnlocked && doorToOpen && interactor != null){ doorToOpen.Interact(interactor); }
     }
 }

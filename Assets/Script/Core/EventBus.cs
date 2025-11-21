@@ -33,10 +33,9 @@ namespace ARKOM.Core
             var t = typeof(T);
             if (_handlers.TryGetValue(t, out var list))
             {
-                // copy to avoid modification during iteration
                 var snapshot = list.ToArray();
-                foreach (var d in snapshot)
-                    ((Action<T>)d).Invoke(evt);
+                for (int i = 0; i < snapshot.Length; i++)
+                    ((Action<T>)snapshot[i]).Invoke(evt);
             }
         }
     }
@@ -48,12 +47,9 @@ namespace ARKOM.Core
     public readonly struct QTEResultEvent { public readonly bool Success; public QTEResultEvent(bool success)=>Success=success; }
     public readonly struct AnomalyProgressEvent { public readonly int Resolved; public readonly int Total; public AnomalyProgressEvent(int r,int t){Resolved=r;Total=t;} }
     public readonly struct AnomalySpawnBatchEvent { public readonly int Spawned; public readonly int Active; public readonly int Target; public AnomalySpawnBatchEvent(int s,int a,int t){Spawned=s;Active=a;Target=t;} }
-    public readonly struct VictoryEvent { } // เพิ่มเหตุการณ์ชนะชั่วคราว
+    public readonly struct VictoryEvent { }
+    public readonly struct QTEFailGameOverEvent { public readonly string PointId; public QTEFailGameOverEvent(string pointId) { PointId = pointId; } }
 
-    // NEW: บอก GameManager ให้ Game Over จาก QTE fail กรณีที่ต้องบังคับจบเกมเท่านั้น
-    public readonly struct QTEFailGameOverEvent
-    {
-        public readonly string PointId;
-        public QTEFailGameOverEvent(string pointId) { PointId = pointId; }
-    }
+    public readonly struct PlayerVoiceRequestEvent { public readonly string LineId; public readonly int? ForcePriority; public PlayerVoiceRequestEvent(string id, int? p=null){ LineId=id; ForcePriority=p; } }
+    public readonly struct PlayerVoicePlayedEvent { public readonly string LineId; public PlayerVoicePlayedEvent(string id){ LineId=id; } }
 }
