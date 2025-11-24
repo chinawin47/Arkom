@@ -18,6 +18,9 @@ public class SettingsManager : MonoBehaviour
     public Slider masterSlider;
     public Slider sfxSlider;
 
+    [Header("UI Panels")]
+    public GameObject settingsPanel; // assign the settings root panel (will be toggled by EscMenuUI)
+
     // All available system resolutions
     private Resolution[] systemResolutions;
     // Filtered, unique-by WxH with highest refresh, sorted ascending; used for dropdown and saved index mapping
@@ -37,6 +40,8 @@ public class SettingsManager : MonoBehaviour
         if (Instance && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        // ensure settings panel hidden at boot (pause menu will open it)
+        if (settingsPanel) settingsPanel.SetActive(false);
     }
 
     void Start()
@@ -45,8 +50,11 @@ public class SettingsManager : MonoBehaviour
 
         // Fullscreen toggle
         bool savedFullscreen = PlayerPrefs.GetInt(KEY_FULLSCREEN, 1) == 1;
-        fullscreenToggle.isOn = savedFullscreen;
-        fullscreenToggle.onValueChanged.AddListener(SetFullScreen);
+        if (fullscreenToggle)
+        {
+            fullscreenToggle.isOn = savedFullscreen;
+            fullscreenToggle.onValueChanged.AddListener(SetFullScreen);
+        }
 
         // ---------- LOAD SETTINGS ----------
         float masterVol = PlayerPrefs.GetFloat(KEY_MASTER_VOL, 1f);
@@ -176,6 +184,13 @@ public class SettingsManager : MonoBehaviour
         // ผู้เล่นอ่านจาก SettingsManager.Instance.sensitivitySlider.value หรือ PlayerPrefs
     }
 
+    // Utility for pause menu to open/close settings panel
+    public void ShowSettings(bool show)
+    {
+        if (!settingsPanel) return;
+        settingsPanel.SetActive(show);
+    }
+
     // ---------- HELPERS ----------
     public int GetCurrentResolutionIndex()
     {
@@ -203,5 +218,6 @@ public class SettingsManager : MonoBehaviour
     public void BackToMenu()
     {
         Debug.Log("Back to menu...");
+        // TODO: implement scene load for main menu if needed
     }
 }
