@@ -5,32 +5,29 @@ public class ButtonHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerEx
 {
     private Vector3 originalScale;
     private Vector3 targetScale;
-    [Header("ตั้งค่าความเด้ง")]
-    [Range(1.0f, 1.5f)] public float hoverScale = 1.1f; // ขยายขึ้น 10%
-    [Range(1f, 20f)] public float speed = 10f; // ความเร็วตอนเด้ง
+    private Vector3 velocity = Vector3.zero;
+
+    [Range(1.0f, 1.5f)] public float hoverScale = 1.1f;
+    public float smoothTime = 0.07f; // นิ่มแบบกำลังดี
 
     void Awake()
     {
-        // จำค่า scale เดิมไว้ก่อนเริ่มเกม
         originalScale = transform.localScale;
         targetScale = originalScale;
     }
 
     void Update()
     {
-        // ค่อย ๆ เปลี่ยน scale ให้ลื่น
-        transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.deltaTime * speed);
+        transform.localScale = Vector3.SmoothDamp(transform.localScale, targetScale, ref velocity, smoothTime);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // เด้งขึ้นเมื่อชี้
         targetScale = originalScale * hoverScale;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        // กลับขนาดเดิม
         targetScale = originalScale;
     }
 }
