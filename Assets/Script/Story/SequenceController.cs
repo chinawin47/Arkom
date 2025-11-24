@@ -4,6 +4,7 @@ using ARKOM.Player;
 using ARKOM.Core;
 using ARKOM.UI;
 using ARKOM.Enemy;
+using UnityEngine.SceneManagement; // load scenes at end
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -88,7 +89,7 @@ namespace ARKOM.Story
         [Tooltip("เสียงเท้าบนชั้นบนเมื่อ RestorePower สำเร็จ เพื่อดึงความสนใจขึ้นไป")] public AudioClip upstairsFootstepVoice; [Range(0f,1f)] public float upstairsFootstepVoiceVolume = 1f;
         public string objectiveFindNoiseSource = "ตามหาต้นตอของเสียง";
         public Transform upstairsDoor; public string needUpstairsKeyHint = "ตามหาวิทยุเพื่อปิด";
-        public Transform prayerRoom; public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุ"; public string readDiaryHint = "มีไดอารี่อ củaออย ลองอ่านดู";
+        public Transform prayerRoom; public string goTurnOffRadioHint = "เสียงดังมาจากวิทยุ"; public string readDiaryHint = "มีไดอารี่อของออย ลองอ่านดู";
 
         [Header("Upstairs Objects (Optional)")]
         [Tooltip("RadioInteractable ที่อยู่ในห้องพระ เพื่อสั่งเล่นอัตโนมัติหลังขึ้นชั้นสองได้")] public RadioInteractable upstairsRadio;
@@ -98,11 +99,13 @@ namespace ARKOM.Story
 
         [Header("Post-Second Blackout Flow")]
         [Tooltip("ฮินต์หลังดับไฟรอบสองให้ไปเช็คคัตเอ้าท์")] public string checkBreakerHint = "ไปตรวจคัตเอ้าท์";
-        [Tooltip("ฮินต์เริ่มหาโน้ต3 แผ่น")] public string findNotesHint = "อ่านโน้ต 3 แผ่น → หาเลข 4 หลักปลดล็อคกล่อง";
+        [Tooltip("ฮินต์เริ่มหาโน้ต3 แผ่น")] public string findNotesHint = "อ่านโน้ต หาเลข 4 หลัก เพื่อเปิดกล่อง"; // ปรับข้อความตามคำขอ
         [Tooltip("ฮินต์ไปที่กล่อง4 หลักหลังหาโน้ตครบ")] public string openBoxHint = "หาและเปิดกล่อง4 หลัก";
 
         [Header("Sleep End Options")] public bool blackScreenOnSleepEnd = true; public float sleepEndFadeTime = 1f; public string sleepEndHintText = "";
         [Header("Sleep End Display")] public string sleepEndDisplayText = "TO BE CONTINUED"; public float sleepEndTextDelay = 0.6f; public bool useHintPresenterForSleepEndText = true; public float sleepEndTextDuration = 9999f; public AudioClip sleepEndBackgroundClip; [Range(0f, 1f)] public float sleepEndBackgroundVolume = 1f; public bool sleepEndBackgroundLoop = true; private AudioSource sleepEndBgSource;
+
+        [Header("End Scene Transition")] [Tooltip("เมื่อเข้าสู่ SleepEnd ให้โหลดซีน Start หลังดีเลย์ (วินาที)")] public bool loadStartSceneAfterDelay = true; [Tooltip("ชื่อซีนเมนูแรกที่จะกลับไป")] public string startSceneName = "Start"; [Tooltip("เวลารอก่อนโหลดซีน Start (วินาที)")] public float loadStartDelay = 10f;
 
         [Header("Ending (After Box Unlock)")]
         [Tooltip("Animator ที่ใช้เล่นท่ามือปิดหน้าเมื่อจบเกม")] public Animator handCoverAnimator;
@@ -110,6 +113,8 @@ namespace ARKOM.Story
         [Tooltip("เวลาถือท่ามือปิดหน้าก่อนตัดจบ (วินาที)")] public float handCoverDuration = 2.0f;
         [Tooltip("ค้นหา Animator ใต้ Player อัตโนมัติเมื่อไม่ได้เซ็ตใน Inspector")] public bool autoFindHandAnimatorUnderPlayer = true;
         [Tooltip("ค้นหาจากชื่อ GameObject/Animator ที่มีคำนี้ (ปล่อยว่างเพื่อหาทุกตัว)")] public string handAnimatorNameFilter = "Armature";
+
+        [Header("Ghost Spawn Hide")] [Tooltip("วัตถุ/โมเดลที่ต้องการให้หายไปเมื่อเข้าสู่สถานะ GhostSpawn")] public GameObject hideOnGhostSpawn;
 
         [Header("Debug / Dev")] public bool debugSkipToSleepEndOnStart = false; public KeyCode debugSkipKey = KeyCode.F9;
 #if ENABLE_INPUT_SYSTEM
@@ -264,6 +269,7 @@ namespace ARKOM.Story
         private void OnPowerRestored(PowerRestoredEvent _)
         {
             DLog("OnPowerRestored received (state=" + state + ")");
+
             if (state != StoryState.RestorePower)
             {
                 DLog("Ignored PowerRestoredEvent because state != RestorePower");
@@ -273,14 +279,13 @@ namespace ARKOM.Story
             if (tv) tv.PreparePostRestoreNews();
             if (upstairsFootstepVoice)
                 AudioSource.PlayClipAtPoint(upstairsFootstepVoice, player ? player.transform.position : transform.position, upstairsFootstepVoiceVolume);
-            if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource, 4f);
+
+            // เข้าสู่ขั้น InvestigateUpstairs ก่อน (อย่าข้ามไป FindOoy ทันที เพื่อให้ขึ้นฮินต์ 'ตามหาต้นตอของเสียง')
             SetState(StoryState.InvestigateUpstairs);
+            if (!string.IsNullOrEmpty(objectiveFindNoiseSource)) ShowHint(objectiveFindNoiseSource, 4f);
 
             if (startRadioOnPowerRestore)
                 TryStartUpstairsRadioDelayed();
-
-            if (!requireDiaryBeforeOoy)
-                SetState(StoryState.FindOoy);
         }
 
         private void OnPlayerSeated(PlayerSeatedEvent e)
@@ -504,10 +509,20 @@ namespace ARKOM.Story
                 sleepEndBgSource.clip = sleepEndBackgroundClip; sleepEndBgSource.volume = sleepEndBackgroundVolume; sleepEndBgSource.Play();
             }
             StartCoroutine(SleepEndTextRoutine());
+            if (loadStartSceneAfterDelay && !string.IsNullOrEmpty(startSceneName)) StartCoroutine(LoadStartSceneRoutine());
         }
         private IEnumerator SleepEndTextRoutine()
         {
             if (!useProgressiveHints) yield break; if (!useHintPresenterForSleepEndText) yield break; if (string.IsNullOrEmpty(sleepEndDisplayText)) yield break; if (sleepEndTextDelay > 0f) yield return new WaitForSeconds(sleepEndTextDelay); ShowHint(sleepEndDisplayText, sleepEndTextDuration);
+        }
+        private IEnumerator LoadStartSceneRoutine()
+        {
+            if (loadStartDelay > 0f) yield return new WaitForSecondsRealtime(loadStartDelay);
+            // ป้องกันโหลดซ้ำถ้าผู้เล่นออกเกมไปแล้วหรือ state เปลี่ยน
+            if (state != StoryState.SleepEnd) yield break;
+            // ถ้าอยู่ในซีน Start แล้วไม่ต้องโหลดซ้ำ
+            if (SceneManager.GetActiveScene().name == startSceneName) yield break;
+            SceneManager.LoadScene(startSceneName);
         }
 
         // ===== Helpers =====
@@ -530,9 +545,14 @@ namespace ARKOM.Story
                 needPliersHint = originalNeedPliersHint; // revert
             }
             DLog($"State -> {newState} (from {prev})"); EventBus.Publish(new StoryStateChangedEvent(prev, newState));
-            // NEW: ยิง event ขอเล่นเสียงผู้เล่นตามสถานะ (lineId รูปแบบ state_<ชื่อ>)
             string voiceId = "state_" + newState.ToString();
             EventBus.Publish(new PlayerVoiceRequestEvent(voiceId));
+
+            // ซ่อนวัตถุเมื่อเข้าสู่ GhostSpawn
+            if (newState == StoryState.GhostSpawn && hideOnGhostSpawn)
+            {
+                hideOnGhostSpawn.SetActive(false);
+            }
         }
         void Update()
         {
@@ -719,11 +739,34 @@ namespace ARKOM.Story
         public void NotifyMysteryBoxAttempt()
         {
             if (!hintNotesOnBoxAttempt) return; // using old flow
-            if (mysteryBoxAttempted) return; // show only once
+            if (state == StoryState.FindNotes)
+            {
+                if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 999f);
+                return;
+            }
+            // แก้: อนุญาตให้กดกล่องซ้ำใน GhostSpawn เพื่อโชว์ฮินต์อีกครั้ง แม้เคย attempt แล้ว
+            if (mysteryBoxAttempted && (state == StoryState.GhostSpawn || state == StoryState.BreakerFail))
+            {
+                if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 999f);
+                return;
+            }
+            if (mysteryBoxAttempted) return; // other states reuse old guard
             if (state != StoryState.GhostSpawn && state != StoryState.BreakerFail) return; // only during chase phase before notes state
             mysteryBoxAttempted = true;
             SetState(StoryState.FindNotes);
-            if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 5f);
+            if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 999f);
+        }
+
+        public void OnMysteryBoxClosed(bool success)
+        {
+            if (success) return;
+            if (state == StoryState.FindNotes && !string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 999f);
+        }
+
+        // Force re-show findNotes hint from external (LockedContainerInteractable)
+        public void ForceFindNotesHint()
+        {
+            if (!string.IsNullOrEmpty(findNotesHint)) ShowHint(findNotesHint, 999f);
         }
     }
 }

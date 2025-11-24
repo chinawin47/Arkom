@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VoiceLine_Asset 5
   m_EditorClassIdentifier: 
   lineId: 5
-  clip: {fileID: 8300000, guid: 6de1d9ba6f627564b8d8552269f8a801, type: 3}
+  clip: {fileID: 8300000, guid: b404ba0d2f142ce45adddf1c50044762, type: 3}
   subtitle: 
   priority: 1
   cooldown: 5

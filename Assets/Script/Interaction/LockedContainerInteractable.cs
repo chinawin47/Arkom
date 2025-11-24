@@ -42,10 +42,15 @@ public class LockedContainerInteractable : Interactable
     {
         if (opened && oneShot) return;
 
-        // ???? SequenceController ??????? Hint ???? (????????????????) ???????????????????
+        // ???? SequenceController ??????????? Hint (???????????? GhostSpawn ???????? Hint)
         if (SequenceController.Instance) SequenceController.Instance.NotifyMysteryBoxAttempt();
+        if (SequenceController.Instance && SequenceController.Instance.CurrentState == SequenceController.StoryState.FindNotes)
+        {
+            // ?????? re-show hint ????????????????????????
+            SequenceController.Instance.ForceFindNotesHint();
+        }
 
-        // ===== ????????? =====
+        // ===== PIN =====
         if (!string.IsNullOrEmpty(pinCode))
         {
             if (requireOpenMysteryBoxState && SequenceController.Instance && SequenceController.Instance.CurrentState != SequenceController.StoryState.OpenMysteryBox)
@@ -64,7 +69,11 @@ public class LockedContainerInteractable : Interactable
             pinUI.Show(pinCode, (ok) =>
             {
                 awaitingPin = false;
-                if (ok) OpenNow(); else if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
+                if (ok) OpenNow(); else {
+                    if (lockedSfx) AudioSource.PlayClipAtPoint(lockedSfx, transform.position, volume);
+                    // ??? UI ???????? hint ??????????????????????
+                    if (SequenceController.Instance) SequenceController.Instance.OnMysteryBoxClosed(false);
+                }
             });
             return;
         }
@@ -79,6 +88,8 @@ public class LockedContainerInteractable : Interactable
         if (openedVisual) openedVisual.SetActive(true);
         if (openSfx) AudioSource.PlayClipAtPoint(openSfx, transform.position, volume);
         EventBus.Publish(new BoxUnlockedEvent());
+
+        if (SequenceController.Instance) SequenceController.Instance.OnMysteryBoxClosed(true);
 
         // Animate lid if provided
         if (lid)
