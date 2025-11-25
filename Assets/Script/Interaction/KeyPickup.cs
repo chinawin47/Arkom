@@ -12,11 +12,11 @@ public class KeyPickup : PickupInteractable
     public string needPowerHint = "ไฟยังไม่มา อย่าเพิ่งเก็บกุญแจตอนนี้";
     [Tooltip("ข้อความที่แสดงเมื่อเก็บสำเร็จ")] public string pickupHint = "ได้กุญแจมาแล้ว";
 
+    // ปลดล็อกได้เมื่อได้รับ PowerRestoredEvent
     private bool canPickup = false;
 
     private void OnEnable()
     {
-        // ฟัง event จาก EventBus
         EventBus.Subscribe<PowerRestoredEvent>(OnPowerRestored);
     }
 
@@ -36,9 +36,9 @@ public class KeyPickup : PickupInteractable
     {
         if (!canPickup)
         {
+            // ยังไฟไม่มา แสดงฮินต์และบล็อก
+            SequenceController.Instance?.ShowTempHint(needPowerHint, 2.0f);
             Debug.Log("❌ ยังเก็บกุญแจไม่ได้ ต้องเปิดไฟก่อน!");
-            // ถ้ามีระบบ UIHint:
-            // SequenceController.Instance?.ShowTempHint("ไฟยังไม่มา เก็บไม่ได้",2.5f);
             return;
         }
 
@@ -47,17 +47,14 @@ public class KeyPickup : PickupInteractable
 
     protected override void ApplyPickup(PlayerController player)
     {
-        // ✅ เช็กว่าไฟเปิดครบ3 ฟิวส์หรือยังจาก SequenceController
-        if (SequenceController.Instance != null && !SequenceController.Instance.PlatesCleaned)
-        {
-            SequenceController.Instance.ShowTempHint(needPowerHint,2.5f);
-            return; // ❌ หยุด ไม่ให้เก็บกุญแจ
-        }
-
-        // ✅ เก็บกุญแจปกติ
+        // อนุญาตให้เก็บได้เลยเพราะตรวจ canPickup ไปแล้วใน OnInteract
         Keyring.Add(keyId);
-        if (!string.IsNullOrEmpty(pickupHint))
-            SequenceController.Instance?.ShowTempHint(pickupHint,2.5f);
+
+        // แจ้งระบบเนื้อเรื่องให้ไปแสดงฮินต์เป้าหมายต่อไป (เช่น ไปที่วิทยุ) แทนที่ฮินต์ "ได้กุญแจมาแล้ว"
+        EventBus.Publish(new KeyPickedEvent(keyId));
+
+        // ไม่แสดงฮินต์ "ได้กุญแจมาแล้ว" เพื่อไม่ให้ค้างทับเป้าหมายต่อไปบน HintText
+        // ถ้าต้องการ feedback ให้ใช้เสียงหรือ VFX แทน
     }
 }
 

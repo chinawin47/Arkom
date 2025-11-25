@@ -16916,10 +16916,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cf5cd94ae092cf499692e05da1c7e8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WalkSpeed: 1.6
-  RunSpeed: 4.5
+  WalkSpeed: 20
+  RunSpeed: 20
   followDistance: 3
-  turnSpeed: 5
+  turnSpeed: 15
   catchTriggerDistance: 1.2
   animSpeedParam: Speed
   animRunParam: Run

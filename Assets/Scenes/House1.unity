@@ -5387,6 +5387,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8525300410451750674, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 759507375}
+    - targetCorrespondingSourceObject: {fileID: 4174710622956365796, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 285416425}
     - targetCorrespondingSourceObject: {fileID: 9147200012248398483, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 377226003}
@@ -5394,6 +5397,33 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 377226002}
   m_SourcePrefab: {fileID: 100100000, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
+--- !u!1 &285416424 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4174710622956365796, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
+  m_PrefabInstance: {fileID: 285416423}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &285416425
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 285416424}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -8680674633346399365, guid: 3f64169a09b14bc478031db4f147e28a, type: 3}
 --- !u!1 &295840800 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6552957055287526026, guid: 2cf6f05f062185c4cb18c68486640cc2, type: 3}
@@ -10475,7 +10505,7 @@ MonoBehaviour:
   hideSfx: {fileID: 0}
   sfxVolume: 1
   keyId: Pliers
-  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
+  needPowerHint: "\u0E44\u0E1F\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E04\u0E35\u0E21\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49"
   pickupHint: "\u0E44\u0E14\u0E49\u0E04\u0E35\u0E21\u0E21\u0E32\u0E41\u0E25\u0E49\u0E27"
 --- !u!1 &625825234
 GameObject:
@@ -23812,7 +23842,7 @@ MonoBehaviour:
   requiresKey: 1
   requiredKeyId: UpstairsDoorKey
   additionalAcceptedKeyIds: []
-  requireAllKeys: 0
+  requireAllKeys: 1
   needKeyHint: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E02\u0E02\u0E36\u0E49\u0E19\u0E44\u0E1B\u0E02\u0E49\u0E32\u0E07\u0E1A\u0E19"
   requireStoryGate: 1
   requiredStoryState: 2
@@ -24739,8 +24769,7 @@ MonoBehaviour:
   maxVoiceWaitSeconds: 3
   pliersToolId: Pliers
   needPliersHint: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E04\u0E35\u0E21\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E25\u0E14\u0E42\u0E0B\u0E48"
-  restorePowerBlockHint: "\u0E22\u0E31\u0E07\u0E43\u0E2A\u0E48\u0E1F\u0E34\u0E27\u0E2A\u0E4C\u0E44\u0E21\u0E48\u0E04\u0E23\u0E1A
-    \u0E25\u0E07\u0E44\u0E1B\u0E43\u0E2A\u0E48\u0E43\u0E2B\u0E49\u0E04\u0E23\u0E1A\u0E01\u0E48\u0E2D\u0E19"
+  restorePowerBlockHint: "\u0E43\u0E2A\u0E48\u0E1F\u0E34\u0E27\u0E2A\u0E4C\u0E43\u0E2B\u0E49\u0E04\u0E23\u0E1A"
   upstairsFootstepVoice: {fileID: 0}
   upstairsFootstepVoiceVolume: 1
   objectiveFindNoiseSource: "\u0E15\u0E32\u0E21\u0E2B\u0E32\u0E15\u0E49\u0E19\u0E15\u0E2D\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07"
@@ -24769,7 +24798,7 @@ MonoBehaviour:
   sleepEndBackgroundLoop: 1
   loadStartSceneAfterDelay: 1
   startSceneName: Start
-  loadStartDelay: 10
+  loadStartDelay: 5
   handCoverAnimator: {fileID: 1336907152}
   handCoverTrigger: CoverFace
   handCoverDuration: 5
@@ -27583,9 +27612,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 1d731a99f8e48754aa6da51da36b6141, type: 3}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: runSpeed
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: sfxSource
       value: 
       objectReference: {fileID: 1461938030}
+    - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
+      propertyPath: walkSpeed
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 5720004130463691821, guid: 9984d54f188f52b4f89274d8c841a2c9, type: 3}
       propertyPath: holdAnchor
       value: 

@@ -84,7 +84,7 @@ namespace ARKOM.Story
         [Header("Upstairs Unlock Flow")]
         public string pliersToolId = "Pliers"; public string needPliersHint = "ตามหาคีมเพื่อปลดโซ่"; // original hint
         [Tooltip("ข้อความแทน needPliersHint เมื่อต้องการบอกให้ผู้เล่นใส่ฟิวส์ให้ครบก่อนขึ้นชั้นบน")]
-        public string restorePowerBlockHint = "ยังใส่ฟิวส์ไม่ครบ ลงไปใส่ให้ครบก่อน";
+        public string restorePowerBlockHint = "ใส่ฟิวส์ให้ครบ";
         private string originalNeedPliersHint; // backup
         [Tooltip("เสียงเท้าบนชั้นบนเมื่อ RestorePower สำเร็จ เพื่อดึงความสนใจขึ้นไป")] public AudioClip upstairsFootstepVoice; [Range(0f,1f)] public float upstairsFootstepVoiceVolume = 1f;
         public string objectiveFindNoiseSource = "ตามหาต้นตอของเสียง";
@@ -509,6 +509,8 @@ namespace ARKOM.Story
                 sleepEndBgSource.clip = sleepEndBackgroundClip; sleepEndBgSource.volume = sleepEndBackgroundVolume; sleepEndBgSource.Play();
             }
             StartCoroutine(SleepEndTextRoutine());
+            // Mark reset moved to global SceneStartupReset, no direct dependency
+            // if (loadStartSceneAfterDelay) GameReturnReset.Pending = true;
             if (loadStartSceneAfterDelay && !string.IsNullOrEmpty(startSceneName)) StartCoroutine(LoadStartSceneRoutine());
         }
         private IEnumerator SleepEndTextRoutine()
@@ -600,11 +602,12 @@ namespace ARKOM.Story
 
         private void OnKeyPickedGeneric(KeyPickedEvent e)
         {
+            // คืนค่า logic เดิม: แสดง goTurnOffRadioHint เมื่อได้กุญแจ (UpstairsDoorKey) หลัง RestorePower
             if (e.KeyId == "UpstairsDoorKey")
             {
-                // ถ้ายังไม่ได้ RestorePower → ย้ำให้ไปใส่ฟิวส์
                 if (state == StoryState.RestorePower)
                 {
+                    // ยังอยู่ขั้น RestorePower → ย้ำให้ทำฟิวส์ให้ครบก่อน
                     ShowContextualHintIfNeeded();
                     return;
                 }
@@ -636,19 +639,28 @@ namespace ARKOM.Story
 
         private void OnFuseFound(FuseFoundEvent e)
         {
+            // แสดงฮินต์ให้ผู้เล่นรู้ว่ายังต้องใส่ฟิวส์ต่อจนกว่าจะ RestorePower สำเร็จ
+            bool stillRestoring = (state == StoryState.RestorePower);
             if (e.Location == FuseLocation.Upstairs)
             {
-                StartCoroutine(PlateCrashSequence());
+                DLog("FuseFound Upstairs (skip PlateCrashSequence)");
+                if (stillRestoring && !string.IsNullOrEmpty(restorePowerBlockHint)) ShowHint(restorePowerBlockHint, 4f);
                 return;
             }
             if (e.Location == FuseLocation.StorageRoom)
             {
-                if (storageFuseTriggered) return; storageFuseTriggered = true;
+                if (storageFuseTriggered) {
+                    if (stillRestoring && !string.IsNullOrEmpty(restorePowerBlockHint)) ShowHint(restorePowerBlockHint, 4f);
+                    return; }
+                storageFuseTriggered = true;
                 if (tv) { tv.PlayStatic(); }
                 if (ghostSpawner) ghostSpawner.SpawnAtIndex(1, GhostSpawner.GhostKind.NonChasing);
-                ShowHint("", 2.5f);
+                // แทนที่การเคลียร์ฮินต์เดิม ด้วยการย้ำว่าต้องใส่ฟิวส์ให้ครบ
+                if (stillRestoring && !string.IsNullOrEmpty(restorePowerBlockHint)) ShowHint(restorePowerBlockHint, 4f);
                 return;
             }
+            // ฟิวส์ตำแหน่งอื่น (ถ้ามี) ก็ให้ย้ำฮินต์
+            if (stillRestoring && !string.IsNullOrEmpty(restorePowerBlockHint)) ShowHint(restorePowerBlockHint, 4f);
         }
 
         private void OnPlayerCaughtReset(PlayerCaughtEvent _)
